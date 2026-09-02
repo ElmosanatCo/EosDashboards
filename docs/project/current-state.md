@@ -27,7 +27,7 @@ Initial authentication and application-shell implementation.
 - The independently buildable backend solution and React frontend foundation were scaffolded and verified.
 - The Domain authentication, session, role, preference, and audit state model was implemented and verified.
 - The Application authentication contracts and use cases were implemented and verified with correlation-aware audit attribution, non-cancelable OTP security commits, and access tokens capped by absolute session expiry.
-- EF Core SQL Server persistence, explicit repositories, guarded database integration tests, the initial identity migration, and its reviewed idempotent deployment script were implemented and verified.
+- EF Core SQL Server persistence, explicit repositories, guarded database integration tests, the initial identity migration, and its reviewed idempotent deployment script were implemented and review-hardened with tracked provisioning mutations plus live uniqueness and rowversion-concurrency coverage.
 
 ## In progress
 

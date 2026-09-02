@@ -14,7 +14,7 @@ public sealed class RepositoryTests(SqlServerDatabaseFixture database)
     private static readonly DateTimeOffset TestNow = new(2026, 9, 2, 8, 0, 0, TimeSpan.Zero);
 
     [Fact]
-    public async Task UserRepository_FindsUserByOrganizationalIdWithRoleAssignments()
+    public async Task UserRepository_OrganizationalLookupPersistsProvisioningMutations()
     {
         await using var context = database.CreateDbContext();
         var users = new UserRepository(context);
@@ -26,18 +26,32 @@ public sealed class RepositoryTests(SqlServerDatabaseFixture database)
         roles.Add(role);
         users.Add(user);
         await unitOfWork.SaveChangesAsync(CancellationToken.None);
-        user.AssignRole(role.Id);
-        await unitOfWork.SaveChangesAsync(CancellationToken.None);
         context.ChangeTracker.Clear();
 
         var found = await users.FindByOrganizationalIdAsync(
             $"org-{suffix}",
             CancellationToken.None);
+        found!.UpdateProfile(
+            $"updated-account-{suffix}",
+            "Updated",
+            "Profile",
+            "updated-protected-test-value",
+            "***1111",
+            TestNow.AddMinutes(1));
+        found.AssignRole(role.Id);
+        await unitOfWork.SaveChangesAsync(CancellationToken.None);
 
-        Assert.NotNull(found);
-        Assert.Equal(user.Id, found.Id);
-        Assert.Contains(found.UserRoles, assignment => assignment.RoleId == role.Id);
-        Assert.Empty(context.ChangeTracker.Entries());
+        await using var verificationContext = database.CreateDbContext();
+        var persisted = await verificationContext.Users
+            .AsNoTracking()
+            .Include(candidate => candidate.UserRoles)
+            .SingleAsync(candidate => candidate.Id == user.Id, CancellationToken.None);
+        Assert.Equal($"updated-account-{suffix}", persisted.AccountName);
+        Assert.Equal("Updated", persisted.FirstName);
+        Assert.Equal("Profile", persisted.LastName);
+        Assert.Equal("updated-protected-test-value", persisted.ProtectedMobileNumber);
+        Assert.Equal("***1111", persisted.MaskedMobileNumber);
+        Assert.Contains(persisted.UserRoles, assignment => assignment.RoleId == role.Id);
     }
 
     [Fact]

@@ -43,6 +43,8 @@ The confirmed high-level direction is:
 
 The API is thin. Application coordinates use cases and transaction boundaries. Domain contains business concepts and rules. Infrastructure alone accesses EF Core, SQL Server, directory services, and other external systems. Domain persistence entities are never exposed as public API contracts.
 
+The API project carries `Microsoft.EntityFrameworkCore.Design` as private design-time-only tooling metadata because EF CLI commands use API as the startup project and require a direct reference there. API source and runtime behavior do not access EF Core or the database; Infrastructure remains the sole database-access layer.
+
 ## Identity boundary
 
 Phase 1 is intranet-only. Windows/Active Directory establishes the user's organizational identity. Only active pre-provisioned database users may continue. Every new application session requires a six-digit SMS OTP. The OTP is valid for five minutes, permits five verification attempts, and has a 60-second resend cooldown.

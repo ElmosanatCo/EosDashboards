@@ -8,7 +8,6 @@ public sealed class UserRepository(EosDashboardDbContext context) : IUserReposit
 {
     public Task<User?> FindByOrganizationalIdAsync(string stableId, CancellationToken cancellationToken) =>
         context.Users
-            .AsNoTracking()
             .Include(user => user.UserRoles)
             .SingleOrDefaultAsync(user => user.OrganizationalId == stableId, cancellationToken);
 
