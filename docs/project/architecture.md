@@ -60,6 +60,9 @@ LDAP access, if required, is server-side and protected by TLS with certificate v
 ## Hosting topology
 
 - React UI and ASP.NET Core API are separate IIS sites/applications and separate application pools.
+- The SQL Server database and IIS targets currently available on the developer's machine are development-only targets for local integration and hosting. They are not production infrastructure.
+- The completed initial vertical slice will be published to those local development IIS targets after its API and frontend integration is verified.
+- Production deployment will occur later on separate company servers using separately approved hostnames, certificates, identities, configuration, secrets, and operational controls.
 - Only approved UI origins are allowed by API CORS policy.
 - HTTPS is mandatory and HSTS is enabled in production.
 - Environments, databases, configuration, secrets, deployment artifacts, and least-privilege runtime identities are separated.

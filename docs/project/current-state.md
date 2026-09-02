@@ -32,6 +32,7 @@ Initial authentication and application-shell implementation.
 - The replaceable company SOAP SMS adapter was implemented and verified: typed startup-validated HTTPS endpoint/timeout options, one named `HttpClient`, SOAP 1.1 request creation with XML-safe message/mobile serialization, a configured deadline across headers and asynchronously read body, a fully buffered 64 KiB response limit before DTD-prohibited EOF-complete parsing with exactly one result, safe failure mapping, caller-cancellation propagation, and no automatic retry.
 - The deployment-only System Administrator provisioner was implemented and verified: normalized idempotent user/role creation and profile updates, exact role-code validation, protected mobile storage with masked-only output, cross-process serialized transactional generated-ID/role/audit persistence, safe interactive confirmation, and composition independent of SMS configuration.
 - The user required a cost-conscious development workflow: focused essential tests during implementation, broad verification only at meaningful checkpoints, and no subagents or repeated independent review loops without explicit approval or exceptional documented risk.
+- The available SQL Server database and IIS sites are development-only resources on the user's machine. After Tasks 8–12 complete, Task 13 will deploy and smoke-test the integrated slice locally; production deployment to company servers remains a later, separate activity.
 
 ## In progress
 
@@ -40,6 +41,8 @@ Initial authentication and application-shell implementation.
 ## Next agreed step
 
 Execute Task 8 of `../superpowers/plans/2026-09-02-initial-authentication-shell.md`: secure API authentication, preferences, errors, and health.
+
+After Tasks 8–12, publish the verified API and React UI to the configured local development IIS targets and connect them to the local development database. Do not deploy to company production servers in this slice.
 
 ## Blockers
 
