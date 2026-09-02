@@ -86,20 +86,23 @@ This is the canonical implementation standard for EosDashboards. Feature specifi
 - Audit authentication, permission, administration, and sensitive export events without recording credentials, tokens, or sensitive payloads.
 - Address material dependency or security findings before merge, or record an explicitly approved exception.
 
-## 8. Organizational authentication
+## 8. Authentication
 
-- Phase 1 is intranet-only.
-- First visit and post-logout states show one button: organizational sign-in.
+- Phase 1 uses a pre-provisioned local username and password followed by mandatory SMS OTP.
+- First visit and post-logout states show the local sign-in form.
 - A valid application session signs the user in automatically without showing the sign-in page.
-- Windows/AD may recognize the internal organizational identity; application roles and policies remain authoritative for application access.
-- Logout revokes the application session even if the browser still has a Windows identity.
-- Every new phase-1 application session requires SMS OTP after organizational identity recognition; no local password is stored.
+- Application roles and policies remain authoritative for application access.
+- Logout revokes the application session.
+- Every new phase-1 application session requires SMS OTP after successful password verification.
+- Passwords are stored only as standard salted hashes. They are 8 to 128 characters long and have no character-class composition rule. Plaintext passwords never enter logs, audit records, error responses, source control, or tracked settings.
+- Signed-in password change requires the current password. Password recovery requires a purpose-isolated SMS OTP and never creates an authenticated session. Password change or reset revokes all active sessions for that user.
+- User and password administration UI are deferred. The controlled deployment tool is the sole account/password-management mechanism for this slice.
 - OTPs are six digits, valid for five minutes, limited to five verification attempts, and subject to a 60-second resend cooldown and endpoint rate limits.
 - Store OTPs only as keyed hashes and mobile numbers in protected encrypted form; mask mobile numbers in UI and logs.
 - An eight-hour application session uses ten-minute access tokens and a revocable refresh credential. Logout or expiry requires a new OTP.
-- Any LDAP interaction is server-side, uses TLS, validates certificates, and follows current directory hardening requirements.
+- Any future LDAP interaction is server-side, uses TLS, validates certificates, and follows current directory hardening requirements.
 - Never expose AD or LDAP directly to a browser or the internet.
-- External access, the precise AD/LDAP relationship, available Entra ID/AD FS services, and any future stronger-factor design remain deferred pending IT discovery.
+- Windows/AD, LDAP, Entra ID, AD FS, and any future stronger-factor design remain deferred pending IT discovery.
 - SMS OTP must remain replaceable behind an Application port and Infrastructure adapter; it is not treated as the sole permanent high-assurance option.
 
 ## 9. UI, RTL, and design system

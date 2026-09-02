@@ -30,4 +30,4 @@ The dashboards, metrics, source systems, update frequency, and success measures 
 
 ## Scope boundary
 
-The first release is intranet-only and starts with organizational sign-in plus mandatory SMS OTP. Internet-facing authentication, dashboard-specific reporting and alerting, user/role administration UI, data-entry workflows, and source-system integrations require later discovery and approval.
+The first release starts with pre-provisioned local username/password sign-in plus mandatory SMS OTP. User/role administration UI, Windows/AD and internet-facing authentication, dashboard-specific reporting and alerting, data-entry workflows, and source-system integrations require later discovery and approval.

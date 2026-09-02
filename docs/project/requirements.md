@@ -30,11 +30,11 @@ The CEO can monitor valuable company-wide information to support management deci
 
 One active user is pre-provisioned directly through a controlled deployment tool and assigned the System Administrator role with full application access. User and role administration screens are deferred.
 
-### FR-005 — Organizational sign-in with SMS OTP
+### FR-005 — Local credential sign-in with SMS OTP
 
 **Status:** Confirmed for phase 1
 
-The user starts sign-in with one organizational sign-in button. After Windows/AD identity recognition, every new application session requires a valid SMS OTP sent to the mobile number stored for that user. No local application password is used.
+The user signs in with a pre-provisioned username and password. After successful password verification, every new application session requires a valid SMS OTP sent to the mobile number stored for that user. A signed-in user can change their password by supplying the current password. A user who has forgotten a password can reset it by completing a separate SMS OTP challenge. User and password administration UI remain deferred; the deployment tool manages pre-provisioned accounts and passwords in this slice.
 
 ### FR-006 — Tabbed SPA workspace
 
@@ -108,7 +108,7 @@ The backend uses lightweight clean layering: API calls Application, Application 
 
 **Status:** Confirmed for phase 1
 
-The first release is intranet-only. First visit and post-logout states show one organizational sign-in button. A valid application session signs the user in automatically. Windows/Active Directory can establish organizational identity; all application authorization remains server-side.
+The first release uses pre-provisioned local usernames and passwords, followed by mandatory SMS OTP. First visit and post-logout states show the local sign-in form. A valid application session signs the user in automatically. Application authorization remains server-side. Passwords must be 8 to 128 characters long with no character-class composition rule; their plaintext values are never stored or logged.
 
 ### TC-011 — Separate hosting
 
