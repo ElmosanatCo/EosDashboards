@@ -45,11 +45,11 @@ Initial authentication and application-shell implementation.
 
 ## In progress
 
-- The approved local-credential authentication replacement is documented and awaiting written-spec review before implementation. It retains mandatory SMS OTP, adds password recovery and signed-in password change, keeps account/password administration in the private deployment tool, and replaces the current sparse sign-in page with the approved Persian RTL visual direction. The previous Windows-authentication browser smoke test is intentionally superseded; no additional Windows/AD, Chrome, or OTP test is needed before the new flow is implemented.
+- The approved local-credential authentication replacement has a reviewed implementation plan. It retains mandatory SMS OTP, adds password recovery and signed-in password change, keeps account/password administration in the private deployment tool, and replaces the current sparse sign-in page with the approved Persian RTL visual direction. The previous Windows-authentication browser smoke test is intentionally superseded; no additional Windows/AD, Chrome, or OTP test is needed before the new flow is implemented.
 
 ## Next agreed step
 
-Review the local-credential authentication design. After written approval, create and execute its focused implementation plan, publish the updated API/UI to the local development IIS applications, and complete one browser-based local sign-in flow with refresh and logout. Do not deploy to company production servers in this slice.
+Execute the focused local-credential implementation plan inline and without subagents, publish the updated API/UI to the local development IIS applications, and complete one browser-based local sign-in flow with refresh and logout. Do not deploy to company production servers in this slice.
 
 ## Blockers
 
