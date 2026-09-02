@@ -52,6 +52,16 @@ public sealed class UserSession
             throw new ArgumentException("A refresh credential hash is required.", nameof(replacementRefreshCredentialHash));
         }
 
+        if (string.Equals(
+                replacementRefreshCredentialHash,
+                RefreshCredentialHash,
+                StringComparison.Ordinal))
+        {
+            throw new ArgumentException(
+                "The replacement refresh credential hash must differ from the current hash.",
+                nameof(replacementRefreshCredentialHash));
+        }
+
         var normalizedRotatedAtUtc = rotatedAtUtc.ToUniversalTime();
         if (!IsActive(normalizedRotatedAtUtc))
         {
@@ -75,6 +85,9 @@ public sealed class UserSession
 
     public bool IsActive(DateTimeOffset atUtc)
     {
-        return !RevokedAtUtc.HasValue && atUtc.ToUniversalTime() < ExpiresAtUtc;
+        var normalizedAtUtc = atUtc.ToUniversalTime();
+        return !RevokedAtUtc.HasValue &&
+               CreatedAtUtc <= normalizedAtUtc &&
+               normalizedAtUtc < ExpiresAtUtc;
     }
 }

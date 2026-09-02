@@ -19,6 +19,15 @@ public sealed class UserSessionTests
     }
 
     [Fact]
+    public void Is_active_rejects_an_instant_before_session_creation()
+    {
+        // Break caught: accepting a session before its recorded creation time.
+        var session = UserSession.Create(1, "AABB", Now);
+
+        Assert.False(session.IsActive(Now.AddTicks(-1)));
+    }
+
+    [Fact]
     public void Rotate_replaces_refresh_hash_without_extending_absolute_expiry()
     {
         // Break caught: retaining a replaced refresh credential or extending the session on rotation.
@@ -30,6 +39,19 @@ public sealed class UserSessionTests
         Assert.Equal(Now.AddHours(1), session.LastRefreshedAtUtc);
         Assert.Equal(Now.AddHours(8), session.ExpiresAtUtc);
         Assert.False(session.IsActive(Now.AddHours(8)));
+    }
+
+    [Fact]
+    public void Rotate_rejects_the_existing_refresh_hash()
+    {
+        // Break caught: accepting refresh rotation that does not invalidate the current credential.
+        var session = UserSession.Create(1, "AABB", Now);
+
+        Assert.Throws<ArgumentException>(() => session.Rotate("AABB", Now.AddHours(1)));
+
+        Assert.Equal("AABB", session.RefreshCredentialHash);
+        Assert.Null(session.LastRefreshedAtUtc);
+        Assert.Equal(Now.AddHours(8), session.ExpiresAtUtc);
     }
 
     [Fact]
