@@ -1,6 +1,6 @@
 # 0001 — Repository-based project memory
 
-**Status:** Accepted  
+**Status:** Accepted
 **Date:** 2026-09-02
 
 ## Context
