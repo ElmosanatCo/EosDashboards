@@ -46,6 +46,7 @@ Initial authentication and application-shell implementation.
 ## In progress
 
 - The approved local-credential authentication replacement has a reviewed implementation plan. It retains mandatory SMS OTP, adds password recovery and signed-in password change, keeps account/password administration in the private deployment tool, and replaces the current sparse sign-in page with the approved Persian RTL visual direction. The previous Windows-authentication browser smoke test is intentionally superseded; no additional Windows/AD, Chrome, or OTP test is needed before the new flow is implemented.
+- A local provisioning defect was identified: Persian administrator profile text was corrupted while being passed from the deployment helper to its child process, despite Unicode SQL Server columns. The deployment helper is being hardened to require explicit UTF-8 process input and a non-sensitive Unicode integrity check before the affected local record is repaired. No private value is recorded in repository documentation.
 
 ## Next agreed step
 

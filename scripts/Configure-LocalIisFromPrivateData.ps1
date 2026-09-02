@@ -196,6 +196,9 @@ function Invoke-ProvisionerWithPrivateInput {
     $startInfo.RedirectStandardOutput = $true
     $startInfo.RedirectStandardError = $true
     $startInfo.CreateNoWindow = $true
+    $startInfo.StandardInputEncoding = [System.Text.UTF8Encoding]::new($false)
+    $startInfo.StandardOutputEncoding = [System.Text.UTF8Encoding]::new($false)
+    $startInfo.StandardErrorEncoding = [System.Text.UTF8Encoding]::new($false)
 
     $process = New-Object System.Diagnostics.Process
     $process.StartInfo = $startInfo

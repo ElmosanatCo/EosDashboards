@@ -5,6 +5,9 @@ using EosDashboards.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+Console.InputEncoding = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+Console.OutputEncoding = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
 var configuration = new ConfigurationBuilder()
     .AddUserSecrets(typeof(AdminProvisionerRunner).Assembly, optional: true)
     .AddEnvironmentVariables()

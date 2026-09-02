@@ -141,6 +141,13 @@ resources/
 - Optimize fonts and images before use and avoid uncontrolled duplicate copies.
 - Never commit confidential or redistribution-restricted assets.
 
+## 10.1 Unicode data integrity
+
+- Treat Persian and every other non-ASCII value as Unicode end-to-end.
+- At every cross-process, file, database, and external-service text boundary, explicitly select UTF-8 or the destination's documented Unicode encoding. Do not rely on Windows console code pages or process defaults.
+- Before a deployment or provisioning tool writes user-supplied text, verify text-boundary integrity with a synthetic Unicode probe or non-sensitive validation result. Do not reveal the supplied value in logs, diagnostics, source control, or test output.
+- Use Unicode SQL Server data types (`nvarchar`/`nchar`) for application text that can contain Persian or other non-ASCII characters.
+
 ## 11. Localization, time, and accessibility
 
 - Store instants in a normalized universal representation and convert only at boundaries.
@@ -228,6 +235,7 @@ resources/
 - Expose appropriately protected liveness and readiness endpoints.
 - Retain the previous deployable artifact and a documented application rollback procedure.
 - Record deployment version, operator/process, result, migration, smoke-test outcome, and rollback if used.
+- Treat correct preservation of non-ASCII provisioned profile text as a deployment smoke-test requirement whenever provisioning input is changed.
 
 ## 18. Backup and recovery
 

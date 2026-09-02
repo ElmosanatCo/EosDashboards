@@ -354,6 +354,29 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
         Assert.DoesNotContain("09120006789", console.Transcript, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void InteractiveInputPreservesUnicodeProfileNames()
+    {
+        const string firstName = "\u0646\u0627\u0645";
+        const string lastName = "\u0622\u0632\u0645\u0648\u0646";
+        var console = new RecordingConsole(
+            [
+                "org-synthetic-unicode",
+                "domain\\synthetic.unicode",
+                firstName,
+                lastName,
+                "yes",
+            ],
+            "09120006789");
+        var input = new InteractiveInput(console, new MaskOnlyMobileProtector());
+
+        var command = input.Read();
+
+        Assert.NotNull(command);
+        Assert.Equal(firstName, command!.FirstName);
+        Assert.Equal(lastName, command.LastName);
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]

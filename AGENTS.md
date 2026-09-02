@@ -58,6 +58,8 @@ Before finishing a task, update the appropriate canonical document when a durabl
 - Do not use subagents, parallel review loops, or repeated independent reviews unless the user explicitly requests them or a concrete high-risk blocker cannot be resolved efficiently in the primary task.
 - Prefer focused tests for changed behavior and critical security boundaries; do not add redundant, low-value, or coverage-only tests.
 - Keep files focused so future tasks can load only relevant context.
+- Treat Persian and every other non-ASCII value as Unicode end-to-end. At a cross-process, file, database, or web-service boundary, explicitly select UTF-8 or the destination's documented Unicode encoding; never depend on a Windows console code page or process default.
+- Before a deployment tool writes user-supplied text, validate that the text survives its boundary unchanged. Use a synthetic Unicode probe or a non-sensitive integrity result and never expose the checked value in logs, diagnostics, source control, or test output.
 
 ## Integration and publication
 
