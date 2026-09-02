@@ -31,6 +31,7 @@ public sealed class ProvisionSystemAdministrator(
     private const string SystemAdministratorRoleCode = "SystemAdministrator";
     private const string SystemAdministratorDisplayName = "مدیر سامانه";
     private const string ProvisioningEventCode = "SystemAdministratorProvisioned";
+    private const string ProvisioningOperationKey = "ProvisionSystemAdministrator";
 
     public async Task<ProvisionSystemAdministratorResult> HandleAsync(
         ProvisionSystemAdministratorCommand command,
@@ -52,14 +53,19 @@ public sealed class ProvisionSystemAdministrator(
         var traceId = correlationContext.TraceId;
         User? provisionedUser = null;
 
-        await unitOfWork.ExecuteInTransactionAsync(
+        await unitOfWork.ExecuteSerializedTransactionAsync(
+            ProvisioningOperationKey,
             async transactionCancellationToken =>
             {
                 var role = await roles.FindByCodeAsync(
                     SystemAdministratorRoleCode,
                     transactionCancellationToken);
                 if (role is not null &&
-                    (!role.IsActive ||
+                    (!string.Equals(
+                         role.Code,
+                         SystemAdministratorRoleCode,
+                         StringComparison.Ordinal) ||
+                     !role.IsActive ||
                      !role.IsSystem ||
                      !string.Equals(
                          role.DisplayName,

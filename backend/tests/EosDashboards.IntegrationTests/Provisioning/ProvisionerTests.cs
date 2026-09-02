@@ -142,6 +142,173 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
     }
 
     [Fact]
+    public async Task CaseInsensitiveRoleLookupRejectsMisCasedStoredCodeWithoutDisclosure()
+    {
+        const string storedRoleCode = "systemadministrator";
+        const string organizationalId = "ORG-SYNTHETIC-ROLE-DRIFT";
+        const string accountName = "DOMAIN\\SYNTHETIC.ROLE-DRIFT";
+        const string firstName = "SyntheticRoleDriftFirst";
+        const string lastName = "SyntheticRoleDriftLast";
+        const string mobile = "09120003333";
+        await ResetProvisioningStateAsync();
+
+        try
+        {
+            long roleId;
+            await using (var seedContext = database.CreateDbContext())
+            {
+                var role = Role.Create(storedRoleCode, "مدیر سامانه", true, TestNow);
+                seedContext.Roles.Add(role);
+                await seedContext.SaveChangesAsync();
+                roleId = role.Id;
+            }
+
+            using var keyRing = TemporaryKeyRing.Create();
+            var mobileProtector = new DataProtectionMobileProtector(
+                DataProtectionProvider.Create(keyRing.Path));
+            await using var context = database.CreateDbContext();
+            var sut = new ProvisionSystemAdministrator(
+                new FixedClock(TestNow),
+                new FixedCorrelationContext("trace-synthetic-role-drift"),
+                new UserRepository(context),
+                new RoleRepository(context),
+                mobileProtector,
+                new AuditWriter(context, new FixedClock(TestNow)),
+                new EfUnitOfWork(context));
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => sut.HandleAsync(
+                    new ProvisionSystemAdministratorCommand(
+                        organizationalId,
+                        accountName,
+                        firstName,
+                        lastName,
+                        mobile),
+                    CancellationToken.None));
+
+            Assert.Equal("The system administrator role is not valid.", exception.Message);
+            var diagnosticText = exception.Message;
+            Assert.DoesNotContain(storedRoleCode, diagnosticText, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain(organizationalId, diagnosticText, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain(accountName, diagnosticText, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain(firstName, diagnosticText, StringComparison.Ordinal);
+            Assert.DoesNotContain(lastName, diagnosticText, StringComparison.Ordinal);
+            Assert.DoesNotContain(mobile, diagnosticText, StringComparison.Ordinal);
+
+            await using var verificationContext = database.CreateDbContext();
+            var roleAfterFailure = await verificationContext.Roles
+                .AsNoTracking()
+                .SingleAsync(item => item.Id == roleId);
+            Assert.Equal(storedRoleCode, roleAfterFailure.Code);
+            Assert.False(await verificationContext.Users.AnyAsync(
+                item => item.OrganizationalId == organizationalId));
+            Assert.False(await verificationContext.UserRoles.AnyAsync(
+                item => item.RoleId == roleId));
+            Assert.False(await verificationContext.AuditLogs.AnyAsync(
+                item => item.TraceId == "trace-synthetic-role-drift"));
+        }
+        finally
+        {
+            await ResetProvisioningStateAsync();
+        }
+    }
+
+    [Fact]
+    public async Task ConcurrentProvisioningSerializesAcrossContextsWithoutTornProfileData()
+    {
+        await ResetProvisioningStateAsync();
+        using var keyRing = TemporaryKeyRing.Create();
+        var mobileProtector = new DataProtectionMobileProtector(
+            DataProtectionProvider.Create(keyRing.Path));
+        var coordinator = new TwoParticipantReadCoordinator();
+        var firstCommand = new ProvisionSystemAdministratorCommand(
+            "org-synthetic-concurrent",
+            "domain\\synthetic.concurrent-one",
+            "SyntheticConcurrentFirstOne",
+            "SyntheticConcurrentLastOne",
+            "09120001111");
+        var secondCommand = new ProvisionSystemAdministratorCommand(
+            "ORG-SYNTHETIC-CONCURRENT",
+            "DOMAIN\\SYNTHETIC.CONCURRENT-TWO",
+            "SyntheticConcurrentFirstTwo",
+            "SyntheticConcurrentLastTwo",
+            "09350002222");
+
+        try
+        {
+            var results = await Task.WhenAll(
+                ProvisionConcurrentlyOnceAsync(firstCommand, mobileProtector, coordinator),
+                ProvisionConcurrentlyOnceAsync(secondCommand, mobileProtector, coordinator));
+
+            Assert.Equal(2, results.Length);
+            Assert.Equal(
+                ["*******1111", "*******2222"],
+                results.Select(item => item.MaskedMobile).Order().ToArray());
+            await using var verificationContext = database.CreateDbContext();
+            var user = await verificationContext.Users
+                .AsNoTracking()
+                .Include(item => item.UserRoles)
+                .SingleAsync(item => item.OrganizationalId == "ORG-SYNTHETIC-CONCURRENT");
+            var role = await verificationContext.Roles
+                .AsNoTracking()
+                .SingleAsync(item => item.Code == "SystemAdministrator");
+            Assert.True(user.IsActive);
+            Assert.Equal(
+                1,
+                await verificationContext.Users.CountAsync(
+                    item => item.OrganizationalId == "ORG-SYNTHETIC-CONCURRENT"));
+            Assert.Equal(
+                1,
+                await verificationContext.Roles.CountAsync(
+                    item => item.Code == "SystemAdministrator"));
+            var assignment = Assert.Single(user.UserRoles);
+            Assert.Equal(user.Id, assignment.UserId);
+            Assert.Equal(role.Id, assignment.RoleId);
+
+            var completeProfile = (
+                user.AccountName,
+                user.FirstName,
+                user.LastName,
+                Mobile: mobileProtector.Unprotect(user.ProtectedMobileNumber),
+                user.MaskedMobileNumber);
+            var firstExpectedProfile = (
+                AccountName: "DOMAIN\\SYNTHETIC.CONCURRENT-ONE",
+                FirstName: "SyntheticConcurrentFirstOne",
+                LastName: "SyntheticConcurrentLastOne",
+                Mobile: "09120001111",
+                MaskedMobileNumber: "*******1111");
+            var secondExpectedProfile = (
+                AccountName: "DOMAIN\\SYNTHETIC.CONCURRENT-TWO",
+                FirstName: "SyntheticConcurrentFirstTwo",
+                LastName: "SyntheticConcurrentLastTwo",
+                Mobile: "09350002222",
+                MaskedMobileNumber: "*******2222");
+            Assert.True(
+                completeProfile == firstExpectedProfile || completeProfile == secondExpectedProfile,
+                "The persisted profile must be one complete serialized input.");
+
+            var audits = await verificationContext.AuditLogs
+                .AsNoTracking()
+                .Where(item =>
+                    item.EventCode == "SystemAdministratorProvisioned" &&
+                    item.SubjectUserId == user.Id)
+                .ToListAsync();
+            Assert.Equal(2, audits.Count);
+            Assert.All(audits, audit =>
+            {
+                Assert.Null(audit.ActorUserId);
+                Assert.Equal(user.Id, audit.SubjectUserId);
+                Assert.True(audit.Succeeded);
+                Assert.Null(audit.SafeMetadata);
+            });
+        }
+        finally
+        {
+            await ResetProvisioningStateAsync();
+        }
+    }
+
+    [Fact]
     public void ProvisionerCompositionStartsWithoutSmsConfiguration()
     {
         using var keyRing = TemporaryKeyRing.Create();
@@ -246,6 +413,48 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
         return await sut.HandleAsync(command, CancellationToken.None);
     }
 
+    private async Task<ProvisionSystemAdministratorResult> ProvisionConcurrentlyOnceAsync(
+        ProvisionSystemAdministratorCommand command,
+        IMobileProtector mobileProtector,
+        TwoParticipantReadCoordinator coordinator)
+    {
+        await using var context = database.CreateDbContext();
+        var sut = new ProvisionSystemAdministrator(
+            new FixedClock(TestNow),
+            new FixedCorrelationContext(Guid.NewGuid().ToString("N")),
+            new UserRepository(context),
+            new CoordinatedRoleRepository(new RoleRepository(context), coordinator),
+            mobileProtector,
+            new AuditWriter(context, new FixedClock(TestNow)),
+            new EfUnitOfWork(context));
+        return await sut.HandleAsync(command, CancellationToken.None);
+    }
+
+    private async Task ResetProvisioningStateAsync()
+    {
+        await using var context = database.CreateDbContext();
+        await context.AuditLogs
+            .Where(item => item.EventCode == "SystemAdministratorProvisioned")
+            .ExecuteDeleteAsync();
+        var roleIds = await context.Roles
+            .Where(item => item.Code.ToUpper() == "SYSTEMADMINISTRATOR")
+            .Select(item => item.Id)
+            .ToArrayAsync();
+        if (roleIds.Length > 0)
+        {
+            await context.UserRoles
+                .Where(item => roleIds.Contains(item.RoleId))
+                .ExecuteDeleteAsync();
+        }
+
+        await context.Users
+            .Where(item => item.OrganizationalId.StartsWith("ORG-SYNTHETIC-"))
+            .ExecuteDeleteAsync();
+        await context.Roles
+            .Where(item => item.Code.ToUpper() == "SYSTEMADMINISTRATOR")
+            .ExecuteDeleteAsync();
+    }
+
     private static IConfiguration CreateSyntheticConfiguration(string keyRingPath)
     {
         var connectionString = new SqlConnectionStringBuilder
@@ -297,6 +506,47 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
         public string Unprotect(string protectedMobile) => throw new NotSupportedException();
 
         public string Mask(string normalizedMobile) => $"*******{normalizedMobile[^4..]}";
+    }
+
+    private sealed class CoordinatedRoleRepository(
+        IRoleRepository inner,
+        TwoParticipantReadCoordinator coordinator) : IRoleRepository
+    {
+        public async Task<Role?> FindByCodeAsync(
+            string code,
+            CancellationToken cancellationToken)
+        {
+            var role = await inner.FindByCodeAsync(code, cancellationToken);
+            await coordinator.SynchronizeAsync(cancellationToken);
+            return role;
+        }
+
+        public void Add(Role role) => inner.Add(role);
+    }
+
+    private sealed class TwoParticipantReadCoordinator
+    {
+        private readonly TaskCompletionSource _bothArrived =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private int _arrivalCount;
+
+        public async Task SynchronizeAsync(CancellationToken cancellationToken)
+        {
+            if (Interlocked.Increment(ref _arrivalCount) == 2)
+            {
+                _bothArrived.TrySetResult();
+                return;
+            }
+
+            try
+            {
+                await _bothArrived.Task.WaitAsync(TimeSpan.FromSeconds(2), cancellationToken);
+            }
+            catch (TimeoutException)
+            {
+                // A database-serialized second caller cannot reach this read until the first commits.
+            }
+        }
     }
 
     private sealed class RecordingConsole(

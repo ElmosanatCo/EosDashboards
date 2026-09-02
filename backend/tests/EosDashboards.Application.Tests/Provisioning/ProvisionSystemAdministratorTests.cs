@@ -351,10 +351,12 @@ public sealed class ProvisionSystemAdministratorTests
             return Task.FromResult(1);
         }
 
-        public async Task ExecuteInTransactionAsync(
+        public async Task ExecuteSerializedTransactionAsync(
+            string operationKey,
             Func<CancellationToken, Task> operation,
             CancellationToken cancellationToken)
         {
+            Assert.Equal("ProvisionSystemAdministrator", operationKey);
             var initialSaveCount = SaveCount;
             TransactionCount++;
             await operation(cancellationToken);

@@ -4,7 +4,8 @@ public interface IUnitOfWork
 {
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 
-    Task ExecuteInTransactionAsync(
+    Task ExecuteSerializedTransactionAsync(
+        string operationKey,
         Func<CancellationToken, Task> operation,
         CancellationToken cancellationToken);
 }

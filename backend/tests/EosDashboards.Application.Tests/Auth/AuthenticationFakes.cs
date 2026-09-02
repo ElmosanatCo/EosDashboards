@@ -242,7 +242,8 @@ internal sealed class FakeUnitOfWork(
         return Task.FromResult(1);
     }
 
-    public Task ExecuteInTransactionAsync(
+    public Task ExecuteSerializedTransactionAsync(
+        string operationKey,
         Func<CancellationToken, Task> operation,
         CancellationToken cancellationToken) => operation(cancellationToken);
 }
