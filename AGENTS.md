@@ -14,14 +14,18 @@
 - Database: SQL Server.
 - Frontend: React.js.
 - UI foundation: Material UI, Persian RTL, and the locally hosted Vazirmatn font.
+- Frontend behavior: React SPA with closable internal workspace tabs; the home tab is fixed.
 - Hosting: the React UI and ASP.NET Core API are separate IIS sites/applications with separate application pools.
 - Architecture: lightweight clean layering; API -> Application -> Domain, with Infrastructure as the only database and external-system access layer.
-- Authentication phase 1: company-internal organizational sign-in backed by Windows/AD; LDAP integration details remain subject to IT discovery.
+- Repository layout: independently openable `backend/` Visual Studio solution and `frontend/` VS Code workspace in one repository.
+- Authentication phase 1: Windows/AD organizational sign-in followed by mandatory SMS OTP for every new eight-hour application session; no local password.
+- Initial access: one pre-provisioned database user has the System Administrator role; user/role administration UI is deferred.
 - All principal application tables use auto-incrementing SQL Server `bigint` primary keys named `Id`, subject to the documented narrow exceptions.
+- Branding: company name is `علم و صنعت`; the approved supplied EOS logo is imported during implementation.
 - Documentation: concise, plain English.
 - User conversation: Persian unless the user requests otherwise.
 
-The full approved rules are in `docs/project/standards.md`. Do not choose unconfirmed versions, dashboard behavior, external authentication topology, data sources, or charting libraries without user approval.
+The full approved rules are in `docs/project/standards.md`. The approved initial vertical-slice design is in `docs/superpowers/specs/2026-09-02-initial-authentication-shell-design.md`. Do not choose unconfirmed dashboard behavior, external authentication topology, data sources, or charting libraries without user approval.
 
 ## Sources of truth
 

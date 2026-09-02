@@ -12,6 +12,42 @@ The system provides multiple dashboards for company managers.
 
 Acceptance criteria will be defined after the initial dashboards, metrics, users, and data sources are identified.
 
+### FR-002 — Department-oriented dashboard access
+
+**Status:** Confirmed
+
+Each manager can receive dashboards appropriate to the valuable data and responsibilities available in that manager's department. Exact assignments and permissions are deferred to dashboard discovery.
+
+### FR-003 — CEO overview
+
+**Status:** Confirmed
+
+The CEO can monitor valuable company-wide information to support management decisions. Exact executive metrics and sources are deferred to dashboard discovery.
+
+### FR-004 — Initial system administrator
+
+**Status:** Confirmed for the initial slice
+
+One active user is pre-provisioned directly through a controlled deployment tool and assigned the System Administrator role with full application access. User and role administration screens are deferred.
+
+### FR-005 — Organizational sign-in with SMS OTP
+
+**Status:** Confirmed for phase 1
+
+The user starts sign-in with one organizational sign-in button. After Windows/AD identity recognition, every new application session requires a valid SMS OTP sent to the mobile number stored for that user. No local application password is used.
+
+### FR-006 — Tabbed SPA workspace
+
+**Status:** Confirmed
+
+The React application is an SPA whose opened pages appear in closable internal workspace tabs. The home tab is fixed, duplicate logical pages focus their existing tab, parameter-distinct pages may open separately, and tab descriptors survive refresh within the current session but are cleared on logout.
+
+### FR-007 — Branding and status bar
+
+**Status:** Confirmed
+
+The UI displays the company name `علم و صنعت` and the approved EOS logo. The fixed bottom status bar displays the actual application version, live Asia/Tehran time, and Persian-calendar date.
+
 ## Confirmed technical constraints
 
 ### TC-001 — Web application
@@ -110,12 +146,30 @@ Persist instants in a normalized universal representation. Display dates using t
 
 Changes must satisfy the approved testing, security, observability, performance, deployment, backup, coding, and data-governance rules in `standards.md`.
 
+### TC-017 — Initial supported stack
+
+**Status:** Confirmed
+
+The initial foundation uses .NET 10 LTS, EF Core 10, React 19.2, TypeScript, Material UI 9, Node.js 24 LTS, and Vite. Patch releases are locked by generated dependency files and maintained within the supported release lines.
+
+### TC-018 — Independently openable frontend and backend
+
+**Status:** Confirmed
+
+The single repository contains a `backend/` Visual Studio solution and an independent `frontend/` VS Code application. They build, test, configure, and deploy separately.
+
+### TC-019 — Configurable integration and session values
+
+**Status:** Confirmed
+
+Database, JWT/session, OTP, and SMS service settings have typed API configuration sections. Secrets and environment-specific connection values are supplied outside tracked configuration files. The logical development database name is `EosDashboard`.
+
 ## Unresolved requirements
 
 - Dashboard catalogue, metrics, filters, and drill-down behavior.
-- User roles, authorization boundaries, and dashboard visibility.
+- Department roles, authorization boundaries, and dashboard visibility beyond the initial System Administrator.
 - Data sources, ownership, refresh frequency, and historical retention.
 - Exact performance service levels, availability targets, retention periods, approved organizational browser versions, and recovery objectives.
 - Exporting, printing, alerts, subscriptions, and administration capabilities.
 - Exact external-access identity topology and whether LDAP is distinct from Active Directory.
-- Future SMS OTP or stronger second-factor mechanism.
+- Whether a stronger additional factor should supplement or replace SMS OTP in a later release.

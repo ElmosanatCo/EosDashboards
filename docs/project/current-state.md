@@ -4,7 +4,7 @@
 
 ## Phase
 
-Requirements discovery.
+Initial authentication and application-shell design.
 
 ## Completed
 
@@ -17,14 +17,16 @@ Requirements discovery.
 - Material UI, RTL-first Persian presentation, theme behavior, the navy/teal default palette, and Vazirmatn were selected.
 - The approved standards were consolidated into canonical English and formal Persian documents.
 - The repository-level shared resource hierarchy was created.
+- The first implementation slice was approved: separate backend/frontend foundations, pre-provisioned system administrator, Windows/AD sign-in, mandatory SMS OTP, session management, and the initial SPA shell.
+- Company branding, footer version/date/time, and closable internal workspace tabs were approved.
 
 ## In progress
 
-- Product discovery: identifying the first dashboard's users, business questions, metrics, and data sources.
+- The approved initial-slice design is awaiting user review before implementation planning.
 
 ## Next agreed step
 
-Discover and confirm the first dashboard's users, business questions, metrics, and data sources before application scaffolding.
+Review and approve `../superpowers/specs/2026-09-02-initial-authentication-shell-design.md`, then prepare the implementation plan.
 
 ## Blockers
 

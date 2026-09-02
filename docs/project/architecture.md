@@ -11,7 +11,27 @@ EosDashboards is a web application with:
 - Entity Framework Core for data access;
 - SQL Server as the database platform.
 
-Material UI is the frontend component foundation. The exact supported framework versions and build tooling will be selected immediately before scaffolding from supported releases.
+The initial supported stack is .NET 10 LTS, EF Core 10, React 19.2, TypeScript, Material UI 9, Node.js 24 LTS, and Vite. Patch versions are resolved and locked during scaffolding.
+
+## Repository topology
+
+The repository keeps independently openable applications:
+
+```text
+backend/
+  EosDashboards.sln
+  src/{Domain,Application,Infrastructure,Api}
+  tools/EosDashboards.AdminProvisioner
+  tests/
+frontend/
+  src/
+  public/
+  tests/
+docs/
+resources/
+```
+
+The backend opens in Visual Studio. The frontend opens independently in VS Code. They build, test, configure, publish, and host separately.
 
 ## Conceptual data flow
 
@@ -25,7 +45,13 @@ The API is thin. Application coordinates use cases and transaction boundaries. D
 
 ## Identity boundary
 
-Phase 1 is intranet-only. Windows/Active Directory establishes the user's organizational identity and the application creates its own authorized session. The approved session design uses short-lived JWT access tokens held in browser memory and a revocable refresh mechanism in a Secure, HttpOnly cookie. Logout revokes the application session and returns to the single-button sign-in screen.
+Phase 1 is intranet-only. Windows/Active Directory establishes the user's organizational identity. Only active pre-provisioned database users may continue. Every new application session requires a six-digit SMS OTP. The OTP is valid for five minutes, permits five verification attempts, and has a 60-second resend cooldown.
+
+After OTP verification, the application creates an eight-hour session. Ten-minute JWT access tokens are held in browser memory and renewed through a hashed, revocable refresh credential carried only by a Secure, HttpOnly cookie. Logout or session expiry revokes access and returns to the single-button sign-in screen. No local password exists.
+
+The first user is created before application startup with an idempotent deployment-only administrator provisioning tool and receives the System Administrator role. Personal values and database credentials enter through secure runtime input and never enter source control.
+
+The company SMS service is integrated through an Infrastructure adapter for the `SendSmsMessage` SOAP operation. The endpoint and timeouts are typed configuration values; automated tests use a fake sender and never contact the real service. A send timeout is not automatically retried because the service does not provide an idempotency contract.
 
 LDAP access, if required, is server-side and protected by TLS with certificate validation. Directory protocols are never exposed directly to browsers or the internet. External access, the relationship between AD and LDAP, and possible Entra ID or AD FS capabilities remain deferred until IT discovery.
 
@@ -44,6 +70,21 @@ LDAP access, if required, is server-side and protected by TLS with certificate v
 - Principal tables use auto-incrementing `bigint` keys named `Id`; narrow exceptions are documented in `standards.md`.
 - Lazy loading is disabled. Reads favor projections and no tracking. Large results are filtered and paged on the server.
 - Business-operation transaction boundaries belong to Application and are implemented through Infrastructure.
+- The first migration contains `Users`, `Roles`, `UserRoles`, `OtpChallenges`, `UserSessions`, `UserPreferences`, and `AuditLogs`.
+- Mobile numbers are encrypted at application level with protected keys outside source control. OTP codes and refresh credentials are stored only as keyed hashes.
+
+## Frontend workspace
+
+The frontend is an RTL-first React SPA. Internal workspace tabs are route-aware descriptors rather than permanently mounted page trees. Only the active page is rendered while serializable page/filter state is preserved, limiting memory growth.
+
+- Home is a fixed non-closable tab.
+- Reopening the same logical route focuses its tab; materially different route parameters form a distinct tab key.
+- Individual, other, and all closable tabs can be closed. Dirty pages require confirmation.
+- The active tab controls the browser URL and supports navigation history.
+- Session tab descriptors survive refresh but are cleared on logout.
+- Overflow is accessible through a compact list on narrow displays.
+
+The supplied EOS logo and company name `علم و صنعت` appear on sign-in and in the shell. The fixed status bar displays build-derived version, live Tehran time, and Persian-calendar date.
 
 ## Cross-cutting architecture
 
@@ -55,8 +96,6 @@ LDAP access, if required, is server-side and protected by TLS with certificate v
 
 ## Unresolved architecture topics
 
-- .NET and React versions and frontend build tooling.
-- Repository and solution structure.
 - Operational database versus analytical or warehouse data sources.
 - Data ingestion, synchronization, caching, and refresh strategy.
 - Dashboard rendering and charting libraries.

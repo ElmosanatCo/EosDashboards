@@ -18,9 +18,9 @@ Project-wide foundation standards are complete. Dashboard-specific discovery rem
 
 ## Phase 3 — Architecture and foundation
 
-**Status:** Planned
+**Status:** Design approved; awaiting implementation plan
 
-Confirm IT-dependent identity and hosting inputs, select supported framework versions, scaffold the approved architecture, establish automated verification, and implement the application shell and organizational sign-in.
+Scaffold the separate backend and frontend foundations; add database migrations and administrator provisioning; implement Windows/AD sign-in, SMS OTP, session management, the RTL themed tabbed SPA shell, branding, status bar, and automated verification.
 
 ## Phase 4 — First vertical dashboard slice
 

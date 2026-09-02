@@ -93,10 +93,14 @@ This is the canonical implementation standard for EosDashboards. Feature specifi
 - A valid application session signs the user in automatically without showing the sign-in page.
 - Windows/AD may recognize the internal organizational identity; application roles and policies remain authoritative for application access.
 - Logout revokes the application session even if the browser still has a Windows identity.
+- Every new phase-1 application session requires SMS OTP after organizational identity recognition; no local password is stored.
+- OTPs are six digits, valid for five minutes, limited to five verification attempts, and subject to a 60-second resend cooldown and endpoint rate limits.
+- Store OTPs only as keyed hashes and mobile numbers in protected encrypted form; mask mobile numbers in UI and logs.
+- An eight-hour application session uses ten-minute access tokens and a revocable refresh credential. Logout or expiry requires a new OTP.
 - Any LDAP interaction is server-side, uses TLS, validates certificates, and follows current directory hardening requirements.
 - Never expose AD or LDAP directly to a browser or the internet.
-- External access, the precise AD/LDAP relationship, available Entra ID/AD FS services, and future second-factor design remain deferred pending IT discovery.
-- SMS OTP is a possible future factor, not a baseline requirement or the sole long-term high-assurance option.
+- External access, the precise AD/LDAP relationship, available Entra ID/AD FS services, and any future stronger-factor design remain deferred pending IT discovery.
+- SMS OTP must remain replaceable behind an Application port and Infrastructure adapter; it is not treated as the sole permanent high-assurance option.
 
 ## 9. UI, RTL, and design system
 
@@ -109,6 +113,8 @@ This is the canonical implementation standard for EosDashboards. Feature specifi
 - Persist appearance per user in the database and cache it locally to avoid a theme flash.
 - Keep the top header and bottom status bar fixed. Only central content scrolls.
 - Provide a persistent collapsible hamburger side menu and remember its supported user preference.
+- Present opened SPA pages as closable internal workspace tabs. Keep home fixed, focus existing logical tabs, protect dirty pages, synchronize the active route, restore tab descriptors after refresh, and clear them on logout.
+- Render only the active tab's page tree while preserving approved serializable state for inactive tabs.
 - Design explicit loading, empty, error, offline, permission-denied, and success states.
 - Defer the charting library until the first dashboard's visualization requirements are known.
 
@@ -241,7 +247,6 @@ resources/
 
 ## Deferred decisions
 
-- Exact .NET, Node.js, React, and supporting package versions.
 - Charting library.
 - First dashboard, metrics, roles, data sources, refresh schedules, and analytical architecture.
 - External identity topology and second-factor implementation.
