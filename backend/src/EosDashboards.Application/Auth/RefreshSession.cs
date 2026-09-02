@@ -24,9 +24,7 @@ public sealed class RefreshSession(
         var refreshHash = secretHasher.Hash(command.RefreshCredential);
         var session = await sessions.FindByRefreshHashAsync(refreshHash, cancellationToken);
 
-        if (session is null ||
-            !session.IsActive(now) ||
-            session.ExpiresAtUtc - now < AccessTokenLifetime)
+        if (session is null || !session.IsActive(now))
         {
             await WriteDenialAsync(session?.UserId, traceId, cancellationToken);
             return Denied();
@@ -46,9 +44,12 @@ public sealed class RefreshSession(
             cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
+        var accessTokenExpiresAtUtc = now.Add(AccessTokenLifetime) < session.ExpiresAtUtc
+            ? now.Add(AccessTokenLifetime)
+            : session.ExpiresAtUtc;
         return new RefreshSessionResult(
             RefreshSessionStatus.Succeeded,
-            accessTokenIssuer.Issue(user, session.Id, now),
+            accessTokenIssuer.Issue(user, session.Id, now, accessTokenExpiresAtUtc),
             replacementCredential,
             session.ExpiresAtUtc,
             VerifyOtp.Project(user));

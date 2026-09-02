@@ -47,7 +47,7 @@ The API is thin. Application coordinates use cases and transaction boundaries. D
 
 Phase 1 is intranet-only. Windows/Active Directory establishes the user's organizational identity. Only active pre-provisioned database users may continue. Every new application session requires a six-digit SMS OTP. The OTP is valid for five minutes, permits five verification attempts, and has a 60-second resend cooldown.
 
-After OTP verification, the application creates an eight-hour session. Ten-minute JWT access tokens are held in browser memory and renewed through a hashed, revocable refresh credential carried only by a Secure, HttpOnly cookie. Logout or session expiry revokes access and returns to the single-button sign-in screen. No local password exists.
+After OTP verification, the application creates an eight-hour session. JWT access tokens normally expire ten minutes after issuance and are held in browser memory. Refresh remains available at every instant strictly before the absolute session expiry; the final access token is shortened to end at that expiry and never outlives the session. Tokens are renewed through a hashed, revocable refresh credential carried only by a Secure, HttpOnly cookie. Logout or session expiry revokes access and returns to the single-button sign-in screen. No local password exists.
 
 The first user is created before application startup with an idempotent deployment-only administrator provisioning tool and receives the System Administrator role. Personal values and database credentials enter through secure runtime input and never enter source control.
 

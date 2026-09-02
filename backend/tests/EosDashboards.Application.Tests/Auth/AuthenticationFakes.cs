@@ -173,12 +173,16 @@ internal sealed class FakeMobileProtector : IMobileProtector
 
 internal sealed class FakeAccessTokenIssuer : IAccessTokenIssuer
 {
-    public List<(User User, long SessionId, DateTimeOffset IssuedAtUtc)> Requests { get; } = [];
+    public List<(User User, long SessionId, DateTimeOffset IssuedAtUtc, DateTimeOffset ExpiresAtUtc)> Requests { get; } = [];
 
-    public IssuedAccessToken Issue(User user, long sessionId, DateTimeOffset issuedAtUtc)
+    public IssuedAccessToken Issue(
+        User user,
+        long sessionId,
+        DateTimeOffset issuedAtUtc,
+        DateTimeOffset expiresAtUtc)
     {
-        Requests.Add((user, sessionId, issuedAtUtc));
-        return new IssuedAccessToken("access-token", issuedAtUtc.AddMinutes(10));
+        Requests.Add((user, sessionId, issuedAtUtc, expiresAtUtc));
+        return new IssuedAccessToken("access-token", expiresAtUtc);
     }
 }
 

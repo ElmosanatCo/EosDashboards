@@ -31,7 +31,7 @@ public sealed class VerifyOtpTests
         var save = Assert.Single(context.UnitOfWork.Observations);
         Assert.Equal(OtpChallengeStatus.Consumed, Assert.Single(save.ChallengeStatuses));
         Assert.Equal(1, save.SessionCount);
-        Assert.Single(context.TokenIssuer.Requests);
+        Assert.Equal(context.Clock.UtcNow.AddMinutes(10), Assert.Single(context.TokenIssuer.Requests).ExpiresAtUtc);
         AuditRecordAssertions.AssertSingle(context.Audit, 11, 11, "AuthenticationSucceeded", true);
         Assert.DoesNotContain("refresh-credential", session.ToString(), StringComparison.Ordinal);
     }

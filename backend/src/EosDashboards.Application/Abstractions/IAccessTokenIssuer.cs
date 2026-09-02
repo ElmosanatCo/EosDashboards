@@ -5,5 +5,9 @@ namespace EosDashboards.Application.Abstractions;
 
 public interface IAccessTokenIssuer
 {
-    IssuedAccessToken Issue(User user, long sessionId, DateTimeOffset issuedAtUtc);
+    IssuedAccessToken Issue(
+        User user,
+        long sessionId,
+        DateTimeOffset issuedAtUtc,
+        DateTimeOffset expiresAtUtc);
 }

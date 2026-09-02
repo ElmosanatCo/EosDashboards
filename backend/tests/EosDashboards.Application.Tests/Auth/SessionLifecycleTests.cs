@@ -27,6 +27,7 @@ public sealed class SessionLifecycleTests
         Assert.Equal([32], context.Tokens.RequestedByteCounts);
         Assert.Equal(1, context.UnitOfWork.SaveCount);
         Assert.Null(await context.Sessions.FindByRefreshHashAsync("A1B2", CancellationToken.None));
+        Assert.Equal(context.Clock.UtcNow.AddMinutes(10), Assert.Single(context.TokenIssuer.Requests).ExpiresAtUtc);
         AuditRecordAssertions.AssertSingle(context.Audit, 11, 11, "SessionRefreshed", true);
     }
 
@@ -48,9 +49,9 @@ public sealed class SessionLifecycleTests
     }
 
     [Fact]
-    public async Task Refresh_with_one_tick_less_than_ten_minutes_remaining_is_denied_without_rotation()
+    public async Task Refresh_one_tick_after_prior_cutoff_succeeds_and_token_ends_at_session_expiry()
     {
-        // Break caught: issuing an access token whose lifetime extends beyond the absolute session expiry.
+        // Break caught: ending usable refresh access ten minutes before the absolute session expiry.
         var context = new SessionContext();
         context.Clock.UtcNow = Now.AddHours(8).AddMinutes(-10).AddTicks(1);
 
@@ -58,11 +59,12 @@ public sealed class SessionLifecycleTests
             new RefreshSessionCommand("current-refresh"),
             CancellationToken.None);
 
-        Assert.Equal(RefreshSessionStatus.Denied, result.Status);
-        Assert.Equal("A1B2", context.Session.RefreshCredentialHash);
-        Assert.Empty(context.TokenIssuer.Requests);
-        Assert.Empty(context.Tokens.RequestedByteCounts);
-        AuditRecordAssertions.AssertSingle(context.Audit, 11, 11, "SessionRefreshDenied", false);
+        Assert.Equal(RefreshSessionStatus.Succeeded, result.Status);
+        Assert.Equal(Now.AddHours(8), result.AccessToken?.ExpiresAtUtc);
+        Assert.Equal(Now.AddHours(8), result.SessionExpiresAtUtc);
+        Assert.Equal("C3D4", context.Session.RefreshCredentialHash);
+        Assert.Equal(Now.AddHours(8), Assert.Single(context.TokenIssuer.Requests).ExpiresAtUtc);
+        AuditRecordAssertions.AssertSingle(context.Audit, 11, 11, "SessionRefreshed", true);
     }
 
     [Fact]

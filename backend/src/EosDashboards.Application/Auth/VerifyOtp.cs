@@ -62,7 +62,7 @@ public sealed class VerifyOtp(
         await CommitSecurityStateAsync(
             new AuditRecord(user.Id, user.Id, "AuthenticationSucceeded", true, traceId, null));
 
-        var accessToken = accessTokenIssuer.Issue(user, session.Id, now);
+        var accessToken = accessTokenIssuer.Issue(user, session.Id, now, now.AddMinutes(10));
         return new AuthenticationResult(
             VerifyOtpStatus.Succeeded,
             accessToken,
