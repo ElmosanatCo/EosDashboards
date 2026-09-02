@@ -9,6 +9,7 @@ import {
 import type { PropsWithChildren } from "react";
 import { authApi } from "../../features/auth/authApi";
 import { SignInPage } from "../../features/auth/SignInPage";
+import type { SignInMode } from "../../features/auth/SignInPage";
 import type {
   AuthenticatedUser,
   Challenge,
@@ -19,8 +20,11 @@ import { authTokenStore } from "../../lib/api/authTokenStore";
 type AuthContextValue = {
   user: AuthenticatedUser;
   logout: () => Promise<void>;
+  changePassword: (
+    currentPassword: string,
+    newPassword: string,
+  ) => Promise<void>;
 };
-
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({
@@ -29,19 +33,20 @@ export function AuthProvider({
 }: PropsWithChildren<{ onLogout?: () => void }>) {
   const [user, setUser] = useState<AuthenticatedUser | null>(null);
   const [challenge, setChallenge] = useState<Challenge | null>(null);
+  const [mode, setMode] = useState<SignInMode>("signIn");
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState<string>();
-
+  const [notice, setNotice] = useState<string>();
   const applyAuthentication = useCallback(
     (response: Awaited<ReturnType<typeof authApi.refresh>>) => {
       authTokenStore.set(response.accessToken);
       setUser(response.user);
       setError(undefined);
+      setNotice(undefined);
       return true;
     },
     [],
   );
-
   const refresh = useCallback(async () => {
     try {
       return applyAuthentication(await authApi.refresh());
@@ -51,25 +56,29 @@ export function AuthProvider({
       return false;
     }
   }, [applyAuthentication]);
-
   useEffect(() => {
     registerRefreshHandler(refresh);
     void refresh().finally(() => setBusy(false));
     return () => registerRefreshHandler(null);
   }, [refresh]);
-
-  const startSignIn = useCallback(async () => {
-    setBusy(true);
-    setError(undefined);
-    try {
-      setChallenge(await authApi.startSignIn());
-    } catch {
-      setError("ورود سازمانی انجام نشد. دوباره تلاش کنید.");
-    } finally {
-      setBusy(false);
-    }
-  }, []);
-
+  const startSignIn = useCallback(
+    async (username: string, password: string) => {
+      setBusy(true);
+      setError(undefined);
+      setNotice(undefined);
+      try {
+        setChallenge(await authApi.startSignIn(username, password));
+        setMode("signInOtp");
+      } catch {
+        setError(
+          "نام کاربری یا رمز عبور معتبر نیست، یا ارسال کد فعلاً ممکن نیست.",
+        );
+      } finally {
+        setBusy(false);
+      }
+    },
+    [],
+  );
   const verifyOtp = useCallback(
     async (code: string) => {
       if (!challenge) return;
@@ -87,7 +96,46 @@ export function AuthProvider({
     },
     [applyAuthentication, challenge],
   );
-
+  const startPasswordReset = useCallback(async (username: string) => {
+    setBusy(true);
+    setError(undefined);
+    setNotice(undefined);
+    try {
+      setChallenge(await authApi.startPasswordReset(username));
+      setMode("passwordResetOtp");
+    } catch {
+      setError("دریافت کد بازیابی فعلاً ممکن نیست. دوباره تلاش کنید.");
+    } finally {
+      setBusy(false);
+    }
+  }, []);
+  const completePasswordReset = useCallback(
+    async (code: string, newPassword: string) => {
+      if (!challenge) return;
+      setBusy(true);
+      setError(undefined);
+      try {
+        await authApi.completePasswordReset(
+          challenge.challengeToken,
+          code,
+          newPassword,
+        );
+        setChallenge(null);
+        setMode("signIn");
+        setNotice("رمز عبور جدید ثبت شد. اکنون وارد شوید.");
+      } catch {
+        setError("کد بازیابی معتبر نیست یا منقضی شده است.");
+      } finally {
+        setBusy(false);
+      }
+    },
+    [challenge],
+  );
+  const back = useCallback(() => {
+    setChallenge(null);
+    setMode("signIn");
+    setError(undefined);
+  }, []);
   const logout = useCallback(async () => {
     try {
       await authApi.logout();
@@ -95,25 +143,42 @@ export function AuthProvider({
       authTokenStore.clear();
       setUser(null);
       setChallenge(null);
+      setMode("signIn");
       onLogout?.();
     }
   }, [onLogout]);
-
-  const value = useMemo(() => (user ? { user, logout } : null), [logout, user]);
+  const changePassword = useCallback(
+    async (currentPassword: string, newPassword: string) => {
+      await authApi.changePassword(currentPassword, newPassword);
+      authTokenStore.clear();
+      setUser(null);
+      setChallenge(null);
+      setMode("signIn");
+      onLogout?.();
+    },
+    [onLogout],
+  );
+  const value = useMemo(
+    () => (user ? { user, logout, changePassword } : null),
+    [changePassword, logout, user],
+  );
   if (busy && !user && !challenge)
     return <div role="status">در حال بررسی نشست…</div>;
-  if (!value) {
+  if (!value)
     return (
       <SignInPage
+        mode={mode}
         challenge={challenge}
         busy={busy}
         error={error}
-        onStart={startSignIn}
-        onVerify={verifyOtp}
-        onBack={() => setChallenge(null)}
+        notice={notice}
+        onStartSignIn={startSignIn}
+        onVerifyOtp={verifyOtp}
+        onStartPasswordReset={startPasswordReset}
+        onCompletePasswordReset={completePasswordReset}
+        onBack={back}
       />
     );
-  }
   return <AuthContext value={value}>{children}</AuthContext>;
 }
 

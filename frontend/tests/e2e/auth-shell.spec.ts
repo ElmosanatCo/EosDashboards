@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("organizational OTP opens the authenticated shell and logout returns to sign-in", async ({
+test("local credential OTP opens the authenticated shell and logout returns to sign-in", async ({
   page,
 }) => {
   await page.route("**/api/v1/**", async (route) => {
@@ -11,7 +11,7 @@ test("organizational OTP opens the authenticated shell and logout returns to sig
         contentType: "application/json",
         body: JSON.stringify({ code: "refresh_denied" }),
       });
-    } else if (path.endsWith("/auth/challenges")) {
+    } else if (path.endsWith("/auth/sign-in/challenges")) {
       await route.fulfill({
         json: {
           challengeToken: "synthetic-challenge",
@@ -51,13 +51,20 @@ test("organizational OTP opens the authenticated shell and logout returns to sig
   });
 
   await page.goto("/");
-  await page.getByRole("button", { name: "ورود با حساب سازمانی" }).click();
+  await page.getByLabel("نام کاربری").fill("synthetic-admin");
+  await page
+    .getByRole("textbox", { name: "رمز عبور" })
+    .fill("synthetic password");
+  await page
+    .getByRole("button", { name: "ورود و دریافت کد تأیید" })
+    .click();
   await page.getByLabel("کد شش‌رقمی").fill("۱۲۳۴۵۶");
   await page.getByRole("button", { name: "تأیید کد" }).click();
   await expect(page.getByText("داشبوردها به‌زودی اضافه می‌شوند")).toBeVisible();
   await expect(page.getByText(/نسخه/)).toBeVisible();
-  await page.getByRole("button", { name: "خروج" }).click();
+  await page.getByRole("button", { name: "منوی کاربر" }).click();
+  await page.getByRole("menuitem", { name: "خروج" }).click();
   await expect(
-    page.getByRole("button", { name: "ورود با حساب سازمانی" }),
+    page.getByRole("button", { name: "ورود و دریافت کد تأیید" }),
   ).toBeVisible();
 });

@@ -8,6 +8,7 @@ describe("OtpForm", () => {
     const submit = vi.fn(async () => undefined);
     render(
       <OtpForm
+        purpose="signIn"
         maskedMobile="*******6789"
         expiresAtUtc={new Date(Date.now() + 300_000).toISOString()}
         busy={false}
