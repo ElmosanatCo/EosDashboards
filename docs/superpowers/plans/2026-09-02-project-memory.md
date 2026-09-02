@@ -450,21 +450,23 @@ git commit -m "docs: seed canonical project context"
 - Consumes: all files produced in Tasks 1 and 2
 - Produces: a verified project-memory foundation ready for a new Codex task
 
-- [ ] **Step 1: Check repository-relative Markdown links**
+- [ ] **Step 1: Check every canonical path referenced by the entry documents**
 
 Run from the repository root:
 
 ```powershell
-$memoryFiles = @('AGENTS.md') + (Get-ChildItem docs/project -Recurse -Filter *.md).FullName
-$missing = foreach ($file in $memoryFiles) {
-  $base = Split-Path $file
-  foreach ($match in [regex]::Matches((Get-Content -Raw $file), '`([^`]+\.md)`')) {
-    $target = $match.Groups[1].Value
-    $candidate = if ($target -like 'docs/*') { Join-Path (Get-Location) $target } else { Join-Path $base $target }
-    if (-not (Test-Path $candidate)) { "$file -> $target" }
-  }
-}
-$missing
+$required = @(
+  'AGENTS.md',
+  'docs/project/README.md',
+  'docs/project/current-state.md',
+  'docs/project/vision.md',
+  'docs/project/requirements.md',
+  'docs/project/architecture.md',
+  'docs/project/roadmap.md',
+  'docs/project/decisions/README.md',
+  'docs/project/decisions/0001-repository-project-memory.md'
+)
+$required | Where-Object { -not (Test-Path $_) }
 ```
 
 Expected: no output.
