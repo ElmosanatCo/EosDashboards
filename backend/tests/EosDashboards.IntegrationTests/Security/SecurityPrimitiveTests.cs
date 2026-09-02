@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using EosDashboards.Application.Abstractions;
 using EosDashboards.Infrastructure.Security;
 using Microsoft.Extensions.Options;
 
@@ -105,6 +106,19 @@ public sealed partial class SecurityPrimitiveTests
 
         Assert.Equal(TimeSpan.Zero, actual.Offset);
         Assert.InRange(actual, before, DateTimeOffset.UtcNow);
+    }
+
+    [Fact]
+    public void Local_password_hasher_verifies_its_own_hash_and_rejects_a_different_password()
+    {
+        // Break caught: storing a plaintext password or accepting a non-matching password.
+        IPasswordHasher hasher = new LocalPasswordHasher();
+
+        var hash = hasher.Hash("simple pass");
+
+        Assert.NotEqual("simple pass", hash);
+        Assert.NotEqual(PasswordVerificationResult.Failed, hasher.Verify("simple pass", hash));
+        Assert.Equal(PasswordVerificationResult.Failed, hasher.Verify("other pass", hash));
     }
 
     private static HmacSecretHasher CreateHasher(byte firstByte)

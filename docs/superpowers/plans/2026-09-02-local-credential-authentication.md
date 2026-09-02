@@ -185,7 +185,7 @@ Use Microsoft.AspNetCore.Identity.PasswordHasher<object> behind the Infrastructu
 
 - [ ] **Step 4: Generate and inspect the additive migration, then run focused tests**
 
-Run: dotnet ef migrations add LocalCredentialAuthentication --project backend/src/EosDashboards.Infrastructure/EosDashboards.Infrastructure.csproj --startup-project backend/src/EosDashboards.Api/EosDashboards.Api.csproj --no-build
+Run: dotnet ef migrations add LocalCredentialAuthentication --project backend/src/EosDashboards.Infrastructure/EosDashboards.Infrastructure.csproj --startup-project backend/src/EosDashboards.Api/EosDashboards.Api.csproj
 
 Expected: one migration adding nullable credential columns, a filtered unique index, and non-null Purpose with SignIn default; no existing data update or deletion.
 

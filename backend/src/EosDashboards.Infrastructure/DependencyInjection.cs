@@ -65,6 +65,7 @@ public static class DependencyInjection
         services.AddSingleton<ISecretHasher, HmacSecretHasher>();
         services.AddSingleton<ISecureTokenGenerator, SecureTokenGenerator>();
         services.AddSingleton<IMobileProtector, DataProtectionMobileProtector>();
+        services.AddSingleton<IPasswordHasher, LocalPasswordHasher>();
         services.AddSingleton<JwtAccessTokenIssuer>();
         services.AddSingleton<IAccessTokenIssuer>(serviceProvider =>
             serviceProvider.GetRequiredService<JwtAccessTokenIssuer>());

@@ -1,4 +1,5 @@
 using EosDashboards.Domain.Entities;
+using EosDashboards.Domain.Enums;
 using EosDashboards.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -76,6 +77,24 @@ public sealed class ModelMappingTests
         AssertUniqueIndex<OtpChallenge>(nameof(OtpChallenge.PublicToken));
         AssertUniqueIndex<UserSession>(nameof(UserSession.RefreshCredentialHash));
         AssertUniqueIndex<UserPreference>(nameof(UserPreference.UserId));
+        AssertUniqueIndex<User>(nameof(User.Username));
+    }
+
+    [Fact]
+    public void Local_credential_and_otp_purpose_columns_are_mapped()
+    {
+        // Break caught: accepting local credentials without enforcing unique lookup or OTP purpose persistence.
+        var username = RequiredProperty<User>(nameof(User.Username));
+        var passwordHash = RequiredProperty<User>(nameof(User.PasswordHash));
+        var purpose = RequiredProperty<OtpChallenge>(nameof(OtpChallenge.Purpose));
+
+        Assert.True(username.IsNullable);
+        Assert.True(passwordHash.IsNullable);
+        Assert.Equal(256, username.GetMaxLength());
+        Assert.Equal(1024, passwordHash.GetMaxLength());
+        Assert.False(purpose.IsNullable);
+        Assert.Equal(32, purpose.GetMaxLength());
+        Assert.Equal(typeof(OtpChallengePurpose), purpose.ClrType);
     }
 
     [Fact]

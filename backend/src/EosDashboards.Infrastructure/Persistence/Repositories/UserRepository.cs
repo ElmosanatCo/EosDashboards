@@ -11,6 +11,11 @@ public sealed class UserRepository(EosDashboardDbContext context) : IUserReposit
             .Include(user => user.UserRoles)
             .SingleOrDefaultAsync(user => user.OrganizationalId == stableId, cancellationToken);
 
+    public Task<User?> FindByUsernameAsync(string username, CancellationToken cancellationToken) =>
+        context.Users
+            .Include(user => user.UserRoles)
+            .SingleOrDefaultAsync(user => user.Username == username, cancellationToken);
+
     public Task<User?> GetByIdAsync(long id, CancellationToken cancellationToken) =>
         context.Users
             .AsNoTracking()

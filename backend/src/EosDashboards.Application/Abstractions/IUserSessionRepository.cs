@@ -8,5 +8,10 @@ public interface IUserSessionRepository
 
     Task<UserSession?> FindByRefreshHashAsync(string refreshHash, CancellationToken cancellationToken);
 
+    Task<IReadOnlyCollection<UserSession>> GetActiveByUserIdAsync(
+        long userId,
+        DateTimeOffset nowUtc,
+        CancellationToken cancellationToken);
+
     void Add(UserSession session);
 }

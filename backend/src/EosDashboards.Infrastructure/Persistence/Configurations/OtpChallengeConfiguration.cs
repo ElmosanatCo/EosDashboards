@@ -1,4 +1,5 @@
 using EosDashboards.Domain.Entities;
+using EosDashboards.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -15,6 +16,10 @@ internal sealed class OtpChallengeConfiguration : IEntityTypeConfiguration<OtpCh
         builder.Property(challenge => challenge.PublicToken).HasMaxLength(128).IsRequired();
         builder.Property(challenge => challenge.CodeHash).HasMaxLength(512).IsRequired();
         builder.Property(challenge => challenge.Status).HasConversion<string>().HasMaxLength(32);
+        builder.Property(challenge => challenge.Purpose)
+            .HasConversion<string>()
+            .HasMaxLength(32)
+            .HasDefaultValue(OtpChallengePurpose.SignIn);
         builder.Property(challenge => challenge.CreatedAtUtc).HasColumnType("datetimeoffset(7)");
         builder.Property(challenge => challenge.ExpiresAtUtc).HasColumnType("datetimeoffset(7)");
         builder.Property(challenge => challenge.ResendAvailableAtUtc).HasColumnType("datetimeoffset(7)");

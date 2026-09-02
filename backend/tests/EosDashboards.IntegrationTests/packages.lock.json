@@ -111,6 +111,14 @@
         "resolved": "10.0.11",
         "contentHash": "rDS7psQk0UGKAHFg8O3Ho9E+wLz1E2O9Ppt47wtc7A5H0kI6rwTcJ7V1rxj5jN7FfD/KkS4jzbdMiVOaHGUyiQ=="
       },
+      "Microsoft.AspNetCore.Cryptography.KeyDerivation": {
+        "type": "Transitive",
+        "resolved": "10.0.11",
+        "contentHash": "4L8yQnfUR6SJ2uu52YOyNGNmvSmX77Wr/XLNn+dM5IazSFz/z71BEzdDCLBlGU/GCUxxPhogJJ+l6rHR3WWEaQ==",
+        "dependencies": {
+          "Microsoft.AspNetCore.Cryptography.Internal": "10.0.11"
+        }
+      },
       "Microsoft.AspNetCore.DataProtection": {
         "type": "Transitive",
         "resolved": "10.0.11",
@@ -699,6 +707,7 @@
           "Microsoft.AspNetCore.DataProtection.Extensions": "[10.0.11, )",
           "Microsoft.EntityFrameworkCore.SqlServer": "[10.0.11, )",
           "Microsoft.Extensions.Http": "[10.0.11, )",
+          "Microsoft.Extensions.Identity.Core": "[10.0.11, )",
           "Microsoft.Extensions.Options.ConfigurationExtensions": "[10.0.11, )",
           "System.IdentityModel.Tokens.Jwt": "[8.22.0, )"
         }
@@ -776,6 +785,18 @@
           "Microsoft.Extensions.Diagnostics": "10.0.11",
           "Microsoft.Extensions.Logging": "10.0.11",
           "Microsoft.Extensions.Logging.Abstractions": "10.0.11",
+          "Microsoft.Extensions.Options": "10.0.11"
+        }
+      },
+      "Microsoft.Extensions.Identity.Core": {
+        "type": "CentralTransitive",
+        "requested": "[10.0.11, )",
+        "resolved": "10.0.11",
+        "contentHash": "74BKWqcioSjoG2NopnIPoxtc8uqJjsMEXsZ+a0dGkLnZmCtcEOnwS7FFqxcA7TbJVNk54IMLqjrvacPSOKH80Q==",
+        "dependencies": {
+          "Microsoft.AspNetCore.Cryptography.KeyDerivation": "10.0.11",
+          "Microsoft.Extensions.Diagnostics": "10.0.11",
+          "Microsoft.Extensions.Logging": "10.0.11",
           "Microsoft.Extensions.Options": "10.0.11"
         }
       },

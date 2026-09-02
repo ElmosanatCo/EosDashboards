@@ -13,9 +13,16 @@ public sealed class OtpChallengeRepository(EosDashboardDbContext context) : IOtp
             cancellationToken);
 
     public Task<OtpChallenge?> FindLatestActiveAsync(long userId, CancellationToken cancellationToken) =>
+        FindLatestActiveAsync(userId, OtpChallengePurpose.SignIn, cancellationToken);
+
+    public Task<OtpChallenge?> FindLatestActiveAsync(
+        long userId,
+        OtpChallengePurpose purpose,
+        CancellationToken cancellationToken) =>
         context.OtpChallenges
             .Where(challenge =>
                 challenge.UserId == userId &&
+                challenge.Purpose == purpose &&
                 (challenge.Status == OtpChallengeStatus.Pending ||
                  challenge.Status == OtpChallengeStatus.Sent))
             .OrderByDescending(challenge => challenge.CreatedAtUtc)

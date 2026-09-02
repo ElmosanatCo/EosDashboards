@@ -14,5 +14,17 @@ public sealed class UserSessionRepository(EosDashboardDbContext context) : IUser
             session => session.RefreshCredentialHash == refreshHash,
             cancellationToken);
 
+    public async Task<IReadOnlyCollection<UserSession>> GetActiveByUserIdAsync(
+        long userId,
+        DateTimeOffset nowUtc,
+        CancellationToken cancellationToken) =>
+        await context.UserSessions
+            .Where(session =>
+                session.UserId == userId &&
+                session.RevokedAtUtc == null &&
+                session.CreatedAtUtc <= nowUtc &&
+                nowUtc < session.ExpiresAtUtc)
+            .ToArrayAsync(cancellationToken);
+
     public void Add(UserSession session) => context.UserSessions.Add(session);
 }
