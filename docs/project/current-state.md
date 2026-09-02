@@ -37,6 +37,7 @@ Initial authentication and application-shell implementation.
 - The React SPA now has a locally hosted Vazirmatn font, Persian RTL Material UI theme, in-memory access-token client, organizational OTP experience, fixed application shell, home tab, serializable closable-tab workspace, Persian status clock, and server-synchronized appearance/sidebar preferences.
 - Focused and checkpoint verification passed: backend Release build and 97 SQL-backed integration tests, frontend typecheck/build and 6 component/unit tests, one mocked-network browser flow, and separate API/UI publish artifact inspection with no source maps or detected embedded secrets.
 - Local development deployment artifacts were produced in a versioned temporary directory. Both API and UI contain `web.config`; the reviewed initial idempotent SQL migration script remains available.
+- The verified implementation is committed and pushed on `feature/initial-authentication-shell`; it has not been merged into `main` while local IIS deployment, the approved logo, and the authorized real-development smoke test remain incomplete.
 
 ## In progress
 
