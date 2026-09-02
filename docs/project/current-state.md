@@ -19,14 +19,17 @@ Initial authentication and application-shell design.
 - The repository-level shared resource hierarchy was created.
 - The first implementation slice was approved: separate backend/frontend foundations, pre-provisioned system administrator, Windows/AD sign-in, mandatory SMS OTP, session management, and the initial SPA shell.
 - Company branding, footer version/date/time, and closable internal workspace tabs were approved.
+- The initial authentication and tabbed-shell design was reviewed and approved.
+- A task-by-task, test-driven implementation plan was prepared.
 
 ## In progress
 
-- The approved initial-slice design is awaiting user review before implementation planning.
+- Awaiting the user's choice of plan-execution workflow.
+- Official .NET 10.0.400 and Node.js 24.19.0 installers are downloaded and hash-verified; installation is pending completion of the user's ongoing Visual Studio update.
 
 ## Next agreed step
 
-Review and approve `../superpowers/specs/2026-09-02-initial-authentication-shell-design.md`, then prepare the implementation plan.
+Execute `../superpowers/plans/2026-09-02-initial-authentication-shell.md` using the user-selected workflow.
 
 ## Blockers
 

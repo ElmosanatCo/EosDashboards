@@ -18,7 +18,7 @@ Project-wide foundation standards are complete. Dashboard-specific discovery rem
 
 ## Phase 3 — Architecture and foundation
 
-**Status:** Design approved; awaiting implementation plan
+**Status:** Design approved; implementation plan prepared, awaiting execution choice
 
 Scaffold the separate backend and frontend foundations; add database migrations and administrator provisioning; implement Windows/AD sign-in, SMS OTP, session management, the RTL themed tabbed SPA shell, branding, status bar, and automated verification.
 
