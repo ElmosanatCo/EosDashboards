@@ -1,11 +1,6 @@
 namespace EosDashboards.Application.Auth;
 
-public sealed record OrganizationalIdentity(string StableId, string AccountName)
-{
-    public override string ToString() => nameof(OrganizationalIdentity);
-}
-
-public sealed record StartSignInCommand(OrganizationalIdentity Identity, string? NetworkKey)
+public sealed record StartSignInCommand(string Username, string Password, string? NetworkKey)
 {
     public override string ToString() => nameof(StartSignInCommand);
 }
@@ -13,6 +8,45 @@ public sealed record StartSignInCommand(OrganizationalIdentity Identity, string?
 public sealed record VerifyOtpCommand(string ChallengeToken, string Code, string? NetworkKey)
 {
     public override string ToString() => nameof(VerifyOtpCommand);
+}
+
+public sealed record StartPasswordResetCommand(string Username, string? NetworkKey)
+{
+    public override string ToString() => nameof(StartPasswordResetCommand);
+}
+
+public sealed record CompletePasswordResetCommand(
+    string ChallengeToken,
+    string Code,
+    string NewPassword,
+    string? NetworkKey)
+{
+    public override string ToString() => nameof(CompletePasswordResetCommand);
+}
+
+public sealed record ChangePasswordCommand(long UserId, string CurrentPassword, string NewPassword)
+{
+    public override string ToString() => nameof(ChangePasswordCommand);
+}
+
+public enum PasswordResetStatus
+{
+    Succeeded,
+    Invalid,
+}
+
+public enum PasswordResetStartStatus
+{
+    Succeeded,
+    DependencyUnavailable,
+}
+
+public sealed record PasswordResetStartResult(
+    PasswordResetStartStatus Status,
+    string ChallengeToken,
+    DateTimeOffset ExpiresAtUtc)
+{
+    public override string ToString() => nameof(PasswordResetStartResult);
 }
 
 public sealed record RefreshSessionCommand(string RefreshCredential)

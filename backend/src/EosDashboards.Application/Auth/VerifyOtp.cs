@@ -32,7 +32,8 @@ public sealed class VerifyOtp(
             return Failed(VerifyOtpStatus.Invalid);
         }
 
-        if (challenge.Status != OtpChallengeStatus.Sent)
+        if (challenge.Purpose != OtpChallengePurpose.SignIn ||
+            challenge.Status != OtpChallengeStatus.Sent)
         {
             var status = MapStatus(challenge.Status);
             await WriteFailureAsync(challenge.UserId, "OtpVerificationRejected", traceId, cancellationToken);

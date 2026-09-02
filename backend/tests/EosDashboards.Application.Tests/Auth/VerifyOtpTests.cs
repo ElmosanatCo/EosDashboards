@@ -102,6 +102,18 @@ public sealed class VerifyOtpTests
     }
 
     [Fact]
+    public async Task Password_reset_challenge_cannot_create_a_sign_in_session()
+    {
+        // Break caught: accepting an OTP issued for recovery as proof of a completed sign-in.
+        var context = new VerifyOtpContext(OtpChallengePurpose.PasswordReset);
+
+        var result = await context.UseCase.HandleAsync(context.Command(), CancellationToken.None);
+
+        Assert.Equal(VerifyOtpStatus.Invalid, result.Status);
+        Assert.Empty(context.Sessions.Sessions);
+    }
+
+    [Fact]
     public async Task Cancellation_during_verification_cannot_evade_persisting_a_failed_attempt()
     {
         // Break caught: honoring a client abort after OTP mutation and losing the security attempt counter.
@@ -159,7 +171,7 @@ public sealed class VerifyOtpTests
 
     private sealed class VerifyOtpContext
     {
-        public VerifyOtpContext()
+        public VerifyOtpContext(OtpChallengePurpose purpose = OtpChallengePurpose.SignIn)
         {
             User = DomainUser();
             Users.Users.Add(User);
@@ -168,7 +180,8 @@ public sealed class VerifyOtpTests
                 "challenge-token",
                 "A1B2",
                 Now,
-                Now.AddMinutes(5));
+                Now.AddMinutes(5),
+                purpose);
             Challenge.MarkSent();
             EntityId.Set(Challenge, 101);
             OtpChallenges.Challenges.Add(Challenge);

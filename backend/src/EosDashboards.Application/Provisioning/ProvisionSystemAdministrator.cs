@@ -1,4 +1,5 @@
 using EosDashboards.Application.Abstractions;
+using EosDashboards.Application.Auth;
 using EosDashboards.Domain.Entities;
 
 namespace EosDashboards.Application.Provisioning;
@@ -6,6 +7,8 @@ namespace EosDashboards.Application.Provisioning;
 public sealed record ProvisionSystemAdministratorCommand(
     string OrganizationalId,
     string AccountName,
+    string Username,
+    string Password,
     string FirstName,
     string LastName,
     string Mobile)
@@ -25,6 +28,7 @@ public sealed class ProvisionSystemAdministrator(
     IUserRepository users,
     IRoleRepository roles,
     IMobileProtector mobileProtector,
+    IPasswordHasher passwordHasher,
     IAuditWriter auditWriter,
     IUnitOfWork unitOfWork)
 {
@@ -44,6 +48,12 @@ public sealed class ProvisionSystemAdministrator(
         var normalizedAccountName = NormalizeIdentifier(
             command.AccountName,
             nameof(command.AccountName));
+        var normalizedUsername = NormalizeIdentifier(command.Username, nameof(command.Username));
+        if (!PasswordPolicy.IsValid(command.Password))
+        {
+            throw new ArgumentException("The password length is not valid.", nameof(command.Password));
+        }
+
         var firstName = NormalizeName(command.FirstName, nameof(command.FirstName));
         var lastName = NormalizeName(command.LastName, nameof(command.LastName));
         var normalizedMobile = NormalizeMobile(command.Mobile);
@@ -121,6 +131,11 @@ public sealed class ProvisionSystemAdministrator(
                         now);
                     user.Activate(now);
                 }
+
+                user!.SetLocalCredentials(
+                    normalizedUsername,
+                    passwordHasher.Hash(command.Password),
+                    now);
 
                 user!.AssignRole(role!.Id);
                 await auditWriter.WriteAsync(

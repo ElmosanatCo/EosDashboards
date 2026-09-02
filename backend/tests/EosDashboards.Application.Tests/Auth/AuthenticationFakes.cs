@@ -31,6 +31,12 @@ internal sealed class FakeUserRepository : IUserRepository
         return Task.FromResult(Users.SingleOrDefault(user => user.OrganizationalId == stableId));
     }
 
+    public Task<User?> FindByUsernameAsync(string username, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(Users.SingleOrDefault(user => user.Username == username));
+    }
+
     public Task<User?> GetByIdAsync(long id, CancellationToken cancellationToken)
     {
         GetTokens.Add(cancellationToken);
@@ -55,11 +61,18 @@ internal sealed class FakeOtpChallengeRepository : IOtpChallengeRepository
     }
 
     public Task<OtpChallenge?> FindLatestActiveAsync(long userId, CancellationToken cancellationToken)
+        => FindLatestActiveAsync(userId, OtpChallengePurpose.SignIn, cancellationToken);
+
+    public Task<OtpChallenge?> FindLatestActiveAsync(
+        long userId,
+        OtpChallengePurpose purpose,
+        CancellationToken cancellationToken)
     {
         FindTokens.Add(cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
         var challenge = Challenges
             .Where(item => item.UserId == userId)
+            .Where(item => item.Purpose == purpose)
             .Where(item => item.Status is OtpChallengeStatus.Pending or OtpChallengeStatus.Sent)
             .OrderByDescending(item => item.CreatedAtUtc)
             .FirstOrDefault();
@@ -85,6 +98,16 @@ internal sealed class FakeUserSessionRepository : IUserSessionRepository
     public Task<UserSession?> FindByRefreshHashAsync(string refreshHash, CancellationToken cancellationToken)
     {
         return Task.FromResult(Sessions.SingleOrDefault(session => session.RefreshCredentialHash == refreshHash));
+    }
+
+    public Task<IReadOnlyCollection<UserSession>> GetActiveByUserIdAsync(
+        long userId,
+        DateTimeOffset nowUtc,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult<IReadOnlyCollection<UserSession>>(
+            Sessions.Where(session => session.UserId == userId && session.IsActive(nowUtc)).ToArray());
     }
 
     public void Add(UserSession session)
@@ -133,6 +156,25 @@ internal sealed class FakeSecretHasher : ISecretHasher
         return Hashes.TryGetValue(value, out var actualHash) &&
                string.Equals(actualHash, expectedHash, StringComparison.Ordinal);
     }
+}
+
+internal sealed class FakePasswordHasher : IPasswordHasher
+{
+    public Dictionary<string, string> Hashes { get; } = [];
+
+    public List<string> HashRequests { get; } = [];
+
+    public string Hash(string password)
+    {
+        HashRequests.Add(password);
+        return Hashes[password];
+    }
+
+    public PasswordVerificationResult Verify(string password, string passwordHash) =>
+        Hashes.TryGetValue(password, out var actualHash) &&
+        string.Equals(actualHash, passwordHash, StringComparison.Ordinal)
+            ? PasswordVerificationResult.Succeeded
+            : PasswordVerificationResult.Failed;
 }
 
 internal sealed class FakeSecureTokenGenerator : ISecureTokenGenerator

@@ -18,12 +18,16 @@ public sealed class ProvisionSystemAdministratorTests
         var firstCommand = new ProvisionSystemAdministratorCommand(
             "  org-synthetic-7  ",
             "  domain\\synthetic.one  ",
+            "  local.admin.one  ",
+            "first synthetic password",
             "  SyntheticFirstOne  ",
             "  SyntheticLastOne  ",
             "09120006789");
         var secondCommand = new ProvisionSystemAdministratorCommand(
             "ORG-SYNTHETIC-7",
             "DOMAIN\\SYNTHETIC.TWO",
+            "LOCAL.ADMIN.TWO",
+            "second synthetic password",
             "  SyntheticFirstTwo  ",
             "  SyntheticLastTwo  ",
             "09350006789");
@@ -36,6 +40,8 @@ public sealed class ProvisionSystemAdministratorTests
         Assert.True(user.IsActive);
         Assert.Equal("ORG-SYNTHETIC-7", user.OrganizationalId);
         Assert.Equal("DOMAIN\\SYNTHETIC.TWO", user.AccountName);
+        Assert.Equal("LOCAL.ADMIN.TWO", user.Username);
+        Assert.Equal("hash:second synthetic password", user.PasswordHash);
         Assert.Equal("SyntheticFirstTwo", user.FirstName);
         Assert.Equal("SyntheticLastTwo", user.LastName);
         Assert.Equal("protected-mobile-two", user.ProtectedMobileNumber);
@@ -67,6 +73,10 @@ public sealed class ProvisionSystemAdministratorTests
             "org-synthetic-7",
             "domain\\synthetic.one",
             "domain\\synthetic.two",
+            "local.admin.one",
+            "local.admin.two",
+            "first synthetic password",
+            "second synthetic password",
             "SyntheticFirstOne",
             "SyntheticLastOne",
             "09120006789",
@@ -110,6 +120,8 @@ public sealed class ProvisionSystemAdministratorTests
             new ProvisionSystemAdministratorCommand(
                 "org-synthetic-inactive",
                 "domain\\synthetic.active",
+                "local.admin.active",
+                "synthetic password",
                 "Synthetic",
                 "Active",
                 "09120006789"),
@@ -136,6 +148,8 @@ public sealed class ProvisionSystemAdministratorTests
         var command = new ProvisionSystemAdministratorCommand(
             "org-synthetic-invalid",
             "domain\\synthetic.invalid",
+            "local.admin.invalid",
+            "synthetic password",
             "Synthetic",
             "Invalid",
             invalidMobile);
@@ -173,6 +187,8 @@ public sealed class ProvisionSystemAdministratorTests
                 new ProvisionSystemAdministratorCommand(
                     organizationalId,
                     accountName,
+                    "local.admin",
+                    "synthetic password",
                     firstName,
                     lastName,
                     "09120006789"),
@@ -198,6 +214,8 @@ public sealed class ProvisionSystemAdministratorTests
                 new ProvisionSystemAdministratorCommand(
                     "org-synthetic-role-check",
                     "domain\\synthetic.rolecheck",
+                    "local.admin.rolecheck",
+                    "synthetic password",
                     "Synthetic",
                     "RoleCheck",
                     "09120006789"),
@@ -231,6 +249,8 @@ public sealed class ProvisionSystemAdministratorTests
 
         public TestMobileProtector MobileProtector { get; } = new();
 
+        public TestPasswordHasher PasswordHasher { get; } = new();
+
         public TestAuditWriter Audits { get; } = new();
 
         public TestUnitOfWork UnitOfWork { get; }
@@ -246,6 +266,7 @@ public sealed class ProvisionSystemAdministratorTests
             Users,
             Roles,
             MobileProtector,
+            PasswordHasher,
             Audits,
             UnitOfWork);
     }
@@ -270,6 +291,14 @@ public sealed class ProvisionSystemAdministratorTests
         {
             cancellationToken.ThrowIfCancellationRequested();
             return Task.FromResult(Items.SingleOrDefault(item => item.OrganizationalId == stableId));
+        }
+
+        public Task<User?> FindByUsernameAsync(
+            string username,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult(Items.SingleOrDefault(item => item.Username == username));
         }
 
         public Task<User?> GetByIdAsync(long id, CancellationToken cancellationToken)
@@ -307,6 +336,14 @@ public sealed class ProvisionSystemAdministratorTests
         public string Unprotect(string protectedMobile) => throw new NotSupportedException();
 
         public string Mask(string normalizedMobile) => $"*******{normalizedMobile[^4..]}";
+    }
+
+    private sealed class TestPasswordHasher : IPasswordHasher
+    {
+        public string Hash(string password) => $"hash:{password}";
+
+        public PasswordVerificationResult Verify(string password, string passwordHash) =>
+            throw new NotSupportedException();
     }
 
     private sealed class TestAuditWriter : IAuditWriter

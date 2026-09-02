@@ -12,9 +12,11 @@ public sealed class AuthContractSafetyTests
         var expiresAtUtc = new DateTimeOffset(2026, 9, 2, 9, 0, 0, TimeSpan.Zero);
         object[] contracts =
         [
-            new OrganizationalIdentity(secret, secret),
-            new StartSignInCommand(new OrganizationalIdentity(secret, secret), secret),
+            new StartSignInCommand(secret, secret, secret),
             new VerifyOtpCommand(secret, secret, secret),
+            new StartPasswordResetCommand(secret, secret),
+            new CompletePasswordResetCommand(secret, secret, secret, secret),
+            new ChangePasswordCommand(11, secret, secret),
             new RefreshSessionCommand(secret),
             new SmsMessage(secret, secret),
             new IssuedAccessToken(secret, expiresAtUtc),

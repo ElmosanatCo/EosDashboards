@@ -136,11 +136,13 @@ public sealed class StartSignInTests
                     "masked-mobile",
                     Now.AddDays(-1));
                 EntityId.Set(User, 11);
+                User.SetLocalCredentials("LOCAL.USER", "password-hash", Now);
                 Users.Users.Add(User);
             }
 
             Mobile.UnprotectedValues["protected-mobile"] = "synthetic-normalized-mobile";
             Hasher.Hashes[Tokens.SixDigitCode] = "A1B2";
+            Passwords.Hashes["valid password"] = "password-hash";
             Tokens.AddOpaqueToken("challenge-token");
             UnitOfWork = new FakeUnitOfWork(OtpChallenges, Sessions);
             UseCase = new StartSignIn(
@@ -150,6 +152,7 @@ public sealed class StartSignInTests
                 OtpChallenges,
                 Sms,
                 Hasher,
+                Passwords,
                 Tokens,
                 Mobile,
                 Audit,
@@ -170,6 +173,8 @@ public sealed class StartSignInTests
 
         public FakeSecretHasher Hasher { get; } = new();
 
+        public FakePasswordHasher Passwords { get; } = new();
+
         public FakeSecureTokenGenerator Tokens { get; } = new();
 
         public FakeMobileProtector Mobile { get; } = new();
@@ -183,7 +188,8 @@ public sealed class StartSignInTests
         public User? User { get; }
 
         public StartSignInCommand Command { get; } = new(
-            new OrganizationalIdentity("stable-user", "DOMAIN\\user"),
+            "local.user",
+            "valid password",
             "network-bucket");
 
         public OtpChallenge AddExistingChallenge(DateTimeOffset createdAtUtc)

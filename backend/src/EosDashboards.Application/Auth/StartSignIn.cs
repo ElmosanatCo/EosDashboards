@@ -10,6 +10,7 @@ public sealed class StartSignIn(
     IOtpChallengeRepository otpChallenges,
     ISmsSender smsSender,
     ISecretHasher secretHasher,
+    IPasswordHasher passwordHasher,
     ISecureTokenGenerator tokenGenerator,
     IMobileProtector mobileProtector,
     IAuditWriter auditWriter,
@@ -23,17 +24,32 @@ public sealed class StartSignIn(
     {
         var now = clock.UtcNow;
         var traceId = correlationContext.TraceId;
-        var user = await users.FindByOrganizationalIdAsync(
-            command.Identity.StableId,
+        if (!PasswordPolicy.IsValid(command.Password))
+        {
+            return await DeniedAsync(null, traceId, cancellationToken);
+        }
+
+        var user = await users.FindByUsernameAsync(
+            NormalizeUsername(command.Username),
             cancellationToken);
 
-        if (user is null || !user.IsActive)
+        var passwordVerification = user is null || user.PasswordHash is null
+            ? PasswordVerificationResult.Failed
+            : passwordHasher.Verify(command.Password, user.PasswordHash);
+        if (user is null ||
+            !user.IsActive ||
+            user.PasswordHash is null ||
+            passwordVerification is PasswordVerificationResult.Failed)
         {
-            await auditWriter.WriteAsync(
-                new AuditRecord(null, user?.Id, "SignInDenied", false, traceId, null),
-                cancellationToken);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
-            return Denied();
+            return await DeniedAsync(user, traceId, cancellationToken);
+        }
+
+        if (passwordVerification is PasswordVerificationResult.RehashNeeded)
+        {
+            user.SetLocalCredentials(
+                user.Username!,
+                passwordHasher.Hash(command.Password),
+                now);
         }
 
         var latestChallenge = await otpChallenges.FindLatestActiveAsync(user.Id, cancellationToken);
@@ -107,10 +123,19 @@ public sealed class StartSignIn(
             challenge.ResendAvailableAtUtc);
     }
 
-    private static StartSignInResult Denied()
+    private async Task<StartSignInResult> DeniedAsync(
+        User? user,
+        string traceId,
+        CancellationToken cancellationToken)
     {
+        await auditWriter.WriteAsync(
+            new AuditRecord(null, user?.Id, "SignInDenied", false, traceId, null),
+            cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         return new StartSignInResult(StartSignInStatus.Denied, null, null, null, null);
     }
+
+    private static string NormalizeUsername(string username) => username.Trim().ToUpperInvariant();
 
     private static StartSignInResult DependencyUnavailable()
     {
