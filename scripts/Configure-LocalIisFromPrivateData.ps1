@@ -62,7 +62,7 @@ function Get-PrivateConfiguration {
     }
 
     $values = @{}
-    $administratorValues = New-Object System.Collections.Generic.List[string]
+    $administratorValuesByName = @{}
     $expectSmsEndpoint = $false
 
     foreach ($rawLine in [System.IO.File]::ReadAllLines($Path)) {
@@ -117,8 +117,24 @@ function Get-PrivateConfiguration {
             continue
         }
 
-        if ($line -match '^[^:]+:\s*(?<value>.+)$') {
-            $administratorValues.Add($matches.value.Trim())
+        if ($line -match '^(?<key>[^:]+):\s*(?<value>.+)$') {
+            $administratorValue = $matches.value.Trim()
+            $administratorValueName = switch -Regex ($matches.key.Trim()) {
+                '^(نام\s*کاربری|Username|User\s*Name)$' { 'Username'; break }
+                '^(رمز(?:\s*عبور)?|پسورد|Password)$' { 'Password'; break }
+                '^(نام|First\s*Name)$' { 'FirstName'; break }
+                '^(نام\s+خانوادگی|Last\s*Name|Family\s*Name)$' { 'LastName'; break }
+                '^(?:شماره\s*)?(?:موبایل|همراه|تلفن|تماس)(?:\s*(?:همراه|موبایل))?$|^(?:Mobile|Phone)(?:No|Number)?$' { 'Mobile'; break }
+                default { $null }
+            }
+
+            if ($null -ne $administratorValueName) {
+                if ($administratorValuesByName.ContainsKey($administratorValueName)) {
+                    throw "The private data file contains more than one $administratorValueName administrator value."
+                }
+
+                $administratorValuesByName[$administratorValueName] = $administratorValue
+            }
         }
     }
 
@@ -151,6 +167,13 @@ function Get-PrivateConfiguration {
     $connectionBuilder['Encrypt'] = $true
     $connectionBuilder['TrustServerCertificate'] = $true
     $connectionBuilder['MultipleActiveResultSets'] = $false
+
+    $administratorValues = New-Object System.Collections.Generic.List[string]
+    foreach ($administratorValueName in @('Username', 'Password', 'FirstName', 'LastName', 'Mobile')) {
+        if ($administratorValuesByName.ContainsKey($administratorValueName)) {
+            $administratorValues.Add($administratorValuesByName[$administratorValueName])
+        }
+    }
 
     return [pscustomobject]@{
         ConnectionString = $connectionBuilder.ConnectionString

@@ -11,6 +11,7 @@ using EosDashboards.Infrastructure.Persistence;
 using EosDashboards.Infrastructure.Sms;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Server.IIS;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -22,6 +23,7 @@ builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ExceptionHandler>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.Configure<IISServerOptions>(options => options.AutomaticAuthentication = false);
 
 builder.Services.AddOptions<ApiSecurityOptions>()
     .Bind(builder.Configuration.GetSection(ApiSecurityOptions.SectionName))
