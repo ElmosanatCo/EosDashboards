@@ -5,6 +5,7 @@ namespace EosDashboards.Application.Auth;
 
 public sealed class StartSignIn(
     IClock clock,
+    ICorrelationContext correlationContext,
     IUserRepository users,
     IOtpChallengeRepository otpChallenges,
     ISmsSender smsSender,
@@ -21,7 +22,7 @@ public sealed class StartSignIn(
         CancellationToken cancellationToken)
     {
         var now = clock.UtcNow;
-        var traceId = Guid.NewGuid().ToString("N");
+        var traceId = correlationContext.TraceId;
         var user = await users.FindByOrganizationalIdAsync(
             command.Identity.StableId,
             cancellationToken);
@@ -38,6 +39,10 @@ public sealed class StartSignIn(
         var latestChallenge = await otpChallenges.FindLatestActiveAsync(user.Id, cancellationToken);
         if (latestChallenge is not null && now < latestChallenge.ResendAvailableAtUtc)
         {
+            await auditWriter.WriteAsync(
+                new AuditRecord(null, user.Id, "OtpResendCooldown", false, traceId, null),
+                cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
             return new StartSignInResult(
                 StartSignInStatus.Cooldown,
                 null,
@@ -77,7 +82,7 @@ public sealed class StartSignIn(
             challenge.MarkSendFailed();
             await auditWriter.WriteAsync(
                 new AuditRecord(
-                    user.Id,
+                    null,
                     user.Id,
                     "OtpSendFailed",
                     false,
@@ -90,7 +95,7 @@ public sealed class StartSignIn(
 
         challenge.MarkSent();
         await auditWriter.WriteAsync(
-            new AuditRecord(user.Id, user.Id, "OtpSent", true, traceId, null),
+            new AuditRecord(null, user.Id, "OtpSent", true, traceId, null),
             cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

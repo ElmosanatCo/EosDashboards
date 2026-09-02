@@ -6,6 +6,7 @@ namespace EosDashboards.Application.Auth;
 
 public sealed class VerifyOtp(
     IClock clock,
+    ICorrelationContext correlationContext,
     IUserRepository users,
     IOtpChallengeRepository otpChallenges,
     IUserSessionRepository sessions,
@@ -20,7 +21,7 @@ public sealed class VerifyOtp(
         CancellationToken cancellationToken)
     {
         var now = clock.UtcNow;
-        var traceId = Guid.NewGuid().ToString("N");
+        var traceId = correlationContext.TraceId;
         var challenge = await otpChallenges.FindByPublicTokenAsync(
             command.ChallengeToken,
             cancellationToken);
@@ -41,28 +42,25 @@ public sealed class VerifyOtp(
         var user = await users.GetByIdAsync(challenge.UserId, cancellationToken);
         if (user is null || !user.IsActive)
         {
-            await WriteFailureAsync(user?.Id, "OtpVerificationInvalid", traceId, cancellationToken);
+            await WriteFailureAsync(challenge.UserId, "OtpVerificationInvalid", traceId, cancellationToken);
             return Failed(VerifyOtpStatus.Invalid);
         }
 
+        // Verification mutates security state, so request cancellation cannot bypass the commit from this point.
         var verified = challenge.Verify(secretHasher.Hash(command.Code), now);
         if (!verified)
         {
             var status = MapStatus(challenge.Status);
-            await auditWriter.WriteAsync(
-                new AuditRecord(user.Id, user.Id, "OtpVerificationFailed", false, traceId, null),
-                cancellationToken);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+            await CommitSecurityStateAsync(
+                new AuditRecord(null, user.Id, "OtpVerificationFailed", false, traceId, null));
             return Failed(status);
         }
 
         var refreshCredential = tokenGenerator.CreateOpaqueToken(32);
         var session = UserSession.Create(user.Id, secretHasher.Hash(refreshCredential), now);
         sessions.Add(session);
-        await auditWriter.WriteAsync(
-            new AuditRecord(user.Id, user.Id, "AuthenticationSucceeded", true, traceId, null),
-            cancellationToken);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await CommitSecurityStateAsync(
+            new AuditRecord(user.Id, user.Id, "AuthenticationSucceeded", true, traceId, null));
 
         var accessToken = accessTokenIssuer.Issue(user, session.Id, now);
         return new AuthenticationResult(
@@ -80,9 +78,24 @@ public sealed class VerifyOtp(
         CancellationToken cancellationToken)
     {
         await auditWriter.WriteAsync(
-            new AuditRecord(subjectUserId, subjectUserId, eventCode, false, traceId, null),
+            new AuditRecord(null, subjectUserId, eventCode, false, traceId, null),
             cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task CommitSecurityStateAsync(AuditRecord auditRecord)
+    {
+        try
+        {
+            await auditWriter.WriteAsync(auditRecord, CancellationToken.None);
+        }
+        catch
+        {
+            await unitOfWork.SaveChangesAsync(CancellationToken.None);
+            throw;
+        }
+
+        await unitOfWork.SaveChangesAsync(CancellationToken.None);
     }
 
     private static VerifyOtpStatus MapStatus(OtpChallengeStatus status)

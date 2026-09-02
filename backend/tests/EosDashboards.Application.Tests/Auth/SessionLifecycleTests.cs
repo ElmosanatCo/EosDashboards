@@ -27,6 +27,7 @@ public sealed class SessionLifecycleTests
         Assert.Equal([32], context.Tokens.RequestedByteCounts);
         Assert.Equal(1, context.UnitOfWork.SaveCount);
         Assert.Null(await context.Sessions.FindByRefreshHashAsync("A1B2", CancellationToken.None));
+        AuditRecordAssertions.AssertSingle(context.Audit, 11, 11, "SessionRefreshed", true);
     }
 
     [Fact]
@@ -47,6 +48,41 @@ public sealed class SessionLifecycleTests
     }
 
     [Fact]
+    public async Task Refresh_with_one_tick_less_than_ten_minutes_remaining_is_denied_without_rotation()
+    {
+        // Break caught: issuing an access token whose lifetime extends beyond the absolute session expiry.
+        var context = new SessionContext();
+        context.Clock.UtcNow = Now.AddHours(8).AddMinutes(-10).AddTicks(1);
+
+        var result = await context.Refresh.HandleAsync(
+            new RefreshSessionCommand("current-refresh"),
+            CancellationToken.None);
+
+        Assert.Equal(RefreshSessionStatus.Denied, result.Status);
+        Assert.Equal("A1B2", context.Session.RefreshCredentialHash);
+        Assert.Empty(context.TokenIssuer.Requests);
+        Assert.Empty(context.Tokens.RequestedByteCounts);
+        AuditRecordAssertions.AssertSingle(context.Audit, 11, 11, "SessionRefreshDenied", false);
+    }
+
+    [Fact]
+    public async Task Refresh_with_exactly_ten_minutes_remaining_is_allowed_and_token_ends_with_session()
+    {
+        // Break caught: denying the exact valid boundary or allowing its access token beyond the session.
+        var context = new SessionContext();
+        context.Clock.UtcNow = Now.AddHours(8).AddMinutes(-10);
+
+        var result = await context.Refresh.HandleAsync(
+            new RefreshSessionCommand("current-refresh"),
+            CancellationToken.None);
+
+        Assert.Equal(RefreshSessionStatus.Succeeded, result.Status);
+        Assert.Equal(Now.AddHours(8), result.AccessToken?.ExpiresAtUtc);
+        Assert.Equal(Now.AddHours(8), result.SessionExpiresAtUtc);
+        Assert.Equal("C3D4", context.Session.RefreshCredentialHash);
+    }
+
+    [Fact]
     public async Task Revoked_session_is_denied_without_rotation()
     {
         // Break caught: accepting a refresh credential after logout or administrative revocation.
@@ -60,6 +96,23 @@ public sealed class SessionLifecycleTests
         Assert.Equal(RefreshSessionStatus.Denied, result.Status);
         Assert.Equal("A1B2", context.Session.RefreshCredentialHash);
         Assert.Empty(context.TokenIssuer.Requests);
+        AuditRecordAssertions.AssertSingle(context.Audit, 11, 11, "SessionRefreshDenied", false);
+    }
+
+    [Fact]
+    public async Task Refresh_with_resolved_session_and_missing_user_preserves_session_audit_attribution()
+    {
+        // Break caught: losing the known session subject when the associated user row cannot be loaded.
+        var context = new SessionContext();
+        context.Users.Users.Clear();
+
+        var result = await context.Refresh.HandleAsync(
+            new RefreshSessionCommand("current-refresh"),
+            CancellationToken.None);
+
+        Assert.Equal(RefreshSessionStatus.Denied, result.Status);
+        Assert.Equal("A1B2", context.Session.RefreshCredentialHash);
+        AuditRecordAssertions.AssertSingle(context.Audit, 11, 11, "SessionRefreshDenied", false);
     }
 
     [Fact]
@@ -75,7 +128,7 @@ public sealed class SessionLifecycleTests
         Assert.Equal(Now.AddHours(1), context.Session.RevokedAtUtc);
         Assert.Equal(SessionRevocationReason.UserLogout, context.Session.RevocationReason);
         Assert.Equal(1, context.UnitOfWork.SaveCount);
-        Assert.Single(context.Audit.Records, record => record.EventCode == "UserLogout");
+        AuditRecordAssertions.AssertSingle(context.Audit, 11, 11, "UserLogout", true);
     }
 
     private sealed class SessionContext
@@ -101,6 +154,7 @@ public sealed class SessionLifecycleTests
             UnitOfWork = new FakeUnitOfWork(OtpChallenges, Sessions);
             Refresh = new RefreshSession(
                 Clock,
+                Correlation,
                 Users,
                 Sessions,
                 Hasher,
@@ -108,10 +162,12 @@ public sealed class SessionLifecycleTests
                 TokenIssuer,
                 Audit,
                 UnitOfWork);
-            Logout = new Logout(Clock, Sessions, Audit, UnitOfWork);
+            Logout = new Logout(Clock, Correlation, Sessions, Audit, UnitOfWork);
         }
 
         public FakeClock Clock { get; } = new(Now.AddHours(1));
+
+        public FakeCorrelationContext Correlation { get; } = new("trace-test");
 
         public FakeUserRepository Users { get; } = new();
 

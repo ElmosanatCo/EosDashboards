@@ -31,6 +31,7 @@ public sealed class StartSignInTests
         Assert.Equal(2, context.UnitOfWork.SaveCount);
         Assert.Equal(OtpChallengeStatus.Pending, Assert.Single(context.UnitOfWork.Observations[0].ChallengeStatuses));
         Assert.Equal(OtpChallengeStatus.Sent, Assert.Single(context.UnitOfWork.Observations[1].ChallengeStatuses));
+        AuditRecordAssertions.AssertSingle(context.Audit, null, 11, "OtpSent", true);
         Assert.DoesNotContain(context.Tokens.SixDigitCode, result.ToString(), StringComparison.Ordinal);
         Assert.DoesNotContain(message.Mobile, result.ToString(), StringComparison.Ordinal);
     }
@@ -50,8 +51,8 @@ public sealed class StartSignInTests
         Assert.Equal(StartSignInStatus.Denied, unknownResult.Status);
         Assert.Empty(unknown.Sms.Messages);
         Assert.Empty(inactive.Sms.Messages);
-        Assert.Single(unknown.Audit.Records);
-        Assert.Single(inactive.Audit.Records);
+        AuditRecordAssertions.AssertSingle(unknown.Audit, null, null, "SignInDenied", false);
+        AuditRecordAssertions.AssertSingle(inactive.Audit, null, 11, "SignInDenied", false);
     }
 
     [Theory]
@@ -78,6 +79,9 @@ public sealed class StartSignInTests
         Assert.Single(context.Sms.Messages);
         Assert.Equal(2, context.UnitOfWork.SaveCount);
         var audit = Assert.Single(context.Audit.Records, record => record.EventCode == "OtpSendFailed");
+        Assert.Null(audit.ActorUserId);
+        Assert.Equal(11, audit.SubjectUserId);
+        Assert.Equal("trace-test", audit.TraceId);
         Assert.False(audit.Succeeded);
         Assert.DoesNotContain(context.Tokens.SixDigitCode, audit.ToString(), StringComparison.Ordinal);
         Assert.DoesNotContain(context.Sms.Messages[0].Mobile, audit.ToString(), StringComparison.Ordinal);
@@ -97,6 +101,8 @@ public sealed class StartSignInTests
         Assert.Equal(Now.AddSeconds(60), result.ResendAvailableAtUtc);
         Assert.Empty(context.Sms.Messages);
         Assert.Single(context.OtpChallenges.Challenges);
+        Assert.Equal(1, context.UnitOfWork.SaveCount);
+        AuditRecordAssertions.AssertSingle(context.Audit, null, 11, "OtpResendCooldown", false);
     }
 
     [Fact]
@@ -139,6 +145,7 @@ public sealed class StartSignInTests
             UnitOfWork = new FakeUnitOfWork(OtpChallenges, Sessions);
             UseCase = new StartSignIn(
                 Clock,
+                Correlation,
                 Users,
                 OtpChallenges,
                 Sms,
@@ -150,6 +157,8 @@ public sealed class StartSignInTests
         }
 
         public FakeClock Clock { get; } = new(Now);
+
+        public FakeCorrelationContext Correlation { get; } = new("trace-test");
 
         public FakeUserRepository Users { get; } = new();
 

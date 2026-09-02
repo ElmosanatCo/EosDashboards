@@ -11,17 +11,30 @@ internal sealed class FakeClock(DateTimeOffset utcNow) : IClock
     public DateTimeOffset UtcNow { get; set; } = utcNow;
 }
 
+internal sealed class FakeCorrelationContext(string traceId) : ICorrelationContext
+{
+    public string TraceId { get; } = traceId;
+}
+
 internal sealed class FakeUserRepository : IUserRepository
 {
     public List<User> Users { get; } = [];
 
+    public List<CancellationToken> FindTokens { get; } = [];
+
+    public List<CancellationToken> GetTokens { get; } = [];
+
     public Task<User?> FindByOrganizationalIdAsync(string stableId, CancellationToken cancellationToken)
     {
+        FindTokens.Add(cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
         return Task.FromResult(Users.SingleOrDefault(user => user.OrganizationalId == stableId));
     }
 
     public Task<User?> GetByIdAsync(long id, CancellationToken cancellationToken)
     {
+        GetTokens.Add(cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
         return Task.FromResult(Users.SingleOrDefault(user => user.Id == id));
     }
 
@@ -32,13 +45,19 @@ internal sealed class FakeOtpChallengeRepository : IOtpChallengeRepository
 {
     public List<OtpChallenge> Challenges { get; } = [];
 
+    public List<CancellationToken> FindTokens { get; } = [];
+
     public Task<OtpChallenge?> FindByPublicTokenAsync(string token, CancellationToken cancellationToken)
     {
+        FindTokens.Add(cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
         return Task.FromResult(Challenges.SingleOrDefault(challenge => challenge.PublicToken == token));
     }
 
     public Task<OtpChallenge?> FindLatestActiveAsync(long userId, CancellationToken cancellationToken)
     {
+        FindTokens.Add(cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
         var challenge = Challenges
             .Where(item => item.UserId == userId)
             .Where(item => item.Status is OtpChallengeStatus.Pending or OtpChallengeStatus.Sent)
@@ -100,9 +119,12 @@ internal sealed class FakeSecretHasher : ISecretHasher
 
     public List<string> HashedValues { get; } = [];
 
+    public Action<string>? OnHash { get; set; }
+
     public string Hash(string value)
     {
         HashedValues.Add(value);
+        OnHash?.Invoke(value);
         return Hashes[value];
     }
 
@@ -164,8 +186,19 @@ internal sealed class FakeAuditWriter : IAuditWriter
 {
     public List<AuditRecord> Records { get; } = [];
 
+    public List<CancellationToken> CancellationTokens { get; } = [];
+
+    public Exception? Exception { get; set; }
+
     public Task WriteAsync(AuditRecord record, CancellationToken cancellationToken)
     {
+        CancellationTokens.Add(cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (Exception is not null)
+        {
+            return Task.FromException(Exception);
+        }
+
         Records.Add(record);
         return Task.CompletedTask;
     }
@@ -182,8 +215,12 @@ internal sealed class FakeUnitOfWork(
 
     public List<SaveObservation> Observations { get; } = [];
 
+    public List<CancellationToken> CancellationTokens { get; } = [];
+
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken)
     {
+        CancellationTokens.Add(cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
         foreach (var challenge in otpChallenges.Challenges.Where(item => item.Id == 0))
         {
             EntityId.Set(challenge, _nextChallengeId++);
@@ -211,5 +248,24 @@ internal static class EntityId
     public static void Set<T>(T entity, long id)
     {
         typeof(T).GetProperty("Id", BindingFlags.Instance | BindingFlags.Public)!.SetValue(entity, id);
+    }
+}
+
+internal static class AuditRecordAssertions
+{
+    public static void AssertSingle(
+        FakeAuditWriter writer,
+        long? actorUserId,
+        long? subjectUserId,
+        string eventCode,
+        bool succeeded)
+    {
+        var record = Assert.Single(writer.Records);
+        Assert.Equal(actorUserId, record.ActorUserId);
+        Assert.Equal(subjectUserId, record.SubjectUserId);
+        Assert.Equal(eventCode, record.EventCode);
+        Assert.Equal(succeeded, record.Succeeded);
+        Assert.Equal("trace-test", record.TraceId);
+        Assert.Null(record.SafeMetadata);
     }
 }

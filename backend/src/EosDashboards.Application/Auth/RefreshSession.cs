@@ -4,6 +4,7 @@ namespace EosDashboards.Application.Auth;
 
 public sealed class RefreshSession(
     IClock clock,
+    ICorrelationContext correlationContext,
     IUserRepository users,
     IUserSessionRepository sessions,
     ISecretHasher secretHasher,
@@ -12,16 +13,20 @@ public sealed class RefreshSession(
     IAuditWriter auditWriter,
     IUnitOfWork unitOfWork)
 {
+    private static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromMinutes(10);
+
     public async Task<RefreshSessionResult> HandleAsync(
         RefreshSessionCommand command,
         CancellationToken cancellationToken)
     {
         var now = clock.UtcNow;
-        var traceId = Guid.NewGuid().ToString("N");
+        var traceId = correlationContext.TraceId;
         var refreshHash = secretHasher.Hash(command.RefreshCredential);
         var session = await sessions.FindByRefreshHashAsync(refreshHash, cancellationToken);
 
-        if (session is null || !session.IsActive(now))
+        if (session is null ||
+            !session.IsActive(now) ||
+            session.ExpiresAtUtc - now < AccessTokenLifetime)
         {
             await WriteDenialAsync(session?.UserId, traceId, cancellationToken);
             return Denied();
@@ -30,7 +35,7 @@ public sealed class RefreshSession(
         var user = await users.GetByIdAsync(session.UserId, cancellationToken);
         if (user is null || !user.IsActive)
         {
-            await WriteDenialAsync(user?.Id, traceId, cancellationToken);
+            await WriteDenialAsync(session.UserId, traceId, cancellationToken);
             return Denied();
         }
 

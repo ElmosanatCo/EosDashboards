@@ -5,6 +5,7 @@ namespace EosDashboards.Application.Auth;
 
 public sealed class Logout(
     IClock clock,
+    ICorrelationContext correlationContext,
     IUserSessionRepository sessions,
     IAuditWriter auditWriter,
     IUnitOfWork unitOfWork)
@@ -24,7 +25,7 @@ public sealed class Logout(
                 session.UserId,
                 "UserLogout",
                 true,
-                Guid.NewGuid().ToString("N"),
+                correlationContext.TraceId,
                 null),
             cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);

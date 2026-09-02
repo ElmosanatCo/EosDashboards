@@ -26,7 +26,7 @@ Initial authentication and application-shell implementation.
 - The isolated `feature/initial-authentication-shell` worktree was created.
 - The independently buildable backend solution and React frontend foundation were scaffolded and verified.
 - The Domain authentication, session, role, preference, and audit state model was implemented and verified.
-- The Application authentication contracts and use cases for OTP challenge delivery, verification, session refresh, and logout were implemented and verified.
+- The Application authentication contracts and use cases were implemented and verified with correlation-aware audit attribution, non-cancelable OTP security commits, and absolute session/token boundaries.
 
 ## In progress
 

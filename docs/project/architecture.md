@@ -89,6 +89,7 @@ The supplied EOS logo and company name `علم و صنعت` appear on sign-in an
 ## Cross-cutting architecture
 
 - Central exception handling returns safe standard error objects with trace identifiers.
+- Transport and background adapters provide the current correlation identifier through an Application port; every audit record created by one operation uses that same identifier.
 - Structured logging, audit records, liveness, readiness, metrics, and alerting support operations.
 - REST endpoints are versioned under `/api/v1` and documented through OpenAPI.
 - Caching is explicit, bounded, permission-safe, and measured.

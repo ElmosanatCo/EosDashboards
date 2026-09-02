@@ -32,6 +32,7 @@ public sealed class VerifyOtpTests
         Assert.Equal(OtpChallengeStatus.Consumed, Assert.Single(save.ChallengeStatuses));
         Assert.Equal(1, save.SessionCount);
         Assert.Single(context.TokenIssuer.Requests);
+        AuditRecordAssertions.AssertSingle(context.Audit, 11, 11, "AuthenticationSucceeded", true);
         Assert.DoesNotContain("refresh-credential", session.ToString(), StringComparison.Ordinal);
     }
 
@@ -49,6 +50,7 @@ public sealed class VerifyOtpTests
         Assert.Null(result.AccessToken);
         Assert.Null(result.RefreshCredential);
         Assert.Equal(1, context.UnitOfWork.SaveCount);
+        AuditRecordAssertions.AssertSingle(context.Audit, null, 11, "OtpVerificationFailed", false);
     }
 
     [Fact]
@@ -99,6 +101,62 @@ public sealed class VerifyOtpTests
         Assert.Empty(context.TokenIssuer.Requests);
     }
 
+    [Fact]
+    public async Task Cancellation_during_verification_cannot_evade_persisting_a_failed_attempt()
+    {
+        // Break caught: honoring a client abort after OTP mutation and losing the security attempt counter.
+        var context = new VerifyOtpContext();
+        using var cancellation = new CancellationTokenSource();
+        context.Hasher.OnHash = _ => cancellation.Cancel();
+
+        var result = await context.UseCase.HandleAsync(context.Command("000000"), cancellation.Token);
+
+        Assert.Equal(VerifyOtpStatus.Invalid, result.Status);
+        Assert.Equal(1, context.Challenge.FailedAttemptCount);
+        Assert.Equal(1, context.UnitOfWork.SaveCount);
+        Assert.Equal(CancellationToken.None, Assert.Single(context.Audit.CancellationTokens));
+        Assert.Equal(CancellationToken.None, Assert.Single(context.UnitOfWork.CancellationTokens));
+        Assert.Equal(cancellation.Token, Assert.Single(context.OtpChallenges.FindTokens));
+        Assert.Equal(cancellation.Token, Assert.Single(context.Users.GetTokens));
+    }
+
+    [Fact]
+    public async Task Audit_failure_after_wrong_otp_still_saves_the_failed_attempt_before_rethrowing()
+    {
+        // Break caught: audit staging failure rolling back a security-relevant failed attempt.
+        var context = new VerifyOtpContext();
+        context.Audit.Exception = new InvalidOperationException("synthetic audit failure");
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            context.UseCase.HandleAsync(context.Command("000000"), CancellationToken.None));
+
+        Assert.Equal(1, context.Challenge.FailedAttemptCount);
+        Assert.Equal(1, context.UnitOfWork.SaveCount);
+        Assert.Equal(CancellationToken.None, Assert.Single(context.Audit.CancellationTokens));
+        Assert.Equal(CancellationToken.None, Assert.Single(context.UnitOfWork.CancellationTokens));
+        Assert.Empty(context.Sessions.Sessions);
+    }
+
+    [Fact]
+    public async Task Audit_failure_after_success_still_atomically_saves_consumption_and_session_before_rethrowing()
+    {
+        // Break caught: audit staging failure discarding consumed OTP and its associated session state.
+        var context = new VerifyOtpContext();
+        context.Audit.Exception = new InvalidOperationException("synthetic audit failure");
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            context.UseCase.HandleAsync(context.Command(), CancellationToken.None));
+
+        Assert.Equal(OtpChallengeStatus.Consumed, context.Challenge.Status);
+        Assert.Single(context.Sessions.Sessions);
+        Assert.Equal(1, context.UnitOfWork.SaveCount);
+        var save = Assert.Single(context.UnitOfWork.Observations);
+        Assert.Equal(OtpChallengeStatus.Consumed, Assert.Single(save.ChallengeStatuses));
+        Assert.Equal(1, save.SessionCount);
+        Assert.Equal(CancellationToken.None, Assert.Single(context.Audit.CancellationTokens));
+        Assert.Equal(CancellationToken.None, Assert.Single(context.UnitOfWork.CancellationTokens));
+    }
+
     private sealed class VerifyOtpContext
     {
         public VerifyOtpContext()
@@ -122,6 +180,7 @@ public sealed class VerifyOtpTests
             UnitOfWork = new FakeUnitOfWork(OtpChallenges, Sessions);
             UseCase = new VerifyOtp(
                 Clock,
+                Correlation,
                 Users,
                 OtpChallenges,
                 Sessions,
@@ -133,6 +192,8 @@ public sealed class VerifyOtpTests
         }
 
         public FakeClock Clock { get; } = new(Now.AddMinutes(1));
+
+        public FakeCorrelationContext Correlation { get; } = new("trace-test");
 
         public FakeUserRepository Users { get; } = new();
 
