@@ -53,7 +53,7 @@ Complete one browser-based local sign-in flow, then verify its refresh and logou
 
 ## Blockers
 
-- None for the currently approved local-development scope.
+- Chrome on this workstation requests Windows credentials instead of silently using the current Windows identity for the local API. IIS correctly challenges with Negotiate/NTLM, but Chrome's managed `AuthServerAllowlist` policy does not include `localhost` and its registry value is not writable by the current process. A browser-policy administrator must allow the local development host, or the final browser smoke test must use an approved intranet hostname/policy.
 
 ## Immediate unresolved questions
 
