@@ -1,4 +1,12 @@
-import { Alert, Box, Button, CircularProgress, Paper, Stack, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Paper,
+  Stack,
+  Typography,
+} from "@mui/material";
 import type { Challenge } from "./authTypes";
 import { OtpForm } from "./OtpForm";
 
@@ -11,12 +19,27 @@ type Props = {
   onBack: () => void;
 };
 
-export function SignInPage({ challenge, busy, error, onStart, onVerify, onBack }: Props) {
+export function SignInPage({
+  challenge,
+  busy,
+  error,
+  onStart,
+  onVerify,
+  onBack,
+}: Props) {
   return (
-    <Box component="main" sx={{ minHeight: "100dvh", display: "grid", placeItems: "center", p: 2 }}>
-      <Paper elevation={4} sx={{ width: "min(100%, 420px)", p: { xs: 3, sm: 5 } }}>
+    <Box
+      component="main"
+      sx={{ minHeight: "100dvh", display: "grid", placeItems: "center", p: 2 }}
+    >
+      <Paper
+        elevation={4}
+        sx={{ width: "min(100%, 420px)", p: { xs: 3, sm: 5 } }}
+      >
         <Stack spacing={3}>
-          <Typography variant="h4" component="h1">سامانه داشبورد علم و صنعت</Typography>
+          <Typography variant="h4" component="h1">
+            سامانه داشبورد علم و صنعت
+          </Typography>
           {error ? <Alert severity="error">{error}</Alert> : null}
           {challenge ? (
             <OtpForm
@@ -28,8 +51,17 @@ export function SignInPage({ challenge, busy, error, onStart, onVerify, onBack }
               onBack={onBack}
             />
           ) : (
-            <Button variant="contained" size="large" disabled={busy} onClick={() => void onStart()}>
-              {busy ? <CircularProgress size={22} color="inherit" /> : "ورود با حساب سازمانی"}
+            <Button
+              variant="contained"
+              size="large"
+              disabled={busy}
+              onClick={() => void onStart()}
+            >
+              {busy ? (
+                <CircularProgress size={22} color="inherit" />
+              ) : (
+                "ورود با حساب سازمانی"
+              )}
             </Button>
           )}
         </Stack>

@@ -9,7 +9,13 @@ const destination = resolve(frontendRoot, "public", "generated-assets");
 await rm(destination, { recursive: true, force: true });
 await mkdir(resolve(destination, "fonts"), { recursive: true });
 await cp(
-  resolve(repositoryRoot, "resources", "fonts", "vazirmatn", "Vazirmatn[wght].woff2"),
+  resolve(
+    repositoryRoot,
+    "resources",
+    "fonts",
+    "vazirmatn",
+    "Vazirmatn[wght].woff2",
+  ),
   resolve(destination, "fonts", "Vazirmatn[wght].woff2"),
 );
 await cp(

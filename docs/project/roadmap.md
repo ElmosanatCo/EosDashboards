@@ -18,9 +18,11 @@ Project-wide foundation standards are complete. Dashboard-specific discovery rem
 
 ## Phase 3 — Architecture and foundation
 
-**Status:** Design approved; implementation plan prepared, awaiting execution choice
+**Status:** Core implementation verified; local operator deployment pending
 
 Scaffold the separate backend and frontend foundations; add database migrations and administrator provisioning; implement Windows/AD sign-in, SMS OTP, session management, the RTL themed tabbed SPA shell, branding, status bar, and automated verification.
+
+The code, isolated database verification, browser flow, and separate IIS-ready artifacts are complete. Final local installation is pending the missing approved logo, exact IIS targets/elevated access, local secrets, administrator input, and explicit approval for one real SMS receipt test.
 
 ## Phase 4 — First vertical dashboard slice
 

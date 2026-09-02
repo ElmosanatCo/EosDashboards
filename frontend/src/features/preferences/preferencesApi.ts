@@ -9,8 +9,9 @@ export type UserPreference = {
 
 export const preferencesApi = {
   get: () => apiFetch<UserPreference>("/api/v1/users/me/preferences/"),
-  update: (preference: UserPreference) => apiFetch<UserPreference>("/api/v1/users/me/preferences/", {
-    method: "PUT",
-    body: JSON.stringify(preference),
-  }),
+  update: (preference: UserPreference) =>
+    apiFetch<UserPreference>("/api/v1/users/me/preferences/", {
+      method: "PUT",
+      body: JSON.stringify(preference),
+    }),
 };

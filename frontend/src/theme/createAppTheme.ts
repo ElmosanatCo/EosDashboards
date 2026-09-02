@@ -29,7 +29,10 @@ export function createAppTheme(mode: PaletteMode) {
               src: "url('/generated-assets/fonts/Vazirmatn[wght].woff2') format('woff2')",
             },
             body: { margin: 0, minWidth: 320 },
-            "*:focus-visible": { outline: "3px solid #00897B", outlineOffset: 2 },
+            "*:focus-visible": {
+              outline: "3px solid #00897B",
+              outlineOffset: 2,
+            },
             "@media (prefers-reduced-motion: reduce)": {
               "*, *::before, *::after": {
                 animationDuration: "0.01ms !important",

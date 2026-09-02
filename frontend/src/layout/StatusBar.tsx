@@ -9,13 +9,28 @@ const Clock = memo(function Clock() {
     return () => window.clearInterval(timer);
   }, []);
   const value = formatPersianDateTime(now);
-  return <Typography variant="caption">{value.date}، {value.time}</Typography>;
+  return (
+    <Typography variant="caption">
+      {value.date}، {value.time}
+    </Typography>
+  );
 });
 
 export function StatusBar() {
   return (
-    <Box component="footer" sx={{ px: 2, py: 0.75, borderTop: 1, borderColor: "divider", display: "flex", justifyContent: "space-between" }}>
-      <Typography variant="caption">نسخه {__APP_VERSION__}</Typography><Clock />
+    <Box
+      component="footer"
+      sx={{
+        px: 2,
+        py: 0.75,
+        borderTop: 1,
+        borderColor: "divider",
+        display: "flex",
+        justifyContent: "space-between",
+      }}
+    >
+      <Typography variant="caption">نسخه {__APP_VERSION__}</Typography>
+      <Clock />
     </Box>
   );
 }

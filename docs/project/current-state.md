@@ -32,21 +32,25 @@ Initial authentication and application-shell implementation.
 - The replaceable company SOAP SMS adapter was implemented and verified: typed startup-validated HTTPS endpoint/timeout options, one named `HttpClient`, SOAP 1.1 request creation with XML-safe message/mobile serialization, a configured deadline across headers and asynchronously read body, a fully buffered 64 KiB response limit before DTD-prohibited EOF-complete parsing with exactly one result, safe failure mapping, caller-cancellation propagation, and no automatic retry.
 - The deployment-only System Administrator provisioner was implemented and verified: normalized idempotent user/role creation and profile updates, exact role-code validation, protected mobile storage with masked-only output, cross-process serialized transactional generated-ID/role/audit persistence, safe interactive confirmation, and composition independent of SMS configuration.
 - The user required a cost-conscious development workflow: focused essential tests during implementation, broad verification only at meaningful checkpoints, and no subagents or repeated independent review loops without explicit approval or exceptional documented risk.
-- The available SQL Server database and IIS sites are development-only resources on the user's machine. After Tasks 8–12 complete, Task 13 will deploy and smoke-test the integrated slice locally; production deployment to company servers remains a later, separate activity.
+- The available SQL Server database and IIS sites are development-only resources on the user's machine. Task 13 targets them for local deployment and smoke testing; production deployment to company servers remains a later, separate activity.
+- Secure API endpoints now expose Windows/AD challenge creation, OTP verification, JWT-protected current-user access, refresh rotation, logout, current-user preferences, safe problem details, rate limiting, exact-origin CORS, OpenAPI, and live/ready health checks.
+- The React SPA now has a locally hosted Vazirmatn font, Persian RTL Material UI theme, in-memory access-token client, organizational OTP experience, fixed application shell, home tab, serializable closable-tab workspace, Persian status clock, and server-synchronized appearance/sidebar preferences.
+- Focused and checkpoint verification passed: backend Release build and 97 SQL-backed integration tests, frontend typecheck/build and 6 component/unit tests, one mocked-network browser flow, and separate API/UI publish artifact inspection with no source maps or detected embedded secrets.
+- Local development deployment artifacts were produced in a versioned temporary directory. Both API and UI contain `web.config`; the reviewed initial idempotent SQL migration script remains available.
 
 ## In progress
 
-- Implementing the initial authentication and application-shell vertical slice.
+- Completing local operator deployment and real-development smoke testing for the initial authentication and application-shell vertical slice.
 
 ## Next agreed step
 
-Execute Task 8 of `../superpowers/plans/2026-09-02-initial-authentication-shell.md`: secure API authentication, preferences, errors, and health.
-
-After Tasks 8–12, publish the verified API and React UI to the configured local development IIS targets and connect them to the local development database. Do not deploy to company production servers in this slice.
+Provide the missing approved EOS SVG and run an elevated local IIS operator session with the exact API/UI site names and paths. Then apply the migration, configure secrets outside the artifact, provision the initial administrator, and perform the separately approved real SMS sign-in smoke test. Do not deploy to company production servers in this slice.
 
 ## Blockers
 
-None.
+- The approved EOS logo file is not present in the repository or either checkout.
+- This development session cannot read or modify IIS configuration without elevation, so exact local target sites and paths could not be verified or switched.
+- A real SMS test requires explicit receipt approval and local secret/administrator values; none were requested or stored during implementation.
 
 ## Immediate unresolved questions
 
