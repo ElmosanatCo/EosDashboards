@@ -1,10 +1,14 @@
 import { AppBar, Box, IconButton, Stack, Toolbar, Typography } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/Logout";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+import LightModeIcon from "@mui/icons-material/LightMode";
 import { useAuth } from "../app/providers/AuthProvider";
+import { useUserPreferences } from "../app/providers/UserPreferenceProvider";
 
 export function AppHeader({ onMenu }: { onMenu: () => void }) {
   const { user, logout } = useAuth();
+  const { appearanceMode, updateAppearance } = useUserPreferences();
   return (
     <AppBar position="static" component="header" elevation={1}>
       <Toolbar>
@@ -17,6 +21,9 @@ export function AppHeader({ onMenu }: { onMenu: () => void }) {
         <Typography variant="body2" sx={{ display: { xs: "none", sm: "block" }, mx: 2 }}>
           {user.firstName} {user.lastName}
         </Typography>
+        <IconButton color="inherit" aria-label="تغییر حالت نمایش" onClick={() => updateAppearance(appearanceMode === "dark" ? "light" : "dark")}>
+          {appearanceMode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
+        </IconButton>
         <IconButton color="inherit" aria-label="خروج" onClick={() => void logout()}><LogoutIcon /></IconButton>
       </Toolbar>
     </AppBar>
