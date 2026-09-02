@@ -3,6 +3,8 @@ import { faIR } from "@mui/material/locale";
 import type { PaletteMode } from "@mui/material";
 import { navyTealPalette } from "./palettes";
 
+const generatedAssetsBaseUrl = `${import.meta.env.BASE_URL}generated-assets/`;
+
 export function createAppTheme(mode: PaletteMode) {
   return createTheme(
     {
@@ -26,7 +28,7 @@ export function createAppTheme(mode: PaletteMode) {
               fontStyle: "normal",
               fontDisplay: "swap",
               fontWeight: "100 900",
-              src: "url('/generated-assets/fonts/Vazirmatn[wght].woff2') format('woff2')",
+              src: `url('${generatedAssetsBaseUrl}fonts/Vazirmatn[wght].woff2') format('woff2')`,
             },
             body: { margin: 0, minWidth: 320 },
             "*:focus-visible": {

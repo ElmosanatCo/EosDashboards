@@ -10,6 +10,8 @@ import {
 import type { Challenge } from "./authTypes";
 import { OtpForm } from "./OtpForm";
 
+const eosLogoUrl = `${import.meta.env.BASE_URL}generated-assets/brand/eos.svg`;
+
 type Props = {
   challenge: Challenge | null;
   busy: boolean;
@@ -37,6 +39,12 @@ export function SignInPage({
         sx={{ width: "min(100%, 420px)", p: { xs: 3, sm: 5 } }}
       >
         <Stack spacing={3}>
+          <Box
+            component="img"
+            src={eosLogoUrl}
+            alt="EOS"
+            sx={{ width: 84, height: 84, alignSelf: "center" }}
+          />
           <Typography variant="h4" component="h1">
             سامانه داشبورد علم و صنعت
           </Typography>

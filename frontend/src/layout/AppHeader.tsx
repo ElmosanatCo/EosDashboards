@@ -13,6 +13,8 @@ import LightModeIcon from "@mui/icons-material/LightMode";
 import { useAuth } from "../app/providers/AuthProvider";
 import { useUserPreferences } from "../app/providers/UserPreferenceProvider";
 
+const eosLogoUrl = `${import.meta.env.BASE_URL}generated-assets/brand/eos.svg`;
+
 export function AppHeader({ onMenu }: { onMenu: () => void }) {
   const { user, logout } = useAuth();
   const { appearanceMode, updateAppearance } = useUserPreferences();
@@ -34,7 +36,7 @@ export function AppHeader({ onMenu }: { onMenu: () => void }) {
         >
           <Box
             component="img"
-            src="/generated-assets/brand/eos.svg"
+            src={eosLogoUrl}
             alt="EOS"
             sx={{ width: 38, height: 38 }}
             onError={(event) => {

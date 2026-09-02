@@ -39,6 +39,8 @@ Initial authentication and application-shell implementation.
 - Local development deployment artifacts were produced in a versioned temporary directory. Both API and UI contain `web.config`; the reviewed initial idempotent SQL migration script remains available.
 - The verified implementation is committed and pushed on `feature/initial-authentication-shell`; it has not been merged into `main` while local IIS deployment and the authorized real-development smoke test remain incomplete.
 - The approved EOS SVG was received on 2026-09-02, stored under `resources/branding/eos.svg` without modification, and verified against its SHA-256 record.
+- The local IIS deployment now uses separate `Default Web Site` applications: UI `/EosDashboards` in `EosDashboardsUiPool` and API `/EosDashboardsApi` in `EosDashboardsApiPool`, both under `C:\inetpub\wwwroot\EosDashboards\` with versioned releases. The UI release `20260902-202534` returned HTTP 200.
+- IIS URL Rewrite is not installed locally. The UI SPA fallback was changed to IIS custom 404 execution, avoiding that unavailable module. The API release is installed but its process correctly rejects startup until required local runtime configuration is supplied.
 
 ## In progress
 
@@ -46,12 +48,11 @@ Initial authentication and application-shell implementation.
 
 ## Next agreed step
 
-Define the two local EosDashboards IIS site/application names, bindings, application pools, and physical paths. Then deploy the ready API/UI artifacts there, apply the migration, configure secrets outside the artifact, provision the initial administrator, and perform the separately approved real SMS sign-in smoke test. Do not deploy to company production servers in this slice.
+Configure the API application's local database connection, exact UI origin, independent hashing/signing keys, writable key-ring path, and HTTPS SMS endpoint outside the artifact. Then apply the migration, provision the initial administrator, and perform the separately approved real SMS sign-in smoke test. Do not deploy to company production servers in this slice.
 
 ## Blockers
 
-- Existing elevated IIS inspection found only `WebTasApi` and `WebTasUi`, which contain the separate existing WebTas application. No EosDashboards API/UI IIS targets, separate pool names, bindings, or physical paths are defined yet; those sites must not be overwritten.
-- A real SMS test requires explicit receipt approval and local secret/administrator values; none were requested or stored during implementation.
+- Required local API runtime configuration and initial administrator input have not been supplied. A real SMS test requires explicit receipt approval and must not use placeholder values.
 
 ## Immediate unresolved questions
 
