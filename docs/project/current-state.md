@@ -28,6 +28,7 @@ Initial authentication and application-shell implementation.
 - The Domain authentication, session, role, preference, and audit state model was implemented and verified.
 - The Application authentication contracts and use cases were implemented and verified with correlation-aware audit attribution, non-cancelable OTP security commits, and access tokens capped by absolute session expiry.
 - EF Core SQL Server persistence, explicit repositories, guarded database integration tests, the initial identity migration, and its reviewed idempotent deployment script were implemented and review-hardened with tracked provisioning mutations plus live uniqueness and rowversion-concurrency coverage.
+- Infrastructure authentication security primitives were implemented and verified: secure OTP/opaque-token generation, keyed HMAC-SHA256 hashing, persisted Data Protection mobile encryption, explicit-expiry JWT issuance/validation, typed startup-validated security options, and dependency injection. Pending a formal mask-format decision, the implementation conservatively exposes only the final four mobile digits (`*******6789`).
 
 ## In progress
 
@@ -35,7 +36,7 @@ Initial authentication and application-shell implementation.
 
 ## Next agreed step
 
-Execute Task 5 of `../superpowers/plans/2026-09-02-initial-authentication-shell.md`: protected values, secure tokens, and JWT issuance.
+Execute Task 6 of `../superpowers/plans/2026-09-02-initial-authentication-shell.md`: the replaceable SOAP SMS adapter.
 
 ## Blockers
 
@@ -48,3 +49,4 @@ None.
 - What source systems will supply dashboard data?
 - Is the organization's LDAP service separate from Active Directory, and which supported identity infrastructure is available?
 - What are the approved internal hostnames, certificates, browser versions, retention periods, recovery objectives, and monitoring tools?
+- Should the reversible privacy-conservative mobile mask that shows only the final four digits be formally approved or changed?
