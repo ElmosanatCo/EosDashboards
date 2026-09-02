@@ -29,6 +29,7 @@ Initial authentication and application-shell implementation.
 - The Application authentication contracts and use cases were implemented and verified with correlation-aware audit attribution, non-cancelable OTP security commits, and access tokens capped by absolute session expiry.
 - EF Core SQL Server persistence, explicit repositories, guarded database integration tests, the initial identity migration, and its reviewed idempotent deployment script were implemented and review-hardened with tracked provisioning mutations plus live uniqueness and rowversion-concurrency coverage.
 - Infrastructure authentication security primitives were implemented, review-hardened, and verified: secure OTP/opaque-token generation, keyed HMAC-SHA256 hashing, restart-persistent purpose-isolated Data Protection mobile encryption, strict JWT issuer/audience/signature/HS256/lifetime validation with explicit expiry, typed startup-validated security options, and dependency injection. Pending a formal mask-format decision, the implementation conservatively exposes only the final four mobile digits (`*******6789`).
+- The replaceable company SOAP SMS adapter was implemented and verified: typed startup-validated HTTPS endpoint/timeout options, one named `HttpClient`, SOAP 1.1 request creation with XML-safe message/mobile serialization, bounded DTD-prohibited response parsing, safe failure mapping, caller-cancellation propagation, and no automatic retry.
 
 ## In progress
 
@@ -36,7 +37,7 @@ Initial authentication and application-shell implementation.
 
 ## Next agreed step
 
-Execute Task 6 of `../superpowers/plans/2026-09-02-initial-authentication-shell.md`: the replaceable SOAP SMS adapter.
+Execute Task 7 of `../superpowers/plans/2026-09-02-initial-authentication-shell.md`: the deployment-only system administrator provisioner.
 
 ## Blockers
 

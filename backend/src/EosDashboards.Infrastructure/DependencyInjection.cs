@@ -2,6 +2,7 @@ using EosDashboards.Application.Abstractions;
 using EosDashboards.Infrastructure.Persistence;
 using EosDashboards.Infrastructure.Persistence.Repositories;
 using EosDashboards.Infrastructure.Security;
+using EosDashboards.Infrastructure.Sms;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -52,6 +53,18 @@ public static class DependencyInjection
             serviceProvider.GetRequiredService<JwtAccessTokenIssuer>());
         services.AddSingleton<TokenValidationParameters>(serviceProvider =>
             serviceProvider.GetRequiredService<JwtAccessTokenIssuer>().CreateValidationParameters());
+        services.AddOptions<SmsOptions>()
+            .Bind(configuration.GetSection(SmsOptions.SectionName))
+            .ValidateOnStart();
+        services.AddSingleton<IValidateOptions<SmsOptions>, SmsOptionsValidator>();
+        services.AddHttpClient(SmsOptions.HttpClientName, (serviceProvider, client) =>
+        {
+            var options = serviceProvider.GetRequiredService<IOptions<SmsOptions>>().Value;
+            client.BaseAddress = new Uri(options.Endpoint!, UriKind.Absolute);
+            client.Timeout = options.Timeout;
+        });
+        services.AddScoped<ISmsSender>(serviceProvider => new SoapSmsSender(
+            serviceProvider.GetRequiredService<IHttpClientFactory>().CreateClient(SmsOptions.HttpClientName)));
 
         return services;
     }

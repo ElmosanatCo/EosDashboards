@@ -1,6 +1,7 @@
 using EosDashboards.Application.Abstractions;
 using EosDashboards.Infrastructure;
 using EosDashboards.Infrastructure.Security;
+using EosDashboards.Infrastructure.Sms;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -110,6 +111,8 @@ public sealed class AuthSecurityOptionsTests
             [$"{AuthSecurityOptions.SectionName}:{nameof(AuthSecurityOptions.SessionLifetime)}"] =
                 "08:00:00",
             [$"{AuthSecurityOptions.SectionName}:{nameof(AuthSecurityOptions.KeyRingPath)}"] = keyRingPath,
+            [$"{SmsOptions.SectionName}:{nameof(SmsOptions.Endpoint)}"] = "https://sms.test.example/CompanySms.asmx",
+            [$"{SmsOptions.SectionName}:{nameof(SmsOptions.Timeout)}"] = "00:00:05",
         };
     }
 
