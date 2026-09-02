@@ -39,20 +39,21 @@ Initial authentication and application-shell implementation.
 - Local development deployment artifacts were produced in a versioned temporary directory. Both API and UI contain `web.config`; the reviewed initial idempotent SQL migration script remains available.
 - The verified implementation is committed and pushed on `feature/initial-authentication-shell`; it has not been merged into `main` while local IIS deployment and the authorized real-development smoke test remain incomplete.
 - The approved EOS SVG was received on 2026-09-02, stored under `resources/branding/eos.svg` without modification, and verified against its SHA-256 record.
-- The local IIS deployment now uses separate `Default Web Site` applications: UI `/EosDashboards` in `EosDashboardsUiPool` and API `/EosDashboardsApi` in `EosDashboardsApiPool`, both under `C:\inetpub\wwwroot\EosDashboards\` with versioned releases. The UI release `20260902-202534` returned HTTP 200.
-- IIS URL Rewrite is not installed locally. The UI SPA fallback was changed to IIS custom 404 execution, avoiding that unavailable module. The API release is installed but its process correctly rejects startup until required local runtime configuration is supplied.
+- The local IIS deployment uses separate `Default Web Site` applications: UI `/EosDashboards` in `EosDashboardsUiPool` and API `/EosDashboardsApi` in `EosDashboardsApiPool`, both under `C:\inetpub\wwwroot\EosDashboards\` with versioned releases. The UI release `20260902-202534` and paired API release `20260902-202354` return HTTPS HTTP 200 health/loading responses.
+- IIS URL Rewrite is not installed locally. The UI SPA fallback uses IIS custom 404 execution, avoiding that unavailable module. API Windows Authentication is enabled and anonymous access is disabled; health checks use the local Windows identity.
+- Required API runtime values were applied outside the artifact from a developer-owned private file. The local development migration completed and one initial System Administrator user, role assignment, and provisioning audit record were created. No secret or personal value is stored in this repository.
 
 ## In progress
 
-- Completing local operator deployment and real-development smoke testing for the initial authentication and application-shell vertical slice.
+- Completing the authorized real-development sign-in smoke test for the initial authentication and application-shell vertical slice.
 
 ## Next agreed step
 
-Configure the API application's local database connection, exact UI origin, independent hashing/signing keys, writable key-ring path, and HTTPS SMS endpoint outside the artifact. Then apply the migration, provision the initial administrator, and perform the separately approved real SMS sign-in smoke test. Do not deploy to company production servers in this slice.
+Perform the separately approved real SMS sign-in smoke test, including OTP verification, refresh, and logout. Do not deploy to company production servers in this slice.
 
 ## Blockers
 
-- Required local API runtime configuration and initial administrator input have not been supplied. A real SMS test requires explicit receipt approval and must not use placeholder values.
+- A real SMS test requires explicit receipt approval and must not use placeholder values.
 
 ## Immediate unresolved questions
 

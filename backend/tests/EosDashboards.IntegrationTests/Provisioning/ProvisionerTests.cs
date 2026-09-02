@@ -397,6 +397,28 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
             StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task RunnerReportsOnlyFailureTypeWhenLocalDiagnosticsAreExplicitlyEnabled()
+    {
+        var console = new RecordingConsole([], null);
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ProvisioningDiagnostics:ExposeFailureType"] = "true",
+            })
+            .Build();
+
+        var exitCode = await AdminProvisionerRunner.RunAsync(
+            [],
+            console,
+            configuration,
+            CancellationToken.None);
+
+        Assert.Equal(1, exitCode);
+        Assert.Contains("Diagnostic failure type: InvalidOperationException.", console.Transcript, StringComparison.Ordinal);
+        Assert.DoesNotContain("A database connection is required", console.Transcript, StringComparison.Ordinal);
+    }
+
     private async Task<ProvisionSystemAdministratorResult> ProvisionOnceAsync(
         ProvisionSystemAdministratorCommand command,
         IMobileProtector mobileProtector)

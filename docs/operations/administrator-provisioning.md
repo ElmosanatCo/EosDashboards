@@ -3,7 +3,7 @@
 Provisioning is a deployment operation, not an API endpoint.
 
 1. Apply the reviewed idempotent migration script in `backend/artifacts/sql/InitialIdentity.sql` to the intended development database.
-2. Configure the provisioner user-secret store with the database connection, independent security keys, and persistent key-ring path. SMS configuration is not required.
+2. Configure the provisioner user-secret store with the database connection, independent security keys, persistent key-ring path, and the approved non-secret JWT issuer/audience values. SMS configuration is not required.
 3. From `backend/`, run:
 
 ```powershell

@@ -45,7 +45,28 @@ IIS custom 404 execution for SPA fallback instead of a Rewrite rule.
 
 Stop or drain the target application pool, switch the site path to the inspected versioned directory, start it, then check `/health/live`, `/health/ready`, UI loading, one login, refresh, and logout. On failure, switch the path back to the previous version and preserve logs plus trace IDs.
 
-The UI release `20260902-202534` was installed and returned HTTP 200 on
-2026-09-02. The paired API release `20260902-202354` is installed but cannot
-start until its required local configuration is provided. Do not record those
-values in this repository or its published artifact.
+The UI release `20260902-202534` and paired API release `20260902-202354`
+were installed on 2026-09-02. Both UI loading and API liveness/readiness
+returned HTTPS HTTP 200 using the local Windows identity. The API has Windows
+Authentication enabled and anonymous access disabled. Its required runtime
+configuration remains outside the artifact; do not record those values in this
+repository or its published artifact.
+
+## Local private-data helper
+
+`scripts/Configure-LocalIisFromPrivateData.ps1` accepts the path to a
+developer-owned private text file outside this repository. It expects `Server`,
+`User`, `Pass`, `DataBase`, and an HTTPS endpoint following `Sms Web Servise`.
+It validates the file before use, generates independent local security keys,
+stores runtime settings in the API IIS application configuration, applies the
+development migration, and interactively provisions the first administrator.
+The file path and every supplied value remain outside source control and are
+never printed by the helper.
+
+When explicitly requested by its `-ProvisionAdministratorFromPrivateData`
+switch, the helper takes the three administrator profile values placed after
+`Method` in that same private file. It obtains the organizational stable ID and
+account name from the current Windows identity, pipes the values only to the
+deployment-only provisioner, and does not echo them. This is for the developer
+workstation only; keep the private file access-restricted and delete it when it
+is no longer needed.

@@ -73,9 +73,17 @@ namespace EosDashboards.AdminProvisioner
                 console.WriteLine("عملیات لغو شد.");
                 return 1;
             }
-            catch (Exception)
+            catch (Exception exception)
             {
                 console.WriteLine("انجام عملیات ممکن نشد؛ پیکربندی امن و پایگاه داده را بررسی کنید.");
+                if (string.Equals(
+                        configuration["ProvisioningDiagnostics:ExposeFailureType"],
+                        "true",
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    console.WriteLine($"Diagnostic failure type: {exception.GetType().Name}.");
+                }
+
                 return 1;
             }
         }
