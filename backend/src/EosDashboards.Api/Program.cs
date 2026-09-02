@@ -1,44 +1,136 @@
+using System.Threading.RateLimiting;
+using EosDashboards.Api.Auth;
+using EosDashboards.Api.Errors;
+using EosDashboards.Api.Preferences;
+using EosDashboards.Api.Security;
+using EosDashboards.Application.Abstractions;
+using EosDashboards.Application.Auth;
+using EosDashboards.Application.Preferences;
 using EosDashboards.Infrastructure;
+using EosDashboards.Infrastructure.Persistence;
+using EosDashboards.Infrastructure.Sms;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.Negotiate;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<ExceptionHandler>();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddInfrastructure(builder.Configuration);
+
+builder.Services.AddOptions<ApiSecurityOptions>()
+    .Bind(builder.Configuration.GetSection(ApiSecurityOptions.SectionName))
+    .ValidateOnStart();
+builder.Services.AddSingleton<IValidateOptions<ApiSecurityOptions>, ApiSecurityOptionsValidator>();
+
+builder.Services.AddScoped<ICorrelationContext, HttpCorrelationContext>();
+builder.Services.AddScoped<IWindowsIdentityReader, WindowsIdentityReader>();
+builder.Services.AddScoped<RefreshCookieService>();
+builder.Services.AddScoped<TrustedOriginFilter>();
+builder.Services.AddScoped<StartSignIn>();
+builder.Services.AddScoped<VerifyOtp>();
+builder.Services.AddScoped<RefreshSession>();
+builder.Services.AddScoped<Logout>();
+builder.Services.AddScoped<GetMyPreferences>();
+builder.Services.AddScoped<UpdateMyPreferences>();
+builder.Services.AddScoped<IAuthorizationHandler, SessionAuthorizationHandler>();
+
+var authentication = builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options => options.MapInboundClaims = false);
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    authentication.AddNegotiate();
+}
+builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+    .Configure<TokenValidationParameters>((options, validationParameters) =>
+        options.TokenValidationParameters = validationParameters);
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("WindowsIdentity", policy =>
+    {
+        policy.AuthenticationSchemes.Add(NegotiateDefaults.AuthenticationScheme);
+        policy.RequireAuthenticatedUser();
+    });
+    options.AddPolicy("ActiveUser", policy =>
+    {
+        policy.AuthenticationSchemes.Add(JwtBearerDefaults.AuthenticationScheme);
+        policy.RequireAuthenticatedUser();
+        policy.AddRequirements(new ActiveSessionRequirement());
+    });
+    options.AddPolicy("SystemAdministrator", policy =>
+    {
+        policy.AuthenticationSchemes.Add(JwtBearerDefaults.AuthenticationScheme);
+        policy.RequireAuthenticatedUser();
+        policy.AddRequirements(new SystemAdministratorRequirement());
+    });
+});
+
+var allowedOrigins = builder.Configuration
+    .GetSection($"{ApiSecurityOptions.SectionName}:AllowedOrigins")
+    .Get<string[]>() ?? [];
+builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
+    policy.WithOrigins(allowedOrigins)
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials()));
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("auth-sensitive", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.User.Identity?.Name ?? context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 10,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0,
+        }));
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.UseExceptionHandler();
+if (!app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseHsts();
+    app.UseHttpsRedirection();
 }
 
-app.UseHttpsRedirection();
+app.UseCors();
+app.UseRateLimiter();
+app.UseAuthentication();
+app.UseAuthorization();
 
-var summaries = new[]
+app.MapOpenApi();
+app.MapGet("/health/live", () => Results.Ok(new { status = "healthy" }));
+app.MapGet("/health/ready", async (
+    EosDashboardDbContext database,
+    IOptions<SmsOptions> smsOptions,
+    CancellationToken cancellationToken) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+    try
+    {
+        _ = smsOptions.Value;
+        return await database.Database.CanConnectAsync(cancellationToken)
+            ? Results.Ok(new { status = "ready" })
+            : Results.Json(new { status = "not_ready" }, statusCode: 503);
+    }
+    catch
+    {
+        return Results.Json(new { status = "not_ready" }, statusCode: 503);
+    }
+});
+app.MapAuthEndpoints();
+app.MapPreferenceEndpoints();
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+public partial class Program;

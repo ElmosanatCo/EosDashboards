@@ -55,4 +55,34 @@ public sealed class UserPreference
 
         return new UserPreference(userId, appearanceMode, palette, sidebarCollapsed, createdAtUtc.ToUniversalTime());
     }
+
+    public bool Update(
+        string appearanceMode,
+        string palette,
+        bool sidebarCollapsed,
+        DateTimeOffset updatedAtUtc)
+    {
+        if (string.IsNullOrWhiteSpace(appearanceMode))
+        {
+            throw new ArgumentException("An appearance mode is required.", nameof(appearanceMode));
+        }
+
+        if (string.IsNullOrWhiteSpace(palette))
+        {
+            throw new ArgumentException("A palette is required.", nameof(palette));
+        }
+
+        if (AppearanceMode == appearanceMode &&
+            Palette == palette &&
+            SidebarCollapsed == sidebarCollapsed)
+        {
+            return false;
+        }
+
+        AppearanceMode = appearanceMode;
+        Palette = palette;
+        SidebarCollapsed = sidebarCollapsed;
+        UpdatedAtUtc = updatedAtUtc.ToUniversalTime();
+        return true;
+    }
 }

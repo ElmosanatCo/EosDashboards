@@ -114,7 +114,7 @@ public sealed class VerifyOtp(
         return new AuthenticationResult(status, null, null, null, null);
     }
 
-    internal static AuthenticatedUser Project(User user)
+    public static AuthenticatedUser Project(User user)
     {
         return new AuthenticatedUser(
             user.Id,
