@@ -1,0 +1,12 @@
+using EosDashboards.Domain.Entities;
+
+namespace EosDashboards.Application.Abstractions;
+
+public interface IUserRepository
+{
+    Task<User?> FindByOrganizationalIdAsync(string stableId, CancellationToken cancellationToken);
+
+    Task<User?> GetByIdAsync(long id, CancellationToken cancellationToken);
+
+    void Add(User user);
+}

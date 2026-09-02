@@ -26,6 +26,7 @@ Initial authentication and application-shell implementation.
 - The isolated `feature/initial-authentication-shell` worktree was created.
 - The independently buildable backend solution and React frontend foundation were scaffolded and verified.
 - The Domain authentication, session, role, preference, and audit state model was implemented and verified.
+- The Application authentication contracts and use cases for OTP challenge delivery, verification, session refresh, and logout were implemented and verified.
 
 ## In progress
 
@@ -33,7 +34,7 @@ Initial authentication and application-shell implementation.
 
 ## Next agreed step
 
-Execute Task 3 of `../superpowers/plans/2026-09-02-initial-authentication-shell.md`: application contracts and authentication use cases.
+Execute Task 4 of `../superpowers/plans/2026-09-02-initial-authentication-shell.md`: EF Core persistence and the initial migration.
 
 ## Blockers
 
