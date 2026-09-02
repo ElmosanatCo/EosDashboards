@@ -8,6 +8,7 @@ This directory is the canonical, compact memory for EosDashboards. Update existi
 | `vision.md` | Product scope or priorities are relevant | Purpose, users, outcomes, success criteria, or boundaries are confirmed or changed |
 | `requirements.md` | Designing or implementing behavior | A requirement is confirmed, changed, deferred, or rejected |
 | `architecture.md` | Technical design or implementation is relevant | Accepted structure, integration, data flow, security, deployment, or technology changes |
+| `standards.md` | Any design, implementation, review, or deployment task | An approved project-wide engineering, UI, security, data, quality, or operational rule changes |
 | `decisions/` | A consequential choice or its rationale is relevant | A durable decision is accepted or superseded |
 | `roadmap.md` | Planning or sequencing work | Delivery phases, priorities, or dependencies change |
 
@@ -20,3 +21,7 @@ This directory is the canonical, compact memory for EosDashboards. Update existi
 - **Unresolved:** a material answer is still required.
 
 Use ISO `YYYY-MM-DD` dates and repository-relative links. Never store secrets, credentials, personal data, or production connection details.
+
+## Formal documents
+
+Formal Persian documents intended for review, printing, archiving, or regulatory submission live under `../formal/`. Keep them aligned with the concise English canonical sources; the English canonical files govern implementation when wording diverges.

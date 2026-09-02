@@ -13,10 +13,15 @@
 - Backend: .NET Core, Entity Framework Core, and REST APIs.
 - Database: SQL Server.
 - Frontend: React.js.
+- UI foundation: Material UI, Persian RTL, and the locally hosted Vazirmatn font.
+- Hosting: the React UI and ASP.NET Core API are separate IIS sites/applications with separate application pools.
+- Architecture: lightweight clean layering; API -> Application -> Domain, with Infrastructure as the only database and external-system access layer.
+- Authentication phase 1: company-internal organizational sign-in backed by Windows/AD; LDAP integration details remain subject to IT discovery.
+- All principal application tables use auto-incrementing SQL Server `bigint` primary keys named `Id`, subject to the documented narrow exceptions.
 - Documentation: concise, plain English.
 - User conversation: Persian unless the user requests otherwise.
 
-These are baseline constraints, not a complete architecture. Do not choose unconfirmed versions, features, security behavior, deployment, or UI details without user approval.
+The full approved rules are in `docs/project/standards.md`. Do not choose unconfirmed versions, dashboard behavior, external authentication topology, data sources, or charting libraries without user approval.
 
 ## Sources of truth
 
@@ -25,6 +30,7 @@ These are baseline constraints, not a complete architecture. Do not choose uncon
 - Product definition: `docs/project/vision.md`
 - Requirements: `docs/project/requirements.md`
 - Architecture: `docs/project/architecture.md`
+- Engineering standards: `docs/project/standards.md`
 - Decisions: `docs/project/decisions/`
 - Delivery sequence: `docs/project/roadmap.md`
 

@@ -18,6 +18,14 @@ Managers can access the dashboards relevant to their responsibilities through on
 
 The dashboards, metrics, source systems, update frequency, and success measures are unresolved and require product discovery.
 
+## Confirmed product qualities
+
+- Persian, RTL-first, consistent, accessible management experience.
+- Multiple selectable color palettes with light, dark, and system appearance modes.
+- Desktop-first responsive behavior, with usable essential flows on tablets and phones.
+- Auditable, secure, maintainable, and suitable for IIS deployment inside the organization.
+- Living technical documentation plus formal Persian documentation suitable for printing and organizational archive.
+
 ## Scope boundary
 
-The confirmed scope includes the dashboard platform. Authentication behavior, administration features, alerting, reporting, data-entry workflows, mobile support, and integrations are not yet confirmed.
+The first release is intranet-only and starts with organizational sign-in. Internet-facing authentication, SMS OTP, dashboard-specific reporting and alerting, administration behavior, data-entry workflows, and source-system integrations require later discovery and approval.
