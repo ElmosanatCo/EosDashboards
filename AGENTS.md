@@ -21,7 +21,7 @@
 - Authentication phase 1: Windows/AD organizational sign-in followed by mandatory SMS OTP for every new eight-hour application session; no local password.
 - Initial access: one pre-provisioned database user has the System Administrator role; user/role administration UI is deferred.
 - All principal application tables use auto-incrementing SQL Server `bigint` primary keys named `Id`, subject to the documented narrow exceptions.
-- Branding: company name is `علم و صنعت`; the approved EOS logo must be used unchanged, but its source file is currently missing from the repository and no substitute is permitted.
+- Branding: company name is `علم و صنعت`; use the approved `resources/branding/eos.svg` unchanged. Do not recolor or substitute it.
 - Documentation: concise, plain English.
 - User conversation: Persian unless the user requests otherwise.
 
