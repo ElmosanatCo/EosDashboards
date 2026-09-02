@@ -74,6 +74,76 @@ public sealed class JwtAccessTokenIssuerTests
     }
 
     [Fact]
+    public void Production_validation_rejects_a_token_from_a_different_issuer()
+    {
+        // Break caught: disabling issuer validation in the production token-validation policy.
+        var signingKey = Enumerable.Repeat((byte)141, 32).ToArray();
+        var expectedIssuer = CreateIssuer(signingKey);
+        var differentIssuer = CreateIssuer(signingKey, issuerName: "Different.Issuer");
+        var issuedAtUtc = CurrentWholeSecond().AddMinutes(-1);
+        var token = differentIssuer.Issue(
+            CreateUser(17, 31),
+            23,
+            issuedAtUtc,
+            issuedAtUtc.AddMinutes(10));
+
+        Assert.Throws<SecurityTokenInvalidIssuerException>(() =>
+            Validate(token.Value, expectedIssuer.CreateValidationParameters()));
+    }
+
+    [Fact]
+    public void Production_validation_rejects_a_token_for_a_different_audience()
+    {
+        // Break caught: disabling audience validation in the production token-validation policy.
+        var signingKey = Enumerable.Repeat((byte)151, 32).ToArray();
+        var expectedAudience = CreateIssuer(signingKey);
+        var differentAudience = CreateIssuer(signingKey, audienceName: "Different.Audience");
+        var issuedAtUtc = CurrentWholeSecond().AddMinutes(-1);
+        var token = differentAudience.Issue(
+            CreateUser(17, 31),
+            23,
+            issuedAtUtc,
+            issuedAtUtc.AddMinutes(10));
+
+        Assert.Throws<SecurityTokenInvalidAudienceException>(() =>
+            Validate(token.Value, expectedAudience.CreateValidationParameters()));
+    }
+
+    [Fact]
+    public void Production_validation_rejects_a_token_signed_with_a_different_key()
+    {
+        // Break caught: bypassing signature validation in the production token-validation policy.
+        var expectedIssuer = CreateIssuer(Enumerable.Repeat((byte)161, 32).ToArray());
+        var differentSigner = CreateIssuer(Enumerable.Repeat((byte)162, 32).ToArray());
+        var issuedAtUtc = CurrentWholeSecond().AddMinutes(-1);
+        var token = differentSigner.Issue(
+            CreateUser(17, 31),
+            23,
+            issuedAtUtc,
+            issuedAtUtc.AddMinutes(10));
+
+        Assert.ThrowsAny<SecurityTokenException>(() =>
+            Validate(token.Value, expectedIssuer.CreateValidationParameters()));
+    }
+
+    [Fact]
+    public void Production_validation_rejects_a_valid_signature_using_hs384()
+    {
+        // Break caught: removing the HS256 allowlist from the production validation policy.
+        var signingKey = Enumerable.Repeat((byte)171, 64).ToArray();
+        var issuer = CreateIssuer(signingKey);
+        var issuedAtUtc = CurrentWholeSecond().AddMinutes(-1);
+        var token = CreateToken(
+            signingKey,
+            SecurityAlgorithms.HmacSha384,
+            issuedAtUtc,
+            issuedAtUtc.AddMinutes(10));
+
+        Assert.ThrowsAny<SecurityTokenException>(() =>
+            Validate(token, issuer.CreateValidationParameters()));
+    }
+
+    [Fact]
     public void Issuer_rejects_nonpositive_session_ids_without_issuing_a_token()
     {
         // Break caught: issuing a token without a usable revocable-session identifier.
@@ -101,16 +171,44 @@ public sealed class JwtAccessTokenIssuerTests
         Assert.Equal("expiresAtUtc", exception.ParamName);
     }
 
-    private static JwtAccessTokenIssuer CreateIssuer(byte[] signingKey)
+    private static JwtAccessTokenIssuer CreateIssuer(
+        byte[] signingKey,
+        string issuerName = "EosDashboards.Tests",
+        string audienceName = "EosDashboards.Tests.Client")
     {
         return new JwtAccessTokenIssuer(Options.Create(new AuthSecurityOptions
         {
-            Issuer = "EosDashboards.Tests",
-            Audience = "EosDashboards.Tests.Client",
+            Issuer = issuerName,
+            Audience = audienceName,
             SigningKey = Convert.ToBase64String(signingKey),
             AccessTokenLifetime = TimeSpan.FromMinutes(10),
             SessionLifetime = TimeSpan.FromHours(8),
         }));
+    }
+
+    private static string CreateToken(
+        byte[] signingKey,
+        string algorithm,
+        DateTimeOffset issuedAtUtc,
+        DateTimeOffset expiresAtUtc)
+    {
+        var token = new JwtSecurityToken(
+            "EosDashboards.Tests",
+            "EosDashboards.Tests.Client",
+            [
+                new Claim(JwtRegisteredClaimNames.Sub, "17"),
+                new Claim(JwtRegisteredClaimNames.Sid, "23"),
+            ],
+            issuedAtUtc.UtcDateTime,
+            expiresAtUtc.UtcDateTime,
+            new SigningCredentials(new SymmetricSecurityKey(signingKey), algorithm));
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    private static void Validate(string token, TokenValidationParameters validationParameters)
+    {
+        new JwtSecurityTokenHandler { MapInboundClaims = false }
+            .ValidateToken(token, validationParameters, out _);
     }
 
     private static TokenValidationParameters ExpectedValidationParameters(byte[] signingKey)

@@ -1,5 +1,6 @@
 using EosDashboards.Infrastructure.Security;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EosDashboards.IntegrationTests.Security;
 
@@ -77,6 +78,47 @@ public sealed class MobileProtectionTests
         Assert.DoesNotContain(protectedMobile, exception.Message, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Mobile_unprotection_rejects_ciphertext_from_another_purpose_in_the_same_key_ring()
+    {
+        // Break caught: weakening purpose isolation or exposing protected/plaintext values on failure.
+        using var keyRing = new TemporaryKeyRing();
+        var provider = DataProtectionProvider.Create(keyRing.Path);
+        var protector = new DataProtectionMobileProtector(provider);
+        const string mobile = "09123456789";
+        var wrongPurposeCiphertext = provider
+            .CreateProtector("EosDashboards.Mobile.Other")
+            .Protect(mobile);
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            protector.Unprotect(wrongPurposeCiphertext));
+
+        Assert.DoesNotContain(mobile, exception.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain(wrongPurposeCiphertext, exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Mobile_protection_survives_provider_disposal_and_recreation_with_the_same_key_ring()
+    {
+        // Break caught: using process-only keys or instance-specific purpose material.
+        using var keyRing = new TemporaryKeyRing();
+        const string mobile = "09123456789";
+        string protectedMobile;
+        using (var servicesA = CreateDataProtectionServices(keyRing.Path))
+        {
+            var providerA = servicesA.GetRequiredService<IDataProtectionProvider>();
+            var protectorA = new DataProtectionMobileProtector(providerA);
+            protectedMobile = protectorA.Protect(mobile);
+        }
+
+        using (var servicesB = CreateDataProtectionServices(keyRing.Path))
+        {
+            var providerB = servicesB.GetRequiredService<IDataProtectionProvider>();
+            var protectorB = new DataProtectionMobileProtector(providerB);
+            Assert.Equal(mobile, protectorB.Unprotect(protectedMobile));
+        }
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("malformed-protected-value")]
@@ -92,6 +134,16 @@ public sealed class MobileProtectionTests
         {
             Assert.DoesNotContain(invalidValue, exception.Message, StringComparison.Ordinal);
         }
+    }
+
+    private static ServiceProvider CreateDataProtectionServices(string keyRingPath)
+    {
+        var services = new ServiceCollection();
+        services
+            .AddDataProtection()
+            .SetApplicationName("EosDashboards")
+            .PersistKeysToFileSystem(new DirectoryInfo(keyRingPath));
+        return services.BuildServiceProvider();
     }
 
     private sealed class TemporaryKeyRing : IDisposable
