@@ -67,4 +67,15 @@ public sealed class UserSessionTests
         Assert.Equal(SessionRevocationReason.UserLogout, session.RevocationReason);
         Assert.False(session.IsActive(Now.AddMinutes(2)));
     }
+
+    [Fact]
+    public void Password_changed_is_a_distinct_session_revocation_reason()
+    {
+        // Break caught: losing the security reason when password changes invalidate sessions.
+        var session = UserSession.Create(1, "AABB", Now);
+
+        session.Revoke(SessionRevocationReason.PasswordChanged, Now.AddMinutes(1));
+
+        Assert.Equal(SessionRevocationReason.PasswordChanged, session.RevocationReason);
+    }
 }

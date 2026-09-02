@@ -62,6 +62,29 @@ public sealed class UserTests
     }
 
     [Fact]
+    public void Set_local_credentials_normalizes_username_and_preserves_password_hash()
+    {
+        // Break caught: accepting ambiguous usernames or changing an opaque password hash.
+        var user = CreateUser();
+
+        user.SetLocalCredentials("  Admin.User  ", "versioned-password-hash", Now.AddMinutes(1));
+
+        Assert.Equal("ADMIN.USER", user.Username);
+        Assert.Equal("versioned-password-hash", user.PasswordHash);
+        Assert.Equal(Now.AddMinutes(1), user.UpdatedAtUtc);
+    }
+
+    [Fact]
+    public void Set_local_credentials_rejects_missing_username_or_password_hash()
+    {
+        // Break caught: creating a locally sign-in-capable account without a stable credential pair.
+        var user = CreateUser();
+
+        Assert.Throws<ArgumentException>(() => user.SetLocalCredentials(" ", "hash", Now));
+        Assert.Throws<ArgumentException>(() => user.SetLocalCredentials("admin", " ", Now));
+    }
+
+    [Fact]
     public void Role_create_rejects_missing_stable_code()
     {
         // Break caught: persisting a role that cannot be referenced by a stable authorization code.

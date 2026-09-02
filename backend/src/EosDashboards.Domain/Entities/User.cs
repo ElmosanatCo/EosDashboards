@@ -30,6 +30,10 @@ public sealed class User
 
     public string AccountName { get; private set; }
 
+    public string? Username { get; private set; }
+
+    public string? PasswordHash { get; private set; }
+
     public string FirstName { get; private set; }
 
     public string LastName { get; private set; }
@@ -108,6 +112,26 @@ public sealed class User
         LastName = lastName;
         ProtectedMobileNumber = protectedMobileNumber;
         MaskedMobileNumber = maskedMobileNumber;
+        UpdatedAtUtc = updatedAtUtc.ToUniversalTime();
+    }
+
+    public void SetLocalCredentials(
+        string username,
+        string passwordHash,
+        DateTimeOffset updatedAtUtc)
+    {
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            throw new ArgumentException("A username is required.", nameof(username));
+        }
+
+        if (string.IsNullOrWhiteSpace(passwordHash))
+        {
+            throw new ArgumentException("A password hash is required.", nameof(passwordHash));
+        }
+
+        Username = username.Trim().ToUpperInvariant();
+        PasswordHash = passwordHash;
         UpdatedAtUtc = updatedAtUtc.ToUniversalTime();
     }
 

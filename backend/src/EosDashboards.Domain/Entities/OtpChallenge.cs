@@ -12,13 +12,15 @@ public sealed class OtpChallenge
         string publicToken,
         string codeHash,
         DateTimeOffset createdAtUtc,
-        DateTimeOffset expiresAtUtc)
+        DateTimeOffset expiresAtUtc,
+        OtpChallengePurpose purpose)
     {
         UserId = userId;
         PublicToken = publicToken;
         CodeHash = codeHash;
         CreatedAtUtc = createdAtUtc;
         ExpiresAtUtc = expiresAtUtc;
+        Purpose = purpose;
         ResendAvailableAtUtc = createdAtUtc.AddSeconds(60);
         Status = OtpChallengeStatus.Pending;
     }
@@ -43,12 +45,15 @@ public sealed class OtpChallenge
 
     public OtpChallengeStatus Status { get; private set; }
 
+    public OtpChallengePurpose Purpose { get; private set; }
+
     public static OtpChallenge Create(
         long userId,
         string publicToken,
         string codeHash,
         DateTimeOffset createdAtUtc,
-        DateTimeOffset expiresAtUtc)
+        DateTimeOffset expiresAtUtc,
+        OtpChallengePurpose purpose = OtpChallengePurpose.SignIn)
     {
         if (userId <= 0)
         {
@@ -79,7 +84,8 @@ public sealed class OtpChallenge
             publicToken,
             codeHash,
             normalizedCreatedAtUtc,
-            normalizedExpiresAtUtc);
+            normalizedExpiresAtUtc,
+            purpose);
     }
 
     public void MarkSent()

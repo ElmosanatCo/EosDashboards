@@ -62,6 +62,21 @@ public sealed class OtpChallengeTests
             Now.AddMinutes(6)));
     }
 
+    [Fact]
+    public void Create_preserves_password_reset_purpose()
+    {
+        // Break caught: allowing reset OTPs to lose their purpose and be used as sign-in OTPs.
+        var challenge = OtpChallenge.Create(
+            1,
+            "public-token",
+            "AABB",
+            Now,
+            Now.AddMinutes(5),
+            OtpChallengePurpose.PasswordReset);
+
+        Assert.Equal(OtpChallengePurpose.PasswordReset, challenge.Purpose);
+    }
+
     [Theory]
     [InlineData(ChallengeTerminalState.Superseded)]
     [InlineData(ChallengeTerminalState.SendFailed)]
