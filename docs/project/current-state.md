@@ -46,11 +46,11 @@ Initial authentication and application-shell implementation.
 
 ## Next agreed step
 
-Run an elevated local IIS operator session with the exact API/UI site names and paths. Then apply the migration, configure secrets outside the artifact, provision the initial administrator, and perform the separately approved real SMS sign-in smoke test. Do not deploy to company production servers in this slice.
+Define the two local EosDashboards IIS site/application names, bindings, application pools, and physical paths. Then deploy the ready API/UI artifacts there, apply the migration, configure secrets outside the artifact, provision the initial administrator, and perform the separately approved real SMS sign-in smoke test. Do not deploy to company production servers in this slice.
 
 ## Blockers
 
-- This development session cannot read or modify IIS configuration without elevation, so exact local target sites and paths could not be verified or switched.
+- Existing elevated IIS inspection found only `WebTasApi` and `WebTasUi`, which contain the separate existing WebTas application. No EosDashboards API/UI IIS targets, separate pool names, bindings, or physical paths are defined yet; those sites must not be overwritten.
 - A real SMS test requires explicit receipt approval and local secret/administrator values; none were requested or stored during implementation.
 
 ## Immediate unresolved questions
