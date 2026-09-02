@@ -45,15 +45,15 @@ Initial authentication and application-shell implementation.
 
 ## In progress
 
-- Completing the authorized real-development sign-in smoke test for the initial authentication and application-shell vertical slice.
+- Completing the authorized real-development sign-in smoke test for the initial authentication and application-shell vertical slice. A real challenge and OTP verification succeeded with the provisioned local Windows identity without exposing or recording the OTP, mobile number, or challenge token. The direct test harness did not supply the required anti-forgery cookie/header pair on its refresh request, so that harness refresh was correctly rejected and it did not continue to logout.
 
 ## Next agreed step
 
-Perform the separately approved real SMS sign-in smoke test, including OTP verification, refresh, and logout. Do not deploy to company production servers in this slice.
+Complete one browser-based local sign-in flow, then verify its refresh and logout using the UI's anti-forgery handling. Do not deploy to company production servers in this slice.
 
 ## Blockers
 
-- A real SMS test requires explicit receipt approval and must not use placeholder values.
+- None for the currently approved local-development scope.
 
 ## Immediate unresolved questions
 
