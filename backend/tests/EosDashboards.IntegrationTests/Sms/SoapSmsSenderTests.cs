@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Mime;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
@@ -35,10 +36,8 @@ public sealed class SoapSmsSenderTests
         Assert.Equal(Endpoint, request.Uri.AbsoluteUri);
         Assert.Equal("text/xml; charset=utf-8", request.ContentType);
         Assert.Equal("http://tempuri.org/SendSmsMessage", request.SoapAction);
-        var operation = XDocument.Parse(request.Body).Descendants().Single(element => element.Name.LocalName == "SendSmsMessage");
-        var values = operation.Elements().Select(element => (element.Name.LocalName, element.Value)).ToList();
-
-        Assert.Equal([("message", Message), ("mobile", Mobile)], values);
+        Assert.True(request.HasOrderedMessageAndMobile, "SOAP request must contain message followed by mobile.");
+        Assert.True(request.SensitiveValuesRoundTrip, "SOAP request values must round trip without structural injection.");
     }
 
     [Fact]
@@ -68,8 +67,7 @@ public sealed class SoapSmsSenderTests
         var result = await sender.SendAsync(new SmsMessage(Mobile, Message), CancellationToken.None);
 
         Assert.Equal(new SmsSendResult(false, "invalid-response"), result);
-        Assert.DoesNotContain(Message, result.ToString(), StringComparison.Ordinal);
-        Assert.DoesNotContain(Mobile, result.ToString(), StringComparison.Ordinal);
+        Assert.True(HasOnlySafeResultMetadata(result), "SMS result metadata must be a known safe code.");
         Assert.Single(handler.Requests);
     }
 
@@ -83,7 +81,7 @@ public sealed class SoapSmsSenderTests
         var result = await sender.SendAsync(new SmsMessage(Mobile, Message), CancellationToken.None);
 
         Assert.Equal(new SmsSendResult(false, "provider-unavailable"), result);
-        Assert.DoesNotContain("untrusted failure body", result.ToString(), StringComparison.Ordinal);
+        Assert.True(HasOnlySafeResultMetadata(result), "SMS result metadata must be a known safe code.");
         Assert.Single(handler.Requests);
     }
 
@@ -109,6 +107,50 @@ public sealed class SoapSmsSenderTests
     {
         // Break caught: accepting an unbounded provider response that can exhaust process memory.
         var handler = new RecordingHandler(OversizedSoapResponse());
+        var sender = CreateSender(handler);
+
+        var result = await sender.SendAsync(new SmsMessage(Mobile, Message), CancellationToken.None);
+
+        Assert.Equal(new SmsSendResult(false, "invalid-response"), result);
+        Assert.Single(handler.Requests);
+    }
+
+    [Fact]
+    public async Task SendAsync_times_out_when_response_headers_arrive_but_the_body_stalls()
+    {
+        // Break caught: enforcing timeout only until headers arrive, leaving a stalled body read unbounded.
+        var handler = new RecordingHandler(() => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new SlowBodyContent(),
+        }));
+        var sender = CreateSender(handler, TimeSpan.FromMilliseconds(50));
+
+        var result = await sender.SendAsync(new SmsMessage(Mobile, Message), CancellationToken.None);
+
+        Assert.Equal(new SmsSendResult(false, "timeout"), result);
+        Assert.Single(handler.Requests);
+    }
+
+    [Theory]
+    [InlineData("<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"><soap:Body><SendSmsMessageResult>true</SendSmsMessageResult></soap:Body></soap:Envelope><trailing")]
+    [InlineData("<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"><soap:Body><SendSmsMessageResult>true</SendSmsMessageResult><SendSmsMessageResult>false</SendSmsMessageResult></soap:Body></soap:Envelope>")]
+    public async Task SendAsync_rejects_malformed_trailing_xml_or_duplicate_results(string responseBody)
+    {
+        // Break caught: accepting an early valid result before fully validating the complete SOAP document.
+        var handler = new RecordingHandler(responseBody);
+        var sender = CreateSender(handler);
+
+        var result = await sender.SendAsync(new SmsMessage(Mobile, Message), CancellationToken.None);
+
+        Assert.Equal(new SmsSendResult(false, "invalid-response"), result);
+        Assert.Single(handler.Requests);
+    }
+
+    [Fact]
+    public async Task SendAsync_rejects_a_success_result_followed_by_an_oversized_body()
+    {
+        // Break caught: returning success before applying the response-size limit to the whole body.
+        var handler = new RecordingHandler(SuccessThenOversizedSoapResponse());
         var sender = CreateSender(handler);
 
         var result = await sender.SendAsync(new SmsMessage(Mobile, Message), CancellationToken.None);
@@ -151,6 +193,20 @@ public sealed class SoapSmsSenderTests
 
         Assert.Equal(new SmsSendResult(true, null), result);
         Assert.Single(handler.Requests);
+    }
+
+    [Fact]
+    public async Task Registered_named_client_applies_the_configured_timeout()
+    {
+        // Break caught: registering the named client without its bounded SMS timeout.
+        using var keyRing = new TemporaryDirectory();
+        var configuration = ValidConfiguration(keyRing.Path);
+        configuration[$"{SmsOptions.SectionName}:{nameof(SmsOptions.Timeout)}"] = "00:00:07";
+        using var host = BuildHost(configuration, new RecordingHandler(SoapResponse("true")));
+        await host.StartAsync();
+        var client = host.Services.GetRequiredService<IHttpClientFactory>().CreateClient(SmsOptions.HttpClientName);
+
+        Assert.True(client.Timeout == TimeSpan.FromSeconds(7), "The named SMS client must apply the configured timeout.");
     }
 
     [Theory]
@@ -222,6 +278,9 @@ public sealed class SoapSmsSenderTests
     private static string OversizedSoapResponse() =>
         $"<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"><soap:Body><padding>{new string('x', 64 * 1024)}</padding><SendSmsMessageResponse xmlns=\"http://tempuri.org/\"><SendSmsMessageResult>true</SendSmsMessageResult></SendSmsMessageResponse></soap:Body></soap:Envelope>";
 
+    private static string SuccessThenOversizedSoapResponse() =>
+        $"<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"><soap:Body><SendSmsMessageResponse xmlns=\"http://tempuri.org/\"><SendSmsMessageResult>true</SendSmsMessageResult></SendSmsMessageResponse><padding>{new string('x', 64 * 1024)}</padding></soap:Body></soap:Envelope>";
+
     private static HttpResponseMessage SoapHttpResponse(string result) =>
         new(HttpStatusCode.OK) { Content = new StringContent(SoapResponse(result), Encoding.UTF8, "text/xml") };
 
@@ -252,12 +311,17 @@ public sealed class SoapSmsSenderTests
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
+            var body = request.Content is null ? string.Empty : await request.Content.ReadAsStringAsync(cancellationToken);
+            var document = XDocument.Parse(body);
+            var operation = document.Descendants().SingleOrDefault(element => element.Name.LocalName == "SendSmsMessage");
+            var elements = operation?.Elements().ToArray() ?? [];
             Requests.Add(new RecordedRequest(
                 request.Method,
                 request.RequestUri!,
                 request.Headers.TryGetValues("SOAPAction", out var values) ? Assert.Single(values) : null,
                 request.Content?.Headers.ContentType?.ToString(),
-                request.Content is null ? string.Empty : await request.Content.ReadAsStringAsync(cancellationToken)));
+                elements.Select(element => element.Name.LocalName).SequenceEqual(["message", "mobile"]),
+                elements.Length == 2 && elements[0].Value == Message && elements[1].Value == Mobile));
             RequestReceived.TrySetResult();
             return await _response(cancellationToken);
         }
@@ -268,9 +332,52 @@ public sealed class SoapSmsSenderTests
         Uri Uri,
         string? SoapAction,
         string? ContentType,
-        string Body)
+        bool HasOrderedMessageAndMobile,
+        bool SensitiveValuesRoundTrip)
     {
         public override string ToString() => nameof(RecordedRequest);
+    }
+
+    private static bool HasOnlySafeResultMetadata(SmsSendResult result) =>
+        result.SafeErrorCode is null or "provider-rejected" or "provider-unavailable" or "invalid-response" or "timeout";
+
+    private sealed class SlowBodyContent : HttpContent
+    {
+        public SlowBodyContent()
+        {
+            Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(MediaTypeNames.Text.Xml);
+        }
+
+        protected override Task SerializeToStreamAsync(Stream stream, TransportContext? context) => Task.CompletedTask;
+
+        protected override bool TryComputeLength(out long length)
+        {
+            length = 0;
+            return false;
+        }
+
+        protected override Task<Stream> CreateContentReadStreamAsync() =>
+            Task.FromResult<Stream>(new SlowReadStream());
+    }
+
+    private sealed class SlowReadStream : Stream
+    {
+        public override bool CanRead => true;
+        public override bool CanSeek => false;
+        public override bool CanWrite => false;
+        public override long Length => throw new NotSupportedException();
+        public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public override void Flush() => throw new NotSupportedException();
+        public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+            return 0;
+        }
     }
 
     private sealed class TemporaryDirectory : IDisposable

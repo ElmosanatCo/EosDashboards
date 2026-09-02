@@ -19,6 +19,12 @@ public sealed class SoapSmsSender(HttpClient httpClient) : ISmsSender
         ArgumentNullException.ThrowIfNull(message);
         cancellationToken.ThrowIfCancellationRequested();
 
+        using var operationCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        if (httpClient.Timeout != Timeout.InfiniteTimeSpan)
+        {
+            operationCancellation.CancelAfter(httpClient.Timeout);
+        }
+
         try
         {
             using var request = new HttpRequestMessage(HttpMethod.Post, string.Empty)
@@ -30,13 +36,16 @@ public sealed class SoapSmsSender(HttpClient httpClient) : ISmsSender
             using var response = await httpClient.SendAsync(
                 request,
                 HttpCompletionOption.ResponseHeadersRead,
-                cancellationToken);
+                operationCancellation.Token);
             if (!response.IsSuccessStatusCode)
             {
                 return new SmsSendResult(false, "provider-unavailable");
             }
 
-            return await ParseResponseAsync(response, cancellationToken);
+            var responseBody = await ReadBoundedResponseAsync(response, operationCancellation.Token);
+            return responseBody is null
+                ? new SmsSendResult(false, "invalid-response")
+                : ParseResponse(responseBody);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -88,11 +97,34 @@ public sealed class SoapSmsSender(HttpClient httpClient) : ISmsSender
         return content;
     }
 
-    private static async Task<SmsSendResult> ParseResponseAsync(
+    private static async Task<byte[]?> ReadBoundedResponseAsync(
         HttpResponseMessage response,
         CancellationToken cancellationToken)
     {
         await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        await using var responseBuffer = new MemoryStream();
+        var readBuffer = new byte[8192];
+
+        while (true)
+        {
+            var bytesRead = await stream.ReadAsync(readBuffer, cancellationToken);
+            if (bytesRead == 0)
+            {
+                return responseBuffer.ToArray();
+            }
+
+            if (responseBuffer.Length > MaximumResponseCharacters - bytesRead)
+            {
+                return null;
+            }
+
+            await responseBuffer.WriteAsync(readBuffer.AsMemory(0, bytesRead), cancellationToken);
+        }
+    }
+
+    private static SmsSendResult ParseResponse(byte[] responseBody)
+    {
+        using var stream = new MemoryStream(responseBody, writable: false);
         var readerSettings = new XmlReaderSettings
         {
             DtdProcessing = DtdProcessing.Prohibit,
@@ -102,21 +134,33 @@ public sealed class SoapSmsSender(HttpClient httpClient) : ISmsSender
             IgnoreProcessingInstructions = true,
         };
         using var reader = XmlReader.Create(stream, readerSettings);
-        while (reader.Read())
+        string? resultValue = null;
+        var resultCount = 0;
+
+        while (!reader.EOF)
         {
-            if (reader.NodeType != XmlNodeType.Element || reader.LocalName != ResultElementName)
+            if (reader.NodeType == XmlNodeType.Element && reader.LocalName == ResultElementName)
             {
+                resultCount++;
+                var candidateValue = reader.ReadElementContentAsString();
+                if (resultValue is null)
+                {
+                    resultValue = candidateValue;
+                }
+
                 continue;
             }
 
-            var value = reader.ReadElementContentAsString();
-            return bool.TryParse(value, out var succeeded)
-                ? succeeded
-                    ? new SmsSendResult(true, null)
-                    : new SmsSendResult(false, "provider-rejected")
-                : new SmsSendResult(false, "invalid-response");
+            reader.Read();
         }
 
-        return new SmsSendResult(false, "invalid-response");
+        if (resultCount != 1 || !bool.TryParse(resultValue, out var succeeded))
+        {
+            return new SmsSendResult(false, "invalid-response");
+        }
+
+        return succeeded
+            ? new SmsSendResult(true, null)
+            : new SmsSendResult(false, "provider-rejected");
     }
 }
