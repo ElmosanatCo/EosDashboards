@@ -46,11 +46,11 @@ Initial authentication and application-shell implementation.
 ## In progress
 
 - The approved local-credential authentication replacement has a reviewed implementation plan. It retains mandatory SMS OTP, adds password recovery and signed-in password change, keeps account/password administration in the private deployment tool, and replaces the current sparse sign-in page with the approved Persian RTL visual direction. The previous Windows-authentication browser smoke test is intentionally superseded; no additional Windows/AD, Chrome, or OTP test is needed before the new flow is implemented.
-- A local provisioning defect was identified: Persian administrator profile text was corrupted while being passed from the deployment helper to its child process, despite Unicode SQL Server columns. The deployment helper is being hardened to require explicit UTF-8 process input and a non-sensitive Unicode integrity check before the affected local record is repaired. No private value is recorded in repository documentation.
+- A local provisioning defect was corrected: Persian administrator profile text had been corrupted while being passed from the deployment helper to its child process, despite Unicode SQL Server columns. The helper and provisioner now declare UTF-8 at every process boundary. A safe database-wide text scan found exactly two affected values, both in the initial administrator's first/last-name fields, and none elsewhere. The next private-data provisioning run will repair those two values; no private value is recorded in repository documentation.
 
 ## Next agreed step
 
-Execute the focused local-credential implementation plan inline and without subagents, publish the updated API/UI to the local development IIS applications, and complete one browser-based local sign-in flow with refresh and logout. Do not deploy to company production servers in this slice.
+Complete the focused local-credential verification, publish the updated API/UI to the local development IIS applications, repair the initial administrator profile through the UTF-8 provisioning path, and complete one browser-based local sign-in flow with refresh and logout. Do not deploy to company production servers in this slice.
 
 ## Blockers
 
@@ -58,6 +58,7 @@ Execute the focused local-credential implementation plan inline and without suba
 
 ## Immediate unresolved questions
 
+- The private deployment file currently contains six administrator values, while the approved local-credential installer contract requires exactly five in this order after `Method`: username, password, first name, last name, mobile. The user must reconcile this non-sensitive structural mismatch before local deployment; values must not be copied into the repository.
 - Which business dashboards and metrics are required first?
 - Which managers or roles will use each dashboard?
 - What source systems will supply dashboard data?
