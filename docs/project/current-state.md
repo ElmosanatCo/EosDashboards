@@ -45,15 +45,15 @@ Initial authentication and application-shell implementation.
 
 ## In progress
 
-- Completing the authorized real-development sign-in smoke test for the initial authentication and application-shell vertical slice. A real challenge and OTP verification succeeded with the provisioned local Windows identity without exposing or recording the OTP, mobile number, or challenge token. The direct test harness did not supply the required anti-forgery cookie/header pair on its refresh request, so that harness refresh was correctly rejected and it did not continue to logout.
+- Completing the authorized real-development sign-in smoke test for the initial authentication and application-shell vertical slice. A real challenge and OTP verification succeeded with the provisioned local Windows identity without exposing or recording the OTP, mobile number, or challenge token. The direct test harness did not supply the required anti-forgery cookie/header pair on its refresh request, so that harness refresh was correctly rejected and it did not continue to logout. Chrome was configured to attempt integrated authentication for `localhost`, but its local API health request then failed with `ERR_INVALID_AUTH_CREDENTIALS`.
 
 ## Next agreed step
 
-Complete one browser-based local sign-in flow, then verify its refresh and logout using the UI's anti-forgery handling. Do not deploy to company production servers in this slice.
+Confirm the approved local/intranet Windows-authentication topology, then complete one browser-based local sign-in flow and verify its refresh and logout using the UI's anti-forgery handling. Do not deploy to company production servers in this slice.
 
 ## Blockers
 
-- Chrome on this workstation requests Windows credentials instead of silently using the current Windows identity for the local API. IIS correctly challenges with Negotiate/NTLM, but Chrome's managed `AuthServerAllowlist` policy does not include `localhost` and its registry value is not writable by the current process. A browser-policy administrator must allow the local development host, or the final browser smoke test must use an approved intranet hostname/policy.
+- Chrome now attempts integrated authentication for the allowed local host, but IIS rejects the credentials (`ERR_INVALID_AUTH_CREDENTIALS`). The local validation host lacks a confirmed Windows-authentication topology; resolve this using an approved intranet hostname with its DNS/SPN configuration, or explicitly approve a narrower IIS authentication boundary that requests Windows authentication only for organizational sign-in.
 
 ## Immediate unresolved questions
 
