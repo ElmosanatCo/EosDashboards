@@ -45,3 +45,10 @@ Before finishing a task, update the appropriate canonical document when a durabl
 - Make assumptions explicit when they are necessary.
 - Verify changes in proportion to risk and report what was checked.
 - Keep files focused so future tasks can load only relevant context.
+
+## Integration and publication
+
+- Before any local merge or push, update `AGENTS.md` and the canonical project documents with all durable requirements, decisions, agreements, state changes, and next steps introduced by the work.
+- Verify the documentation updates and the merged result before publication.
+- A local merge must never remain local-only. After a successful merge and verification, push the destination branch to its configured remote.
+- If the required push cannot be completed, the integration is incomplete; preserve the work and report the failure clearly.
