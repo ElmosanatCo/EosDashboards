@@ -4,7 +4,7 @@
 
 ## Phase
 
-Initial authentication and application-shell design.
+Initial authentication and application-shell implementation.
 
 ## Completed
 
@@ -21,15 +21,16 @@ Initial authentication and application-shell design.
 - Company branding, footer version/date/time, and closable internal workspace tabs were approved.
 - The initial authentication and tabbed-shell design was reviewed and approved.
 - A task-by-task, test-driven implementation plan was prepared.
+- The user selected inline plan execution with review checkpoints.
+- .NET SDK 10.0.400 and Node.js 24.19.0 were installed and verified.
 
 ## In progress
 
-- Awaiting the user's choice of plan-execution workflow.
-- Official .NET 10.0.400 and Node.js 24.19.0 installers are downloaded and hash-verified; installation is pending completion of the user's ongoing Visual Studio update.
+- Creating the isolated feature worktree and scaffolding the independent backend and frontend foundations.
 
 ## Next agreed step
 
-Execute `../superpowers/plans/2026-09-02-initial-authentication-shell.md` using the user-selected workflow.
+Execute Task 1 of `../superpowers/plans/2026-09-02-initial-authentication-shell.md` in an isolated feature worktree.
 
 ## Blockers
 
