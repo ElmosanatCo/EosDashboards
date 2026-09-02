@@ -4,21 +4,22 @@
 
 ## Phase
 
-Project inception and requirements discovery.
+Requirements discovery.
 
 ## Completed
 
 - The empty GitHub repository was cloned locally.
 - The repository-based project-memory design was approved.
 - The implementation plan for the memory structure was prepared.
+- The canonical project-memory structure and root agent instructions were created and verified.
 
 ## In progress
 
-- Establishing the canonical project-memory files and agent instructions.
+- Product discovery: identifying the first dashboard's users, business questions, metrics, and data sources.
 
 ## Next agreed step
 
-Complete and verify the project-memory structure, then continue product discovery before scaffolding the application.
+Discover and confirm the first dashboard's users, business questions, metrics, and data sources before application scaffolding.
 
 ## Blockers
 
