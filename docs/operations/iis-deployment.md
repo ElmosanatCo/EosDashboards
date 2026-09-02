@@ -14,11 +14,20 @@ Copy `frontend/dist/` to a versioned UI directory. Point IIS to the versioned di
 
 ## API application pool
 
-- Use **No Managed Code** and a dedicated identity.
+- Use **No Managed Code**, Integrated pipeline mode, and a dedicated identity.
 - Install the matching ASP.NET Core Hosting Bundle.
 - Grant the identity read/execute access to the API files, write access only to the configured key-ring directory, and the least SQL permission required.
 - Configure secrets and connection strings outside the artifact.
-- Enable Windows Authentication for the challenge endpoint and disable anonymous access only if the final IIS topology can still serve JWT endpoints correctly. Validate this boundary with the organization's IIS policy before production.
+- Enable Windows Authentication and disable Anonymous Authentication for the API application. ASP.NET Core's Negotiate handler intentionally refuses to start when IIS does not provide this boundary.
+- The Windows-authenticated API may return `401` to an unauthenticated health request. Local probes must use the current Windows identity, for example `Invoke-WebRequest -UseDefaultCredentials`; successful `/health/live` and `/health/ready` responses return `200`.
+- Keep the API application configuration when switching versioned release directories. It contains the environment-specific values outside the artifact.
+
+## Local runtime conditions
+
+- Serve both child applications through the `Default Web Site` HTTPS binding. The local UI origin configured for credentialed CORS is exactly `https://localhost`; paths do not form part of an origin.
+- Keep UI and API in separate child applications and pools. The UI build must retain `VITE_PUBLIC_BASE=/EosDashboards/`; the API base remains `/EosDashboardsApi`.
+- Keep the persistent Data Protection key ring outside the web root, at a path writable by the API pool identity and not by the UI pool. The installed local path is `C:\ProgramData\EosDashboards\keys`.
+- Use the approved private-data helper for local runtime configuration and provisioning. Do not copy private values into `appsettings.json`, deployment artifacts, source control, terminal history, or documentation.
 
 ## Local installed applications
 
@@ -59,14 +68,14 @@ developer-owned private text file outside this repository. It expects `Server`,
 `User`, `Pass`, `DataBase`, and an HTTPS endpoint following `Sms Web Servise`.
 It validates the file before use, generates independent local security keys,
 stores runtime settings in the API IIS application configuration, applies the
-development migration, and interactively provisions the first administrator.
-The file path and every supplied value remain outside source control and are
-never printed by the helper.
+development migration, and provisions the first administrator. The file path
+and every supplied value remain outside source control and are never printed by
+the helper.
 
 When explicitly requested by its `-ProvisionAdministratorFromPrivateData`
 switch, the helper takes the three administrator profile values placed after
 `Method` in that same private file. It obtains the organizational stable ID and
-account name from the current Windows identity, pipes the values only to the
-deployment-only provisioner, and does not echo them. This is for the developer
-workstation only; keep the private file access-restricted and delete it when it
-is no longer needed.
+account name from the current Windows identity, sends the values only through
+the provisioner's redirected standard input, and does not echo them. This is
+for the developer workstation only; keep the private file access-restricted and
+delete it when it is no longer needed.

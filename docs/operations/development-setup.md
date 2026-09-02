@@ -19,6 +19,14 @@ Tracked JSON files contain shapes and non-secret defaults only. Supply these val
 
 Do not paste values into tracked files or terminal history. Enter them using the local secret manager or the IIS configuration editor. Never reuse test keys.
 
+For the approved local IIS workflow, a developer-owned private text file lives
+outside this repository and is passed by path to
+`scripts/Configure-LocalIisFromPrivateData.ps1`. It contains the connection
+components and HTTPS SMS endpoint; optional first-administrator profile values
+are used only with the helper's explicit provisioning switch. The helper is
+local-development-only, validates before changing IIS, and never prints or
+stores supplied values in the repository. Keep that file access-restricted.
+
 ## Local commands
 
 ```powershell
