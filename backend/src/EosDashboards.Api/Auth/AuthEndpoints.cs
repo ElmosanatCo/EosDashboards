@@ -14,10 +14,16 @@ public static class AuthEndpoints
             .WithTags("Authentication")
             .AddEndpointFilter<NoStoreEndpointFilter>();
 
-        group.MapPost("/challenges", StartChallengeAsync)
-            .RequireAuthorization("WindowsIdentity")
+        group.MapPost("/sign-in/challenges", StartChallengeAsync)
             .RequireRateLimiting("auth-sensitive");
-        group.MapPost("/challenges/{challengeToken}/verify", VerifyAsync)
+        group.MapPost("/sign-in/challenges/{challengeToken}/verify", VerifyAsync)
+            .RequireRateLimiting("auth-sensitive");
+        group.MapPost("/password-reset/challenges", StartPasswordResetAsync)
+            .RequireRateLimiting("auth-sensitive");
+        group.MapPost("/password-reset/challenges/{challengeToken}/complete", CompletePasswordResetAsync)
+            .RequireRateLimiting("auth-sensitive");
+        group.MapPost("/password", ChangePasswordAsync)
+            .RequireAuthorization("ActiveUser")
             .RequireRateLimiting("auth-sensitive");
         group.MapPost("/refresh", RefreshAsync)
             .RequireRateLimiting("auth-sensitive");
@@ -31,18 +37,15 @@ public static class AuthEndpoints
 
     private static async Task<IResult> StartChallengeAsync(
         HttpContext context,
-        IWindowsIdentityReader identityReader,
+        SignInRequest request,
         StartSignIn startSignIn,
         CancellationToken cancellationToken)
     {
-        var identity = identityReader.Read(context.User);
-        if (identity is null)
-        {
-            return ApiResults.Problem(context, 401, "windows_identity_unavailable", "Organizational sign-in is required.");
-        }
-
         var result = await startSignIn.HandleAsync(
-            new StartSignInCommand(identity, context.Connection.RemoteIpAddress?.ToString()),
+            new StartSignInCommand(
+                request.Username,
+                request.Password,
+                context.Connection.RemoteIpAddress?.ToString()),
             cancellationToken);
         return result.Status switch
         {
@@ -58,6 +61,72 @@ public static class AuthEndpoints
                 context, 503, "sms_unavailable", "The verification service is temporarily unavailable."),
             _ => ApiResults.Problem(context, 403, "sign_in_denied", "Sign-in is not available for this account."),
         };
+    }
+
+    private static async Task<IResult> StartPasswordResetAsync(
+        PasswordResetStartRequest request,
+        HttpContext context,
+        StartPasswordReset startPasswordReset,
+        CancellationToken cancellationToken)
+    {
+        var result = await startPasswordReset.HandleAsync(
+            new StartPasswordResetCommand(request.Username, context.Connection.RemoteIpAddress?.ToString()),
+            cancellationToken);
+        return result.Status switch
+        {
+            PasswordResetStartStatus.Succeeded => Results.Ok(new ChallengeResponse(
+                result.ChallengeToken,
+                "",
+                result.ExpiresAtUtc,
+                result.ExpiresAtUtc)),
+            _ => ApiResults.Problem(
+                context, 503, "sms_unavailable", "The verification service is temporarily unavailable."),
+        };
+    }
+
+    private static async Task<IResult> CompletePasswordResetAsync(
+        string challengeToken,
+        PasswordResetCompleteRequest request,
+        HttpContext context,
+        CompletePasswordReset completePasswordReset,
+        CancellationToken cancellationToken)
+    {
+        var result = await completePasswordReset.HandleAsync(
+            new CompletePasswordResetCommand(
+                challengeToken,
+                request.Code,
+                request.NewPassword,
+                context.Connection.RemoteIpAddress?.ToString()),
+            cancellationToken);
+        return result.Status is PasswordResetStatus.Succeeded
+            ? Results.NoContent()
+            : ApiResults.Problem(
+                context, 401, "password_reset_failed", "The verification code is invalid or unavailable.");
+    }
+
+    private static async Task<IResult> ChangePasswordAsync(
+        ChangePasswordRequest request,
+        HttpContext context,
+        ChangePassword changePassword,
+        RefreshCookieService cookies,
+        CancellationToken cancellationToken)
+    {
+        if (!SessionAuthorizationHandler.TryReadId(context.User, JwtRegisteredClaimNames.Sub, out var userId))
+        {
+            cookies.Expire(context.Response);
+            return ApiResults.Problem(context, 401, "invalid_access_token", "Authentication is required.");
+        }
+
+        var result = await changePassword.HandleAsync(
+            new ChangePasswordCommand(userId, request.CurrentPassword, request.NewPassword),
+            cancellationToken);
+        if (result.Status is not ChangePasswordStatus.Succeeded)
+        {
+            return ApiResults.Problem(context, 400, "password_change_failed", "The password could not be changed.");
+        }
+
+        cookies.Expire(context.Response);
+        return Results.NoContent();
     }
 
     private static async Task<IResult> VerifyAsync(

@@ -227,8 +227,8 @@ function Invoke-ProvisionerWithPrivateInput {
 
 $privateConfiguration = Get-PrivateConfiguration -Path $PrivateDataFile
 
-if ($ProvisionAdministratorFromPrivateData -and $privateConfiguration.AdministratorValues.Count -ne 3) {
-    throw 'The private data file must contain exactly three administrator values after Method.'
+if ($ProvisionAdministratorFromPrivateData -and $privateConfiguration.AdministratorValues.Count -ne 5) {
+    throw 'The private data file must contain exactly five administrator values after Method.'
 }
 
 if ($ValidateOnly) {
@@ -337,6 +337,8 @@ try {
                     $privateConfiguration.AdministratorValues[0],
                     $privateConfiguration.AdministratorValues[1],
                     $privateConfiguration.AdministratorValues[2],
+                    $privateConfiguration.AdministratorValues[3],
+                    $privateConfiguration.AdministratorValues[4],
                     'yes'
                 )
                 $provisionerOutput = $provisionerResult.Output
@@ -382,13 +384,17 @@ finally {
     }
 }
 
+$deploymentStage = 'iis-local-credential-authentication'
+Set-WebConfigurationProperty -PSPath $configurationPath -Location $apiApplicationLocation -Filter 'system.webServer/security/authentication/anonymousAuthentication' -Name 'enabled' -Value $true
+Set-WebConfigurationProperty -PSPath $configurationPath -Location $apiApplicationLocation -Filter 'system.webServer/security/authentication/windowsAuthentication' -Name 'enabled' -Value $false
+
 $deploymentStage = 'api-readiness-check'
 Restart-WebAppPool -Name $apiApplicationPool
 [Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
 $ready = $false
 for ($attempt = 1; $attempt -le 12; $attempt++) {
     try {
-        $response = Invoke-WebRequest -Uri 'https://localhost/EosDashboardsApi/health/ready' -UseBasicParsing -UseDefaultCredentials -TimeoutSec 5
+        $response = Invoke-WebRequest -Uri 'https://localhost/EosDashboardsApi/health/ready' -UseBasicParsing -TimeoutSec 5
         if ($response.StatusCode -eq 200) {
             $ready = $true
             break

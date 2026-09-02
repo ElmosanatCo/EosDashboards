@@ -25,6 +25,10 @@ public sealed class InteractiveInput(
         var organizationalId = console.ReadLine();
         console.Write("نام حساب سازمانی: ");
         var accountName = console.ReadLine();
+        console.Write("نام کاربری: ");
+        var username = console.ReadLine();
+        console.Write("رمز عبور (مخفی): ");
+        var password = console.ReadSecret();
         console.Write("نام: ");
         var firstName = console.ReadLine();
         console.Write("نام خانوادگی: ");
@@ -35,6 +39,8 @@ public sealed class InteractiveInput(
 
         if (organizationalId is null ||
             accountName is null ||
+            username is null ||
+            password is null ||
             firstName is null ||
             lastName is null ||
             mobile is null)
@@ -67,6 +73,8 @@ public sealed class InteractiveInput(
         return new ProvisionSystemAdministratorCommand(
             organizationalId,
             accountName,
+            username,
+            password,
             firstName,
             lastName,
             normalizedMobile);

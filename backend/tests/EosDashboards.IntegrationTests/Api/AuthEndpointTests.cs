@@ -1,15 +1,11 @@
 using System.Net;
 using System.Net.Http.Json;
-using System.Security.Claims;
-using System.Text.Encodings.Web;
 using System.Text.Json;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using EosDashboards.Application.Abstractions;
+using EosDashboards.Domain.Entities;
 
 namespace EosDashboards.IntegrationTests.Api;
 
@@ -54,13 +50,26 @@ public sealed class AuthEndpointTests : IClassFixture<AuthEndpointTests.ApiFacto
     }
 
     [Fact]
-    public async Task OpenApi_exposes_the_approved_authentication_and_preference_routes()
+    public async Task OpenApi_exposes_local_credential_routes_without_the_windows_route()
     {
         var document = await _client.GetStringAsync("/openapi/v1.json");
 
-        Assert.Contains("/api/v1/auth/challenges", document, StringComparison.Ordinal);
+        Assert.Contains("/api/v1/auth/sign-in/challenges", document, StringComparison.Ordinal);
+        Assert.Contains("/api/v1/auth/password-reset/challenges", document, StringComparison.Ordinal);
+        Assert.DoesNotContain("/api/v1/auth/challenges\"", document, StringComparison.Ordinal);
         Assert.Contains("/api/v1/auth/refresh", document, StringComparison.Ordinal);
         Assert.Contains("/api/v1/users/me/preferences", document, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Anonymous_password_reset_start_returns_a_generic_response()
+    {
+        var response = await _client.PostAsJsonAsync(
+            "/api/v1/auth/password-reset/challenges",
+            new { username = "missing" });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("no-store", response.Headers.CacheControl?.ToString());
     }
 
     public sealed class ApiFactory : WebApplicationFactory<Program>
@@ -84,11 +93,12 @@ public sealed class AuthEndpointTests : IClassFixture<AuthEndpointTests.ApiFacto
             builder.UseSetting("AuthSecurity:KeyRingPath", _keyRingPath);
             builder.UseSetting("Sms:Endpoint", "https://sms.test.invalid/soap");
             builder.UseSetting("Sms:Timeout", "00:00:01");
-            builder.ConfigureServices(services => services
-                .AddAuthentication()
-                .AddScheme<AuthenticationSchemeOptions, TestWindowsHandler>(
-                    NegotiateDefaults.AuthenticationScheme,
-                    _ => { }));
+            builder.ConfigureServices(services =>
+            {
+                services.AddScoped<IUserRepository, MissingUserRepository>();
+                services.AddScoped<IAuditWriter, DiscardingAuditWriter>();
+                services.AddScoped<IUnitOfWork, NoOpUnitOfWork>();
+            });
         }
 
         protected override void Dispose(bool disposing)
@@ -101,24 +111,32 @@ public sealed class AuthEndpointTests : IClassFixture<AuthEndpointTests.ApiFacto
         }
     }
 
-    private sealed class TestWindowsHandler(
-        IOptionsMonitor<AuthenticationSchemeOptions> options,
-        ILoggerFactory logger,
-        UrlEncoder encoder)
-        : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
+    private sealed class MissingUserRepository : IUserRepository
     {
-        protected override Task<AuthenticateResult> HandleAuthenticateAsync()
-        {
-            var identity = new ClaimsIdentity(
-                [
-                    new Claim(ClaimTypes.PrimarySid, "S-1-5-21-test"),
-                    new Claim(ClaimTypes.Name, "TEST\\user"),
-                ],
-                Scheme.Name,
-                ClaimTypes.Name,
-                ClaimTypes.Role);
-            return Task.FromResult(AuthenticateResult.Success(
-                new AuthenticationTicket(new ClaimsPrincipal(identity), Scheme.Name)));
-        }
+        public Task<User?> FindByOrganizationalIdAsync(string stableId, CancellationToken cancellationToken) =>
+            Task.FromResult<User?>(null);
+
+        public Task<User?> FindByUsernameAsync(string username, CancellationToken cancellationToken) =>
+            Task.FromResult<User?>(null);
+
+        public Task<User?> GetByIdAsync(long id, CancellationToken cancellationToken) =>
+            Task.FromResult<User?>(null);
+
+        public void Add(User user) => throw new NotSupportedException();
+    }
+
+    private sealed class DiscardingAuditWriter : IAuditWriter
+    {
+        public Task WriteAsync(AuditRecord record, CancellationToken cancellationToken) => Task.CompletedTask;
+    }
+
+    private sealed class NoOpUnitOfWork : IUnitOfWork
+    {
+        public Task<int> SaveChangesAsync(CancellationToken cancellationToken) => Task.FromResult(0);
+
+        public Task ExecuteSerializedTransactionAsync(
+            string operationKey,
+            Func<CancellationToken, Task> operation,
+            CancellationToken cancellationToken) => operation(cancellationToken);
     }
 }

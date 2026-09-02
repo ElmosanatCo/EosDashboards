@@ -10,7 +10,6 @@ using EosDashboards.Infrastructure;
 using EosDashboards.Infrastructure.Persistence;
 using EosDashboards.Infrastructure.Sms;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -30,11 +29,13 @@ builder.Services.AddOptions<ApiSecurityOptions>()
 builder.Services.AddSingleton<IValidateOptions<ApiSecurityOptions>, ApiSecurityOptionsValidator>();
 
 builder.Services.AddScoped<ICorrelationContext, HttpCorrelationContext>();
-builder.Services.AddScoped<IWindowsIdentityReader, WindowsIdentityReader>();
 builder.Services.AddScoped<RefreshCookieService>();
 builder.Services.AddScoped<TrustedOriginFilter>();
 builder.Services.AddScoped<StartSignIn>();
 builder.Services.AddScoped<VerifyOtp>();
+builder.Services.AddScoped<StartPasswordReset>();
+builder.Services.AddScoped<CompletePasswordReset>();
+builder.Services.AddScoped<ChangePassword>();
 builder.Services.AddScoped<RefreshSession>();
 builder.Services.AddScoped<Logout>();
 builder.Services.AddScoped<GetMyPreferences>();
@@ -44,21 +45,12 @@ builder.Services.AddScoped<IAuthorizationHandler, SessionAuthorizationHandler>()
 var authentication = builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options => options.MapInboundClaims = false);
-if (!builder.Environment.IsEnvironment("Testing"))
-{
-    authentication.AddNegotiate();
-}
 builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
     .Configure<TokenValidationParameters>((options, validationParameters) =>
         options.TokenValidationParameters = validationParameters);
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("WindowsIdentity", policy =>
-    {
-        policy.AuthenticationSchemes.Add(NegotiateDefaults.AuthenticationScheme);
-        policy.RequireAuthenticatedUser();
-    });
     options.AddPolicy("ActiveUser", policy =>
     {
         policy.AuthenticationSchemes.Add(JwtBearerDefaults.AuthenticationScheme);

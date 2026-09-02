@@ -31,12 +31,16 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
         var firstCommand = new ProvisionSystemAdministratorCommand(
             "  org-synthetic-integration  ",
             "  domain\\synthetic.one  ",
+            "local.integration.one",
+            "first synthetic password",
             "SyntheticFirstOne",
             "SyntheticLastOne",
             "09120006789");
         var secondCommand = new ProvisionSystemAdministratorCommand(
             "ORG-SYNTHETIC-INTEGRATION",
             "DOMAIN\\SYNTHETIC.TWO",
+            "local.integration.two",
+            "second synthetic password",
             "SyntheticFirstTwo",
             "SyntheticLastTwo",
             "09350006789");
@@ -118,10 +122,11 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
         var sut = new ProvisionSystemAdministrator(
             new FixedClock(TestNow),
             new FixedCorrelationContext("trace-synthetic-rollback"),
-            new UserRepository(context),
-            new RoleRepository(context),
-            mobileProtector,
-            auditWriter,
+                new UserRepository(context),
+                new RoleRepository(context),
+                mobileProtector,
+                new LocalPasswordHasher(),
+                auditWriter,
             new EfUnitOfWork(context));
 
         await Assert.ThrowsAsync<InvalidOperationException>(
@@ -129,6 +134,8 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
                 new ProvisionSystemAdministratorCommand(
                     "ORG-SYNTHETIC-ROLLBACK",
                     "DOMAIN\\SYNTHETIC.ROLLBACK",
+                    "local.rollback",
+                    "synthetic password",
                     "Synthetic",
                     "Rollback",
                     "09120006789"),
@@ -173,6 +180,7 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
                 new UserRepository(context),
                 new RoleRepository(context),
                 mobileProtector,
+                new LocalPasswordHasher(),
                 new AuditWriter(context, new FixedClock(TestNow)),
                 new EfUnitOfWork(context));
 
@@ -181,6 +189,8 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
                     new ProvisionSystemAdministratorCommand(
                         organizationalId,
                         accountName,
+                        "local.role-drift",
+                        "synthetic password",
                         firstName,
                         lastName,
                         mobile),
@@ -224,12 +234,16 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
         var firstCommand = new ProvisionSystemAdministratorCommand(
             "org-synthetic-concurrent",
             "domain\\synthetic.concurrent-one",
+            "local.concurrent.one",
+            "first synthetic password",
             "SyntheticConcurrentFirstOne",
             "SyntheticConcurrentLastOne",
             "09120001111");
         var secondCommand = new ProvisionSystemAdministratorCommand(
             "ORG-SYNTHETIC-CONCURRENT",
             "DOMAIN\\SYNTHETIC.CONCURRENT-TWO",
+            "local.concurrent.two",
+            "second synthetic password",
             "SyntheticConcurrentFirstTwo",
             "SyntheticConcurrentLastTwo",
             "09350002222");
@@ -338,10 +352,12 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
             [
                 "org-synthetic-console",
                 "domain\\synthetic.console",
+                "local.console",
                 "Synthetic",
                 "Console",
                 confirmation,
             ],
+            "synthetic password",
             "09120006789");
         var input = new InteractiveInput(console, new MaskOnlyMobileProtector());
 
@@ -349,7 +365,7 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
 
         Assert.NotNull(command);
         Assert.Equal("09120006789", command!.Mobile);
-        Assert.Equal(1, console.SecretReadCount);
+        Assert.Equal(2, console.SecretReadCount);
         Assert.Contains("*******6789", console.Transcript, StringComparison.Ordinal);
         Assert.DoesNotContain("09120006789", console.Transcript, StringComparison.Ordinal);
     }
@@ -363,10 +379,12 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
             [
                 "org-synthetic-unicode",
                 "domain\\synthetic.unicode",
+                "local.unicode",
                 firstName,
                 lastName,
                 "yes",
             ],
+            "synthetic password",
             "09120006789");
         var input = new InteractiveInput(console, new MaskOnlyMobileProtector());
 
@@ -388,10 +406,12 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
             [
                 "org-synthetic-console-cancel",
                 "domain\\synthetic.cancel",
+                "local.cancel",
                 "Synthetic",
                 "Cancel",
                 confirmation,
             ],
+            "synthetic password",
             "09120006789");
         var input = new InteractiveInput(console, new MaskOnlyMobileProtector());
 
@@ -405,7 +425,7 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
     [Fact]
     public async Task RunnerRejectsCommandLineValuesWithoutEchoingThem()
     {
-        var console = new RecordingConsole([], null);
+        var console = new RecordingConsole([], [null]);
 
         var exitCode = await AdminProvisionerRunner.RunAsync(
             ["synthetic-private-command-line-value"],
@@ -423,7 +443,7 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
     [Fact]
     public async Task RunnerReportsOnlyFailureTypeWhenLocalDiagnosticsAreExplicitlyEnabled()
     {
-        var console = new RecordingConsole([], null);
+        var console = new RecordingConsole([], [null]);
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -453,6 +473,7 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
             new UserRepository(context),
             new RoleRepository(context),
             mobileProtector,
+            new LocalPasswordHasher(),
             new AuditWriter(context, new FixedClock(TestNow)),
             new EfUnitOfWork(context));
         return await sut.HandleAsync(command, CancellationToken.None);
@@ -470,6 +491,7 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
             new UserRepository(context),
             new CoordinatedRoleRepository(new RoleRepository(context), coordinator),
             mobileProtector,
+            new LocalPasswordHasher(),
             new AuditWriter(context, new FixedClock(TestNow)),
             new EfUnitOfWork(context));
         return await sut.HandleAsync(command, CancellationToken.None);
@@ -596,9 +618,10 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
 
     private sealed class RecordingConsole(
         IEnumerable<string?> lineInputs,
-        string? secretInput) : IInteractiveConsole
+        params string?[] secretInputs) : IInteractiveConsole
     {
         private readonly Queue<string?> _lineInputs = new(lineInputs);
+        private readonly Queue<string?> _secretInputs = new(secretInputs);
         private readonly StringBuilder _transcript = new();
 
         public int SecretReadCount { get; private set; }
@@ -614,7 +637,7 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
         public string? ReadSecret()
         {
             SecretReadCount++;
-            return secretInput;
+            return _secretInputs.Count == 0 ? null : _secretInputs.Dequeue();
         }
     }
 
