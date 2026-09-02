@@ -23,14 +23,16 @@ Initial authentication and application-shell implementation.
 - A task-by-task, test-driven implementation plan was prepared.
 - The user selected inline plan execution with review checkpoints.
 - .NET SDK 10.0.400 and Node.js 24.19.0 were installed and verified.
+- The isolated `feature/initial-authentication-shell` worktree was created.
+- The independently buildable backend solution and React frontend foundation were scaffolded and verified.
 
 ## In progress
 
-- Creating the isolated feature worktree and scaffolding the independent backend and frontend foundations.
+- Implementing the initial authentication and application-shell vertical slice.
 
 ## Next agreed step
 
-Execute Task 1 of `../superpowers/plans/2026-09-02-initial-authentication-shell.md` in an isolated feature worktree.
+Execute Task 2 of `../superpowers/plans/2026-09-02-initial-authentication-shell.md`: domain authentication and preference state.
 
 ## Blockers
 

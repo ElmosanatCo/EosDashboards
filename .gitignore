@@ -1,2 +1,22 @@
 .worktrees/
 .superpowers/
+
+# .NET
+**/bin/
+**/obj/
+*.user
+*.suo
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+frontend/playwright-report/
+frontend/test-results/
+frontend/public/generated-assets/
+
+# Local configuration and secrets
+*.local
+.env
+.env.*
+!.env.example
