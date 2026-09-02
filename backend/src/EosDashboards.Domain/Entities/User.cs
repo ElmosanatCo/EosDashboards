@@ -123,6 +123,18 @@ public sealed class User
         UpdatedAtUtc = DeactivatedAtUtc.Value;
     }
 
+    public void Activate(DateTimeOffset activatedAtUtc)
+    {
+        if (IsActive)
+        {
+            return;
+        }
+
+        IsActive = true;
+        DeactivatedAtUtc = null;
+        UpdatedAtUtc = activatedAtUtc.ToUniversalTime();
+    }
+
     private static void ValidateRequired(string value, string parameterName)
     {
         if (string.IsNullOrWhiteSpace(value))

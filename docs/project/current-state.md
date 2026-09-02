@@ -30,6 +30,7 @@ Initial authentication and application-shell implementation.
 - EF Core SQL Server persistence, explicit repositories, guarded database integration tests, the initial identity migration, and its reviewed idempotent deployment script were implemented and review-hardened with tracked provisioning mutations plus live uniqueness and rowversion-concurrency coverage.
 - Infrastructure authentication security primitives were implemented, review-hardened, and verified: secure OTP/opaque-token generation, keyed HMAC-SHA256 hashing, restart-persistent purpose-isolated Data Protection mobile encryption, strict JWT issuer/audience/signature/HS256/lifetime validation with explicit expiry, typed startup-validated security options, and dependency injection. Pending a formal mask-format decision, the implementation conservatively exposes only the final four mobile digits (`*******6789`).
 - The replaceable company SOAP SMS adapter was implemented and verified: typed startup-validated HTTPS endpoint/timeout options, one named `HttpClient`, SOAP 1.1 request creation with XML-safe message/mobile serialization, a configured deadline across headers and asynchronously read body, a fully buffered 64 KiB response limit before DTD-prohibited EOF-complete parsing with exactly one result, safe failure mapping, caller-cancellation propagation, and no automatic retry.
+- The deployment-only System Administrator provisioner was implemented and verified: normalized idempotent user/role creation and profile updates, protected mobile storage with masked-only output, transactional generated-ID/role/audit persistence, safe interactive confirmation, and composition independent of SMS configuration.
 
 ## In progress
 
@@ -37,7 +38,7 @@ Initial authentication and application-shell implementation.
 
 ## Next agreed step
 
-Execute Task 7 of `../superpowers/plans/2026-09-02-initial-authentication-shell.md`: the deployment-only system administrator provisioner.
+Execute Task 8 of `../superpowers/plans/2026-09-02-initial-authentication-shell.md`: secure API authentication, preferences, errors, and health.
 
 ## Blockers
 

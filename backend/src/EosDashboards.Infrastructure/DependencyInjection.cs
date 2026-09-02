@@ -18,6 +18,16 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        services.AddInfrastructurePersistence(configuration);
+        services.AddInfrastructureSecurity(configuration);
+        services.AddInfrastructureSms(configuration);
+        return services;
+    }
+
+    public static IServiceCollection AddInfrastructurePersistence(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
         var connectionString = configuration.GetConnectionString("EosDashboard");
         if (string.IsNullOrWhiteSpace(connectionString))
         {
@@ -33,6 +43,13 @@ public static class DependencyInjection
         services.AddScoped<IUserPreferenceRepository, UserPreferenceRepository>();
         services.AddScoped<IAuditWriter, AuditWriter>();
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
+        return services;
+    }
+
+    public static IServiceCollection AddInfrastructureSecurity(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
         services.AddOptions<AuthSecurityOptions>()
             .Bind(configuration.GetSection(AuthSecurityOptions.SectionName))
             .ValidateOnStart();
@@ -53,6 +70,13 @@ public static class DependencyInjection
             serviceProvider.GetRequiredService<JwtAccessTokenIssuer>());
         services.AddSingleton<TokenValidationParameters>(serviceProvider =>
             serviceProvider.GetRequiredService<JwtAccessTokenIssuer>().CreateValidationParameters());
+        return services;
+    }
+
+    public static IServiceCollection AddInfrastructureSms(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
         services.AddOptions<SmsOptions>()
             .Bind(configuration.GetSection(SmsOptions.SectionName))
             .ValidateOnStart();

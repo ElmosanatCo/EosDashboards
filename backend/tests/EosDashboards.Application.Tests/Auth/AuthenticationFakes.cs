@@ -241,6 +241,10 @@ internal sealed class FakeUnitOfWork(
             sessions.Sessions.Count));
         return Task.FromResult(1);
     }
+
+    public Task ExecuteInTransactionAsync(
+        Func<CancellationToken, Task> operation,
+        CancellationToken cancellationToken) => operation(cancellationToken);
 }
 
 internal sealed record SaveObservation(

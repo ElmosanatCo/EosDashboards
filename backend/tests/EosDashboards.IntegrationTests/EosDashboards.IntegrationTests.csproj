@@ -24,6 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\EosDashboards.Api\EosDashboards.Api.csproj" />
     <ProjectReference Include="..\..\src\EosDashboards.Infrastructure\EosDashboards.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\tools\EosDashboards.AdminProvisioner\EosDashboards.AdminProvisioner.csproj" />
   </ItemGroup>
 
 </Project>
