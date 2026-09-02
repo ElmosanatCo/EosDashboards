@@ -49,14 +49,15 @@ Initial authentication and application-shell implementation.
 - A local provisioning defect was corrected: Persian administrator profile text had been corrupted while being passed from the deployment helper to its child process, despite Unicode SQL Server columns. The helper and provisioner now declare UTF-8 at every process boundary. A safe database-wide text scan found exactly two affected values, both in the initial administrator's first/last-name fields, and none elsewhere. A parameterized corrective update restored the affected profile; a non-sensitive verification confirmed zero remaining corrupted profiles and one exact Unicode profile match. No private value is recorded in repository documentation.
 - The private local deployment file is now interpreted by named administrator fields rather than positional values; only username, password, first name, last name, and mobile are consumed. Extra labelled values are ignored. The parser and private-config validation completed without disclosing values.
 - A local IIS publication helper now copies already-built API/UI artifacts to new versioned directories, switches the two IIS applications, configures the API from the private file, and verifies readiness. It uses Windows PowerShell only for IIS management and UTF-8 PowerShell for private Persian input.
+- The local IIS UI was rebuilt with its `/EosDashboards/` asset base and `/EosDashboardsApi` API base, correcting the prior blank page and same-origin API routing failure. A user-authorized live sign-in then reached the API and validated the provisioned account, but the configured SMS endpoint timed out. The resulting OTP was marked send-failed; no code, phone number, or endpoint is recorded here.
 
 ## Next agreed step
 
-Complete one user-initiated browser-based local sign-in flow with SMS OTP, refresh, and logout. Do not deploy to company production servers in this slice.
+Confirm and correct the local SMS service endpoint/connectivity in the private configuration, then complete one user-initiated browser-based local sign-in flow with SMS OTP, refresh, and logout. Do not deploy to company production servers in this slice.
 
 ## Blockers
 
-- None for the approved local-credential implementation. The workstation's home-VPN secure-channel result does not block this authentication topology. It remains an organizational connectivity matter outside this slice and has not been changed.
+- The configured local SMS service endpoint timed out during one authorized live sign-in attempt. Login cannot complete until its endpoint, network reachability, or SOAP service contract is corrected. Do not repeat live OTP sends until that is resolved.
 
 ## Immediate unresolved questions
 

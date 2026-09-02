@@ -109,6 +109,21 @@ foreach ($artifactPath in @($ApiArtifact, $UiArtifact)) {
     }
 }
 
+$uiIndexPath = Join-Path $UiArtifact 'index.html'
+if (-not (Test-Path -LiteralPath $uiIndexPath -PathType Leaf) -or
+    -not ([IO.File]::ReadAllText($uiIndexPath, [Text.Encoding]::UTF8).Contains('/EosDashboards/assets/'))) {
+    throw 'The UI artifact must be built with VITE_PUBLIC_BASE=/EosDashboards/ for local IIS hosting.'
+}
+
+$uiJavaScriptRelativePath = ([regex]::Match(
+    [IO.File]::ReadAllText($uiIndexPath, [Text.Encoding]::UTF8),
+    'src="/EosDashboards/(?<path>assets/[^\"]+\.js)"').Groups['path'].Value)
+$uiJavaScriptPath = Join-Path $UiArtifact $uiJavaScriptRelativePath.Replace('/', '\\')
+if (-not (Test-Path -LiteralPath $uiJavaScriptPath -PathType Leaf) -or
+    -not ([IO.File]::ReadAllText($uiJavaScriptPath, [Text.Encoding]::UTF8).Contains('/EosDashboardsApi'))) {
+    throw 'The UI artifact must be built with VITE_API_BASE_URL=/EosDashboardsApi for local IIS hosting.'
+}
+
 $deploymentStage = 'release-path-validation'
 $apiReleasePath = Get-NewReleasePath -ReleaseRoot $apiReleaseRoot -Version $ReleaseId
 $uiReleasePath = Get-NewReleasePath -ReleaseRoot $uiReleaseRoot -Version $ReleaseId
@@ -156,9 +171,8 @@ if ($LASTEXITCODE -ne 0) {
 
 $deploymentStage = 'ui-readiness-check'
 Restart-WebAppPool -Name $uiPool
-[Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
-$uiResponse = Invoke-WebRequest -Uri 'https://localhost/EosDashboards/' -UseBasicParsing -TimeoutSec 15
-if ($uiResponse.StatusCode -ne 200) {
+$uiStatusCode = & curl.exe --insecure --silent --output NUL --write-out '%{http_code}' 'https://localhost/EosDashboards/'
+if ($LASTEXITCODE -ne 0 -or $uiStatusCode -ne '200') {
     throw 'The local UI did not return HTTP 200.'
 }
 
