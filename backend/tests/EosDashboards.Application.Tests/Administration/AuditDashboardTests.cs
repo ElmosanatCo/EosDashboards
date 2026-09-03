@@ -22,6 +22,23 @@ public sealed class AuditDashboardTests
         Assert.Equal(context.Clock.Now, context.Audits.LastTo);
     }
 
+    [Fact]
+    public async Task Audit_history_uses_the_selected_seven_day_window_and_caps_the_page_size()
+    {
+        var clock = new FakeClock(new DateTime(2026, 9, 3, 10, 0, 0, DateTimeKind.Unspecified));
+        var audits = new TestAuditLogRepository();
+        var useCase = new GetAuditHistory(clock, audits);
+
+        var result = await useCase.HandleAsync(new AuditHistoryQuery(
+            AuditHistoryRange.LastSevenDays, null, null, " UserCreated ", null, null, true, 1, 100),
+            CancellationToken.None);
+
+        Assert.True(result.IsValid);
+        Assert.Equal(clock.Now.AddDays(-7), audits.LastFrom);
+        Assert.Equal(clock.Now, audits.LastTo);
+        Assert.Equal("UserCreated", audits.LastQuery?.EventCode);
+    }
+
     private sealed class AuditDashboardContext
     {
         public AuditDashboardContext()
@@ -40,7 +57,7 @@ public sealed class AuditDashboardTests
     }
 }
 
-internal sealed class TestAuditLogRepository : ISystemAdministrationMetricsReader
+internal sealed class TestAuditLogRepository : ISystemAdministrationMetricsReader, IAuditLogReader
 {
     public int SuccessfulSignIns { get; set; }
     public int FailedSecurityAttempts { get; set; }
@@ -49,6 +66,7 @@ internal sealed class TestAuditLogRepository : ISystemAdministrationMetricsReade
     public int UsersWithActiveSessions { get; set; }
     public DateTime LastFrom { get; private set; }
     public DateTime LastTo { get; private set; }
+    public AuditLogQuery? LastQuery { get; private set; }
 
     public Task<SystemAdministrationMetrics> GetAsync(DateTime from, DateTime to, CancellationToken cancellationToken)
     {
@@ -56,5 +74,13 @@ internal sealed class TestAuditLogRepository : ISystemAdministrationMetricsReade
         LastTo = to;
         return Task.FromResult(new SystemAdministrationMetrics(
             ActiveUsers, InactiveUsers, SuccessfulSignIns, FailedSecurityAttempts, UsersWithActiveSessions));
+    }
+
+    public Task<PagedResult<AuditLogListItem>> QueryAsync(AuditLogQuery query, CancellationToken cancellationToken)
+    {
+        LastQuery = query;
+        LastFrom = query.From;
+        LastTo = query.To;
+        return Task.FromResult(new PagedResult<AuditLogListItem>([], query.PageNumber, query.PageSize, 0));
     }
 }
