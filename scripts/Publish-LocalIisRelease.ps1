@@ -55,6 +55,7 @@ function Set-DeploymentStatus {
 
 trap {
     Set-DeploymentStatus "$deploymentStage|$($_.Exception.GetType().Name)"
+    [Console]::Error.WriteLine("Local IIS publication failed during $deploymentStage. See the status file for the failure stage.")
     exit 1
 }
 

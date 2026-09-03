@@ -74,7 +74,8 @@ Initial authentication and application-shell implementation.
   only for recovery and initial provisioning. A 2026-09-03 regression test
   verifies that the normal publisher reaches its administrator check when the
   legacy runtime path is unavailable, and that its status stage is initialized
-  before any failure can be reported.
+  before any failure can be reported. Failures now also identify their stage
+  in the invoking PowerShell window rather than exiting silently.
 - The local IIS UI was rebuilt with its `/EosDashboards/` asset base and `/EosDashboardsApi` API base, correcting the prior blank page and same-origin API routing failure. The user confirmed on 2026-09-03 that live username/password sign-in was tested successfully against the provisioned account. The subsequent configured SMS call timed out, so the resulting OTP was marked send-failed; no credential, code, phone number, or endpoint is recorded here.
 
 ## Next agreed step

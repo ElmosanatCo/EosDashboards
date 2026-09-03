@@ -11,6 +11,7 @@ Describe 'Publish-LocalIisRelease' {
             -StatusFile $statusFile 2>&1 | Out-String
 
         $output | Should Not Match 'Cannot bind argument'
+        $output | Should Match 'Local IIS publication failed during administrator-check'
         (Get-Content -Raw $statusFile) | Should Match '^administrator-check\|'
     }
 }
