@@ -104,7 +104,7 @@ The initial product language is Persian and the interface is RTL-first. The loca
 
 **Status:** Confirmed
 
-Manager-facing pages provide light, dark, and system appearance modes, defaulting to dark, plus selectable teal, indigo, emerald, amber, and rose interaction accents. The last applied appearance and palette are cached locally and rendered from the first sign-in-page paint, then synchronized with the authenticated user's server preference. The application shell has a fixed header, internal tab bar, and status bar; a persistent desktop side menu and temporary overlay side menu on phones; and a scrollable central workspace only.
+Manager-facing pages provide light, dark, and system appearance modes, defaulting to dark, plus selectable teal, indigo, emerald, amber, and rose interaction accents. The last applied appearance and palette are cached locally and rendered from the first sign-in-page paint, then synchronized with the authenticated user's server preference. The application shell has a fixed header, internal tab bar, and status bar; a persistent desktop side menu and temporary overlay side menu on phones; and a scrollable central workspace only. The header provides a compact global command search that returns only pages, operations, and eligible future in-dashboard elements permitted to the current user, and opens the chosen page in an internal tab.
 
 ### TC-007 — Typography and component foundation
 

@@ -25,6 +25,7 @@ The dashboards, metrics, source systems, update frequency, and success measures 
 
 - Persian, RTL-first, consistent, accessible management experience.
 - A calm, technical, dense-but-readable workforce-operations workspace for manager-facing pages, with dark mode as the default and selectable interaction accents.
+- A compact global command search that helps each user discover and open only the pages and operations they are permitted to use.
 - Desktop-first responsive behavior, with usable essential flows on tablets and phones.
 - Auditable, secure, maintainable, and suitable for IIS deployment inside the organization.
 - Living technical documentation plus formal Persian documentation suitable for printing and organizational archive.

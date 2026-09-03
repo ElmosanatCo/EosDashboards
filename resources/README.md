@@ -25,3 +25,10 @@ For every added asset, record its source, owner, license, version or acquisition
 - Login geometric mesh: user-provided image, acquired 2026-09-03 and stored as
   `branding/auth-background.jpg`. It is used only behind the sign-in brand
   panel with a dark readability overlay; do not use it as workspace content.
+- Manager-workforce dashboard reference: user-provided screenshot, acquired
+  2026-09-03 and stored unchanged as
+  `images/references/manager-workforce-dashboard-reference.png`. SHA-256:
+  `9EB3352FB56C3C60765A17A31FF234106AFECBF0EE9D25F8F5D4BBDB0C1E6B88`.
+  Use only as an internal visual reference for the approved manager-facing
+  UI system; it is not a production asset and does not approve its depicted
+  content, data, operations, or branding.
