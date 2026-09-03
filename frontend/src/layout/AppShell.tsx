@@ -13,16 +13,19 @@ import {
   type WorkspaceTarget,
 } from "../navigation/workspaceTargets";
 import { AppHeader } from "./AppHeader";
+import { ChangePasswordDialog } from "../features/auth/ChangePasswordDialog";
 import { AppSidebar, sidebarWidth } from "./AppSidebar";
 import { StatusBar } from "./StatusBar";
 import { WorkspaceTabs } from "./WorkspaceTabs";
 
 export function AppShell() {
-  const { user } = useAuth();
+  const { user, changePassword } = useAuth();
   const { sidebarCollapsed, updateSidebarCollapsed } = useUserPreferences();
   const theme = useTheme();
   const compactLayout = useMediaQuery(theme.breakpoints.down("md"));
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [passwordBusy, setPasswordBusy] = useState(false);
+  const [passwordError, setPasswordError] = useState<string>();
   const sidebarOpen = compactLayout ? mobileSidebarOpen : !sidebarCollapsed;
   const { tabs, activeKey, dispatch } = useTabWorkspace();
   const targets = useMemo(
@@ -112,6 +115,24 @@ export function AppShell() {
         </Box>
       </Box>
       <StatusBar />
+      <ChangePasswordDialog
+        open={user.mustChangePassword}
+        required
+        busy={passwordBusy}
+        error={passwordError}
+        onClose={() => undefined}
+        onSubmit={async (currentPassword, newPassword) => {
+          setPasswordBusy(true);
+          setPasswordError(undefined);
+          try {
+            await changePassword(currentPassword, newPassword);
+          } catch {
+            setPasswordError("ثبت رمز جدید ممکن نشد. دوباره تلاش کنید.");
+          } finally {
+            setPasswordBusy(false);
+          }
+        }}
+      />
     </Box>
   );
 }

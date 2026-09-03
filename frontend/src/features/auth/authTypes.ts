@@ -5,6 +5,7 @@ export type AuthenticatedUser = {
   lastName: string;
   roleIds: number[];
   roleCodes: string[];
+  mustChangePassword: boolean;
   department: {
     id: number;
     name: string;
