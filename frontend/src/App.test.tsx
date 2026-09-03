@@ -4,7 +4,7 @@ import App from "./App";
 import { AppProviders } from "./app/providers/AppProviders";
 
 describe("application", () => {
-  it("starts by checking the existing session", () => {
+  it("keeps local sign-in available while checking the existing session", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(
@@ -20,6 +20,7 @@ describe("application", () => {
         <App />
       </AppProviders>,
     );
-    expect(screen.getByRole("status")).toHaveTextContent("در حال بررسی نشست");
+    expect(screen.getByRole("heading", { name: "ورود به سامانه" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "ورود و دریافت کد تأیید" })).toBeDisabled();
   });
 });

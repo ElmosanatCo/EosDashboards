@@ -56,6 +56,12 @@ Initial authentication and application-shell implementation.
   configured. Its Client ID and Client Secret are held only in the private
   server-side API configuration and are absent from documentation and frontend
   settings. Publication and a user-authorized HTTPS smoke flow remain pending.
+- Final pre-publication verification passed on 2026-09-03: 195 backend tests
+  (including 113 SQL-backed integration tests against the guarded test
+  catalog), 12 frontend tests, TypeScript checking, the production frontend
+  build, and the publisher's no-private-data regression test. The frontend
+  build reports its existing advisory that the single production JavaScript
+  chunk exceeds 500 kB; it does not fail the build.
 - Two user-provided visual references are stored under `resources/images/references/` for future UI decisions: a split login layout and a dashboard-toolbar control hierarchy. They are reference-only, not approved product assets; their provenance and unverified redistribution status are recorded in `resources/README.md`.
 - Resolve the configured external SMS endpoint/connectivity only if it recurs in a new local live sign-in attempt; the user confirmed that a full username/password-and-OTP sign-in succeeded on 2026-09-02.
 - A local provisioning defect was corrected: Persian administrator profile text had been corrupted while being passed from the deployment helper to its child process, despite Unicode SQL Server columns. The helper and provisioner now declare UTF-8 at every process boundary. A safe database-wide text scan found exactly two affected values, both in the initial administrator's first/last-name fields, and none elsewhere. A parameterized corrective update restored the affected profile; a non-sensitive verification confirmed zero remaining corrupted profiles and one exact Unicode profile match. No private value is recorded in repository documentation.

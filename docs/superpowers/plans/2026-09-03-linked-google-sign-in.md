@@ -511,7 +511,7 @@ Document: create a Google consent screen; create a Web OAuth client; add exactly
 
 Run the reviewed EF migration and the normal elevated local publisher. Do not invoke the deprecated private-data helper for normal publication. The user-authorized Google Cloud client and server-only configuration are ready; publication and real authorization remain pending.
 
-- [ ] **Step 4: Run final automated verification.**
+- [x] **Step 4: Run final automated verification.**
 
 Run: `dotnet test backend/EosDashboards.sln -c Release`
 
