@@ -59,7 +59,7 @@ use that subject. The API creates the same session and refresh cookie used by
 OTP verification. React discovers only whether Google is enabled and never
 receives the client secret, authorization code, ID token, or linked email.
 
-The first user is created or updated before application startup with an idempotent deployment-only administrator provisioning tool and receives the System Administrator role. Personal profile values and application-user passwords enter through secure runtime input and never enter source control. Under decision 0006, the private repository may track approved local-development, server-side runtime settings such as database connection values, service endpoints, API security keys, and Google OAuth configuration; they never enter frontend artifacts, documentation, logs, or production configuration. A signed-in user changes a password by verifying the current password; password recovery completes a purpose-isolated SMS OTP challenge. Password changes and resets revoke that user's active sessions.
+The first user is created or updated before application startup with an idempotent deployment-only administrator provisioning tool and receives the System Administrator and Department Manager roles in the `نرم افزار` department. The fixed system roles are System Administrator, Department Manager, Human Resources Manager, and CEO; users can hold several roles and every user has one department. Personal profile values and application-user passwords enter through secure runtime input and never enter source control. Under decision 0006, the private repository may track approved local-development, server-side runtime settings such as database connection values, service endpoints, API security keys, and Google OAuth configuration; they never enter frontend artifacts, documentation, logs, or production configuration. A signed-in user changes a password by verifying the current password; password recovery completes a purpose-isolated SMS OTP challenge. Password changes and resets revoke that user's active sessions.
 
 The company SMS service is integrated through an Infrastructure adapter for the `SendSmsMessage` SOAP operation. The endpoint and timeouts are typed configuration values; automated tests use a fake sender and never contact the real service. A send timeout is not automatically retried because the service does not provide an idempotency contract.
 
@@ -86,6 +86,10 @@ Organizational directory and federation-provider access is deferred until IT dis
 - The initial migration contains `Users`, `Roles`, `UserRoles`,
   `OtpChallenges`, `UserSessions`, `UserPreferences`, and `AuditLogs`; the
   additive `ExternalIdentityLinks` migration holds explicit provider links.
+- The department migration adds a required user department, a two-level
+  self-referencing `Departments` table, fixed roles, and the `نرم افزار` /
+  `فناوری اطلاعات` organizational baseline. It fails rather than guessing an
+  assignment for an existing user without the System Administrator role.
 - Mobile numbers are encrypted at application level with protected keys outside source control. OTP codes and refresh credentials are stored only as keyed hashes.
 
 ## Frontend workspace
@@ -98,6 +102,10 @@ The frontend is an RTL-first React SPA. Internal workspace tabs are route-aware 
 - The active tab controls the browser URL and supports navigation history.
 - Session tab descriptors survive refresh but are cleared on logout.
 - Overflow is accessible through a compact list on narrow displays.
+- The sidebar, route guard, and `Ctrl+K` command search share one
+  role-filtered target catalogue. The initial targets are empty Department,
+  Human Resources, and CEO dashboard pages; client filtering is not API
+  authorization.
 
 The supplied EOS logo and company name `علم و صنعت` appear on sign-in and in the shell. The fixed status bar displays build-derived version, live Tehran time, and Persian-calendar date.
 

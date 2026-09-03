@@ -37,7 +37,8 @@ public sealed class ProvisionSystemAdministratorTests
         var secondResult = await sut.HandleAsync(secondCommand, CancellationToken.None);
 
         var user = Assert.Single(dependencies.Users.Items);
-        var role = Assert.Single(dependencies.Roles.Items);
+        var systemAdministratorRole = Assert.Single(dependencies.Roles.Items, role => role.Code == "SystemAdministrator");
+        var departmentManagerRole = Assert.Single(dependencies.Roles.Items, role => role.Code == "DepartmentManager");
         Assert.True(user.IsActive);
         Assert.Equal("ORG-SYNTHETIC-7", user.OrganizationalId);
         Assert.Equal("DOMAIN\\SYNTHETIC.TWO", user.AccountName);
@@ -47,15 +48,19 @@ public sealed class ProvisionSystemAdministratorTests
         Assert.Equal("SyntheticLastTwo", user.LastName);
         Assert.Equal("protected-mobile-two", user.ProtectedMobileNumber);
         Assert.Equal("*******6789", user.MaskedMobileNumber);
-        Assert.Equal("SystemAdministrator", role.Code);
-        Assert.Equal("مدیر سامانه", role.DisplayName);
-        Assert.True(role.IsSystem);
-        Assert.True(role.IsActive);
-        var assignment = Assert.Single(user.UserRoles);
-        Assert.Equal(user.Id, assignment.UserId);
-        Assert.Equal(role.Id, assignment.RoleId);
+        Assert.Equal("SystemAdministrator", systemAdministratorRole.Code);
+        Assert.Equal("مدیر سامانه", systemAdministratorRole.DisplayName);
+        Assert.True(systemAdministratorRole.IsSystem);
+        Assert.True(systemAdministratorRole.IsActive);
+        Assert.Equal("DepartmentManager", departmentManagerRole.Code);
+        Assert.Equal("مدیر بخش", departmentManagerRole.DisplayName);
+        Assert.Equal(1, user.DepartmentId);
+        Assert.Equal(2, user.UserRoles.Count);
+        Assert.Contains(user.UserRoles, assignment => assignment.RoleId == systemAdministratorRole.Id);
+        Assert.Contains(user.UserRoles, assignment => assignment.RoleId == departmentManagerRole.Id);
         Assert.True(user.Id > 0);
-        Assert.True(role.Id > 0);
+        Assert.True(systemAdministratorRole.Id > 0);
+        Assert.True(departmentManagerRole.Id > 0);
 
         Assert.Equal(user.Id, firstResult.UserId);
         Assert.Equal(user.Id, secondResult.UserId);
@@ -112,6 +117,7 @@ public sealed class ProvisionSystemAdministratorTests
             "Profile",
             "previous-protected-mobile",
             "*******0000",
+            1,
             TestNow.AddDays(-1));
         SetId(user, 41);
         user.Deactivate(TestNow.AddHours(-1));
@@ -131,8 +137,8 @@ public sealed class ProvisionSystemAdministratorTests
 
         Assert.True(user.IsActive);
         Assert.Null(user.DeactivatedAtUtc);
-        Assert.Single(user.UserRoles);
-        Assert.Equal([1], dependencies.UnitOfWork.SaveCountsByTransaction);
+        Assert.Equal(2, user.UserRoles.Count);
+        Assert.Equal([2], dependencies.UnitOfWork.SaveCountsByTransaction);
     }
 
     [Fact]
@@ -267,7 +273,7 @@ public sealed class ProvisionSystemAdministratorTests
                     "09120006789"),
                 CancellationToken.None));
 
-        Assert.Equal("The system administrator role is not valid.", exception.Message);
+        Assert.Equal("A fixed system role is not valid.", exception.Message);
         Assert.Empty(dependencies.Users.Items);
         Assert.Empty(dependencies.Audits.Records);
     }
@@ -293,6 +299,8 @@ public sealed class ProvisionSystemAdministratorTests
 
         public TestRoleRepository Roles { get; } = new();
 
+        public TestDepartmentRepository Departments { get; } = new();
+
         public TestMobileProtector MobileProtector { get; } = new();
 
         public TestPasswordHasher PasswordHasher { get; } = new();
@@ -313,6 +321,7 @@ public sealed class ProvisionSystemAdministratorTests
             new TestCorrelationContext(),
             Users,
             Roles,
+            Departments,
             MobileProtector,
             PasswordHasher,
             Audits,
@@ -370,6 +379,38 @@ public sealed class ProvisionSystemAdministratorTests
         }
 
         public void Add(Role role) => Items.Add(role);
+
+        public Task<IReadOnlyList<Role>> GetByIdsAsync(
+            IReadOnlyCollection<long> ids,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult<IReadOnlyList<Role>>(Items.Where(role => ids.Contains(role.Id)).ToArray());
+        }
+    }
+
+    private sealed class TestDepartmentRepository : IDepartmentRepository
+    {
+        public TestDepartmentRepository()
+        {
+            var department = Department.CreateRoot("نرم افزار", TestNow);
+            SetId(department, 1);
+            Items.Add(department);
+        }
+
+        public List<Department> Items { get; } = [];
+
+        public Task<Department?> FindByNameAsync(string name, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult(Items.SingleOrDefault(department => department.Name == name));
+        }
+
+        public Task<Department?> GetByIdAsync(long id, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult(Items.SingleOrDefault(department => department.Id == id));
+        }
     }
 
     private sealed class TestMobileProtector : IMobileProtector

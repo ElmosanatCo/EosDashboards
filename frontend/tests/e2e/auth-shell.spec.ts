@@ -33,6 +33,8 @@ test("local credential OTP opens the authenticated shell and logout returns to s
             firstName: "مدیر",
             lastName: "سامانه",
             roleIds: [1],
+            roleCodes: ["SystemAdministrator", "DepartmentManager"],
+            department: { id: 1, name: "نرم افزار" },
           },
         },
       });
@@ -76,6 +78,21 @@ test("local credential OTP opens the authenticated shell and logout returns to s
   await expect(
     page.getByRole("heading", { name: "فضای کاری مدیریت" }),
   ).toHaveCSS("text-align", "start");
+  await page.keyboard.press("Control+k");
+  const searchResults = page.getByRole("list", {
+    name: "نتیجه‌های جست‌وجوی سراسری",
+  });
+  await expect(
+    searchResults.getByRole("button", { name: "داشبورد بخش" }),
+  ).toBeVisible();
+  await expect(
+    searchResults.getByRole("button", { name: "داشبورد مدیرعامل" }),
+  ).toHaveCount(0);
+  await searchResults.getByRole("button", { name: "داشبورد بخش" }).click();
+  await expect(
+    page.getByRole("heading", { name: "داشبورد بخش" }),
+  ).toBeVisible();
+  await page.getByRole("tab", { name: "خانه" }).click();
   const mainBounds = await page.locator("main").evaluate((element) => {
     const bounds = element.getBoundingClientRect();
     return { width: bounds.width };
@@ -216,6 +233,8 @@ test("a strict-mode bootstrap restores a session with one refresh request", asyn
             firstName: "مدیر",
             lastName: "سامانه",
             roleIds: [1],
+            roleCodes: ["SystemAdministrator", "DepartmentManager"],
+            department: { id: 1, name: "نرم افزار" },
           },
         },
       });

@@ -9,6 +9,8 @@ public sealed class EosDashboardDbContext(DbContextOptions<EosDashboardDbContext
 
     public DbSet<Role> Roles => Set<Role>();
 
+    public DbSet<Department> Departments => Set<Department>();
+
     public DbSet<UserRole> UserRoles => Set<UserRole>();
 
     public DbSet<OtpChallenge> OtpChallenges => Set<OtpChallenge>();

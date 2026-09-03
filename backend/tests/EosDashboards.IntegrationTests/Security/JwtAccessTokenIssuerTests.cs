@@ -238,6 +238,7 @@ public sealed class JwtAccessTokenIssuerTests
             "User",
             "protected-value",
             "*******6789",
+            1,
             DateTimeOffset.UtcNow.AddDays(-1));
         typeof(User)
             .GetProperty(nameof(User.Id), BindingFlags.Instance | BindingFlags.Public)!

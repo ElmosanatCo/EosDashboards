@@ -1,4 +1,5 @@
 using EosDashboards.Application.Abstractions;
+using EosDashboards.Domain.Authorization;
 using EosDashboards.Domain.Entities;
 using EosDashboards.Domain.Enums;
 
@@ -8,6 +9,8 @@ public sealed class VerifyOtp(
     IClock clock,
     ICorrelationContext correlationContext,
     IUserRepository users,
+    IRoleRepository roles,
+    IDepartmentRepository departments,
     IOtpChallengeRepository otpChallenges,
     IUserSessionRepository sessions,
     ISecretHasher secretHasher,
@@ -69,7 +72,7 @@ public sealed class VerifyOtp(
             accessToken,
             refreshCredential,
             session.ExpiresAtUtc,
-            Project(user));
+            await ProjectAsync(user, roles, departments, cancellationToken));
     }
 
     private async Task WriteFailureAsync(
@@ -115,13 +118,29 @@ public sealed class VerifyOtp(
         return new AuthenticationResult(status, null, null, null, null);
     }
 
-    public static AuthenticatedUser Project(User user)
+    public static async Task<AuthenticatedUser> ProjectAsync(
+        User user,
+        IRoleRepository roles,
+        IDepartmentRepository departments,
+        CancellationToken cancellationToken)
     {
+        var department = await departments.GetByIdAsync(user.DepartmentId, cancellationToken)
+            ?? throw new InvalidOperationException("The authenticated user's department is unavailable.");
+        var roleCodes = (await roles.GetByIdsAsync(
+                user.UserRoles.Select(role => role.RoleId).ToArray(),
+                cancellationToken))
+            .Where(role => role.IsActive)
+            .Select(role => role.Code)
+            .Where(SystemRoleCodes.All.Contains)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
         return new AuthenticatedUser(
             user.Id,
             user.AccountName,
             user.FirstName,
             user.LastName,
-            user.UserRoles.Select(role => role.RoleId).ToArray());
+            user.UserRoles.Select(role => role.RoleId).ToArray(),
+            roleCodes,
+            new AuthenticatedDepartment(department.Id, department.Name));
     }
 }

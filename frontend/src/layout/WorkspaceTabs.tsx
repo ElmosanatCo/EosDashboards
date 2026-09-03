@@ -40,6 +40,7 @@ export function WorkspaceTabs() {
                 {tab.title}
                 {tab.closable ? (
                   <IconButton
+                    component="span"
                     size="small"
                     aria-label={`بستن ${tab.title}`}
                     onClick={(event) => {

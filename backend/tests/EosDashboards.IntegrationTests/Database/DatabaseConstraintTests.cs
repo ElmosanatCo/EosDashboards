@@ -122,6 +122,7 @@ public sealed class DatabaseConstraintTests(SqlServerDatabaseFixture database)
         "User",
         "protected-test-value",
         "***0000",
+        1,
         TestNow);
 
     private static async Task<User> AddUserAsync(EosDashboards.Infrastructure.Persistence.EosDashboardDbContext context)

@@ -26,7 +26,7 @@ public sealed class ChangePasswordTests
     public async Task Change_password_replaces_the_hash_and_revokes_active_sessions()
     {
         // Break caught: retaining a valid session after a credential change.
-        var user = User.Create("stable", "account", "Test", "User", "protected-mobile", "masked-mobile", Now);
+        var user = User.Create("stable", "account", "Test", "User", "protected-mobile", "masked-mobile", 1, Now);
         EntityId.Set(user, 11);
         user.SetLocalCredentials("LOCAL.USER", "old-hash", Now);
         var users = new FakeUserRepository();

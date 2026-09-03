@@ -8,6 +8,8 @@ public sealed class GoogleSignIn(
     IClock clock,
     ICorrelationContext correlationContext,
     IUserRepository users,
+    IRoleRepository roles,
+    IDepartmentRepository departments,
     IExternalIdentityLinkRepository externalIdentityLinks,
     IUserSessionRepository sessions,
     ISecretHasher secretHasher,
@@ -79,7 +81,11 @@ public sealed class GoogleSignIn(
                         accessToken,
                         refreshCredential,
                         session.ExpiresAtUtc,
-                        VerifyOtp.Project(user)));
+                        await VerifyOtp.ProjectAsync(
+                            user,
+                            roles,
+                            departments,
+                            transactionCancellationToken)));
             },
             CancellationToken.None);
 

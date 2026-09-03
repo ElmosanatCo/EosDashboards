@@ -19,6 +19,7 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(user => user.LastName).HasMaxLength(100).IsRequired();
         builder.Property(user => user.ProtectedMobileNumber).HasMaxLength(2048).IsRequired();
         builder.Property(user => user.MaskedMobileNumber).HasMaxLength(64).IsRequired();
+        builder.Property(user => user.DepartmentId).HasColumnType("bigint").IsRequired();
         builder.Property(user => user.CreatedAtUtc).HasColumnType("datetimeoffset(7)");
         builder.Property(user => user.UpdatedAtUtc).HasColumnType("datetimeoffset(7)");
         builder.Property(user => user.DeactivatedAtUtc).HasColumnType("datetimeoffset(7)");
@@ -26,6 +27,11 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(user => user.AccountName);
         builder.HasIndex(user => user.Username).IsUnique().HasFilter("[Username] IS NOT NULL");
         builder.HasIndex(user => user.IsActive);
+        builder.HasIndex(user => user.DepartmentId);
+        builder.HasOne<Department>()
+            .WithMany()
+            .HasForeignKey(user => user.DepartmentId)
+            .OnDelete(DeleteBehavior.Restrict);
         builder.Navigation(user => user.UserRoles).UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }

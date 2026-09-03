@@ -11,6 +11,7 @@ public sealed class User
         string lastName,
         string protectedMobileNumber,
         string maskedMobileNumber,
+        long departmentId,
         DateTimeOffset createdAtUtc)
     {
         OrganizationalId = organizationalId;
@@ -19,6 +20,7 @@ public sealed class User
         LastName = lastName;
         ProtectedMobileNumber = protectedMobileNumber;
         MaskedMobileNumber = maskedMobileNumber;
+        DepartmentId = departmentId;
         CreatedAtUtc = createdAtUtc;
         UpdatedAtUtc = createdAtUtc;
         IsActive = true;
@@ -42,6 +44,8 @@ public sealed class User
 
     public string MaskedMobileNumber { get; private set; }
 
+    public long DepartmentId { get; private set; }
+
     public bool IsActive { get; private set; }
 
     public DateTimeOffset CreatedAtUtc { get; private set; }
@@ -59,6 +63,7 @@ public sealed class User
         string lastName,
         string protectedMobileNumber,
         string maskedMobileNumber,
+        long departmentId,
         DateTimeOffset createdAtUtc)
     {
         ValidateRequired(organizationalId, nameof(organizationalId));
@@ -67,6 +72,10 @@ public sealed class User
         ValidateRequired(lastName, nameof(lastName));
         ValidateRequired(protectedMobileNumber, nameof(protectedMobileNumber));
         ValidateRequired(maskedMobileNumber, nameof(maskedMobileNumber));
+        if (departmentId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(departmentId));
+        }
 
         return new User(
             organizationalId,
@@ -75,6 +84,7 @@ public sealed class User
             lastName,
             protectedMobileNumber,
             maskedMobileNumber,
+            departmentId,
             createdAtUtc.ToUniversalTime());
     }
 
@@ -91,6 +101,17 @@ public sealed class User
         }
 
         _userRoles.Add(new UserRole(Id, roleId));
+    }
+
+    public void AssignDepartment(long departmentId, DateTimeOffset updatedAtUtc)
+    {
+        if (departmentId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(departmentId));
+        }
+
+        DepartmentId = departmentId;
+        UpdatedAtUtc = updatedAtUtc.ToUniversalTime();
     }
 
     public void UpdateProfile(

@@ -20,6 +20,8 @@ public sealed class SessionLifecycleTests
 
         Assert.Equal(RefreshSessionStatus.Succeeded, result.Status);
         Assert.Equal("replacement-refresh", result.RefreshCredential);
+        Assert.Equal(["SystemAdministrator"], result.User?.RoleCodes);
+        Assert.Equal("واحد آزمایشی", result.User?.Department.Name);
         Assert.Equal("C3D4", context.Session.RefreshCredentialHash);
         Assert.Equal(Now.AddHours(8), context.Session.ExpiresAtUtc);
         Assert.Equal(Now.AddHours(8), result.SessionExpiresAtUtc);
@@ -144,8 +146,10 @@ public sealed class SessionLifecycleTests
                 "User",
                 "protected-mobile",
                 "masked-mobile",
+                1,
                 Now.AddDays(-1));
             EntityId.Set(User, 11);
+            User.AssignRole(31);
             Users.Users.Add(User);
             Session = UserSession.Create(User.Id, "A1B2", Now);
             EntityId.Set(Session, 201);
@@ -158,6 +162,8 @@ public sealed class SessionLifecycleTests
                 Clock,
                 Correlation,
                 Users,
+                Roles,
+                Departments,
                 Sessions,
                 Hasher,
                 Tokens,
@@ -172,6 +178,10 @@ public sealed class SessionLifecycleTests
         public FakeCorrelationContext Correlation { get; } = new("trace-test");
 
         public FakeUserRepository Users { get; } = new();
+
+        public FakeRoleRepository Roles { get; } = CreateRoles();
+
+        public FakeDepartmentRepository Departments { get; } = CreateDepartments();
 
         public FakeOtpChallengeRepository OtpChallenges { get; } = new();
 
@@ -194,5 +204,23 @@ public sealed class SessionLifecycleTests
         public User User { get; }
 
         public UserSession Session { get; }
+
+        private static FakeRoleRepository CreateRoles()
+        {
+            var repository = new FakeRoleRepository();
+            var role = Role.Create("SystemAdministrator", "مدیر سامانه", true, Now);
+            EntityId.Set(role, 31);
+            repository.Roles.Add(role);
+            return repository;
+        }
+
+        private static FakeDepartmentRepository CreateDepartments()
+        {
+            var repository = new FakeDepartmentRepository();
+            var department = Department.CreateRoot("واحد آزمایشی", Now);
+            EntityId.Set(department, 1);
+            repository.Departments.Add(department);
+            return repository;
+        }
     }
 }

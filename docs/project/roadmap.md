@@ -12,7 +12,7 @@ Create and verify the repository-based context and decision system.
 
 **Status:** In progress
 
-Identify users, dashboards, metrics, data sources, quality attributes, and the first deliverable slice. The approved system-administration scope includes user/access management and a company-department hierarchy limited to parent departments and their direct children; its detailed design remains required before implementation.
+Identify users, dashboards, metrics, data sources, quality attributes, and the first deliverable slice. The approved system-administration scope includes user/access management and a company-department hierarchy limited to parent departments and their direct children. The data foundation, fixed roles, authorized empty-dashboard shell, and command search are complete; administration forms and operational policies remain a later design item.
 
 Project-wide foundation standards are complete. Dashboard-specific discovery remains in progress.
 
@@ -32,7 +32,7 @@ server-side Client ID/Client Secret configuration.
 
 ## Phase 4 — First vertical dashboard slice
 
-**Status:** Planned
+**Status:** Foundation complete; dashboard discovery planned
 
 Deliver one approved dashboard end to end, including its data path, API, UI, authorization, and tests.
 
