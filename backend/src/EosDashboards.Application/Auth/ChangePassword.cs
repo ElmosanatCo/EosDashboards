@@ -35,7 +35,7 @@ public sealed class ChangePassword(
 
         var now = clock.Now;
         var traceId = correlationContext.TraceId;
-        var user = await users.GetByIdAsync(command.UserId, cancellationToken);
+        var user = await users.GetForUpdateAsync(command.UserId, cancellationToken);
         if (user is null ||
             !user.IsActive ||
             user.Username is null ||
@@ -46,7 +46,7 @@ public sealed class ChangePassword(
             return new ChangePasswordResult(ChangePasswordStatus.Invalid);
         }
 
-        user.SetLocalCredentials(user.Username, passwordHasher.Hash(command.NewPassword), now);
+        user.CompleteTemporaryPasswordChange(passwordHasher.Hash(command.NewPassword), now);
         var activeSessions = await sessions.GetActiveByUserIdAsync(user.Id, now, CancellationToken.None);
         foreach (var session in activeSessions)
         {

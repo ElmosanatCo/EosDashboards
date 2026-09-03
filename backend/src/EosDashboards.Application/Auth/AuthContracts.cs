@@ -108,7 +108,8 @@ public sealed record AuthenticatedUser(
     string LastName,
     IReadOnlyCollection<long> RoleIds,
     IReadOnlyCollection<string> RoleCodes,
-    AuthenticatedDepartment Department)
+    AuthenticatedDepartment Department,
+    bool MustChangePassword)
 {
     public override string ToString() => nameof(AuthenticatedUser);
 }

@@ -58,5 +58,34 @@ public sealed class ChangePasswordTests
         Assert.Equal(SessionRevocationReason.PasswordChanged, session.RevocationReason);
     }
 
+    [Fact]
+    public async Task Change_password_completes_a_temporary_password_requirement()
+    {
+        var user = User.Create("stable", "account", "Test", "User", "protected-mobile", "masked-mobile", 1, Now);
+        EntityId.Set(user, 11);
+        user.SetTemporaryLocalCredentials("LOCAL.USER", "old-hash", Now);
+        var users = new FakeUserRepository();
+        users.Users.Add(user);
+        var sessions = new FakeUserSessionRepository();
+        var passwords = new FakePasswordHasher();
+        passwords.Hashes["old password"] = "old-hash";
+        passwords.Hashes["new password"] = "new-hash";
+        var change = new ChangePassword(
+            new FakeClock(Now.AddMinutes(1)),
+            new FakeCorrelationContext("trace-test"),
+            users,
+            sessions,
+            passwords,
+            new FakeAuditWriter(),
+            new FakeUnitOfWork(new FakeOtpChallengeRepository(), sessions));
+
+        var result = await change.HandleAsync(
+            new ChangePasswordCommand(user.Id, "old password", "new password"),
+            CancellationToken.None);
+
+        Assert.Equal(ChangePasswordStatus.Succeeded, result.Status);
+        Assert.False(user.MustChangePassword);
+    }
+
     private static readonly DateTime Now = new DateTime(2026, 9, 2, 8, 0, 0, DateTimeKind.Unspecified);
 }

@@ -135,6 +135,12 @@ public sealed class AuthEndpointTests : IClassFixture<AuthEndpointTests.ApiFacto
         public Task<User?> GetByIdAsync(long id, CancellationToken cancellationToken) =>
             Task.FromResult<User?>(null);
 
+        public Task<User?> GetForUpdateAsync(long id, CancellationToken cancellationToken) =>
+            Task.FromResult<User?>(null);
+
+        public Task<int> CountActiveWithRoleAsync(long roleId, CancellationToken cancellationToken) =>
+            Task.FromResult(0);
+
         public void Add(User user) => throw new NotSupportedException();
     }
 

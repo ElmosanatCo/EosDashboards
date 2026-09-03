@@ -100,6 +100,19 @@ public sealed class UserTests
     }
 
     [Fact]
+    public void Update_username_is_independent_from_the_password_hash()
+    {
+        // Break caught: requiring an administrator to reset a password merely to correct a username.
+        var user = CreateUser();
+        user.SetLocalCredentials("old.user", "existing-password-hash", Now);
+
+        user.UpdateUsername("new.user", Now.AddMinutes(1));
+
+        Assert.Equal("NEW.USER", user.Username);
+        Assert.Equal("existing-password-hash", user.PasswordHash);
+    }
+
+    [Fact]
     public void Temporary_local_credentials_require_a_password_change_until_completed()
     {
         // Break caught: allowing an administrator-set temporary password to open the workspace unchanged.

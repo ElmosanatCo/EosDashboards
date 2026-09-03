@@ -168,6 +168,17 @@ public sealed class User
         UpdatedAt = updatedAt;
     }
 
+    public void UpdateUsername(string username, DateTime updatedAt)
+    {
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            throw new ArgumentException("A username is required.", nameof(username));
+        }
+
+        Username = username.Trim().ToUpperInvariant();
+        UpdatedAt = updatedAt;
+    }
+
     public void SetTemporaryLocalCredentials(
         string username,
         string passwordHash,

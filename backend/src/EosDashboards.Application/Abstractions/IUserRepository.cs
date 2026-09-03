@@ -10,5 +10,9 @@ public interface IUserRepository
 
     Task<User?> GetByIdAsync(long id, CancellationToken cancellationToken);
 
+    Task<User?> GetForUpdateAsync(long id, CancellationToken cancellationToken);
+
+    Task<int> CountActiveWithRoleAsync(long roleId, CancellationToken cancellationToken);
+
     void Add(User user);
 }

@@ -51,6 +51,20 @@ public sealed class SessionLifecycleTests
     }
 
     [Fact]
+    public async Task Refresh_projects_the_temporary_password_requirement()
+    {
+        var context = new SessionContext();
+        context.User.SetTemporaryLocalCredentials("LOCAL.USER", "temporary-hash", Now);
+
+        var result = await context.Refresh.HandleAsync(
+            new RefreshSessionCommand("current-refresh"),
+            CancellationToken.None);
+
+        Assert.Equal(RefreshSessionStatus.Succeeded, result.Status);
+        Assert.True(result.User?.MustChangePassword);
+    }
+
+    [Fact]
     public async Task Refresh_one_tick_after_prior_cutoff_succeeds_and_token_ends_at_session_expiry()
     {
         // Break caught: ending usable refresh access ten minutes before the absolute session expiry.

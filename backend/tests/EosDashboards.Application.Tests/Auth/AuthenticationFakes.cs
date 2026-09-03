@@ -44,6 +44,19 @@ internal sealed class FakeUserRepository : IUserRepository
         return Task.FromResult(Users.SingleOrDefault(user => user.Id == id));
     }
 
+    public Task<User?> GetForUpdateAsync(long id, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(Users.SingleOrDefault(user => user.Id == id));
+    }
+
+    public Task<int> CountActiveWithRoleAsync(long roleId, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(Users.Count(user =>
+            user.IsActive && user.UserRoles.Any(userRole => userRole.RoleId == roleId)));
+    }
+
     public void Add(User user) => Users.Add(user);
 }
 

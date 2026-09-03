@@ -365,6 +365,19 @@ public sealed class ProvisionSystemAdministratorTests
             return Task.FromResult(Items.SingleOrDefault(item => item.Id == id));
         }
 
+        public Task<User?> GetForUpdateAsync(long id, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult(Items.SingleOrDefault(item => item.Id == id));
+        }
+
+        public Task<int> CountActiveWithRoleAsync(long roleId, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult(Items.Count(item =>
+                item.IsActive && item.UserRoles.Any(userRole => userRole.RoleId == roleId)));
+        }
+
         public void Add(User user) => Items.Add(user);
     }
 

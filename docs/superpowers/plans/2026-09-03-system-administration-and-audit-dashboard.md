@@ -236,7 +236,7 @@ React 19, TypeScript, Material UI 9, TanStack Query, Vitest, Playwright.
   `UserCreated`, `UserUpdated`, `UserRolesChanged`, `UserDepartmentChanged`,
   `UserActivated`, `UserDeactivated`, or `UserPasswordReset` audit codes.
 
-- [ ] **Step 1: Write failing Application tests for each sensitive command.**
+- [x] **Step 1: Write failing Application tests for each sensitive command.**
 
   ```csharp
   [Fact]
@@ -258,11 +258,11 @@ React 19, TypeScript, Material UI 9, TanStack Query, Vitest, Playwright.
   }
   ```
 
-- [ ] **Step 2: Run the new Application tests and confirm command types are absent.**
+- [x] **Step 2: Run the new Application tests and confirm command types are absent.**
 
   Run: `dotnet test backend/tests/EosDashboards.Application.Tests/EosDashboards.Application.Tests.csproj -c Release --filter "FullyQualifiedName~ManageUsersTests|FullyQualifiedName~ChangePasswordTests|FullyQualifiedName~VerifyOtpTests"`
 
-- [ ] **Step 3: Implement command handling in one serialized transaction per mutation.**
+- [x] **Step 3: Implement command handling in one serialized transaction per mutation.**
 
   ```csharp
   public Task<ManageUserResult> UpdateAsync(
@@ -282,7 +282,7 @@ React 19, TypeScript, Material UI 9, TanStack Query, Vitest, Playwright.
   regular password change clears that flag only after the current password
   verifies. Preserve the existing post-password-change logout semantics.
 
-- [ ] **Step 4: Project `mustChangePassword` through OTP verification and
+- [x] **Step 4: Project `mustChangePassword` through OTP verification and
   refresh, then rerun the focused tests.**
 
   Expected: PASS; an authenticated temporary-password user can receive a

@@ -141,6 +141,7 @@ public sealed class VerifyOtp(
             user.LastName,
             user.UserRoles.Select(role => role.RoleId).ToArray(),
             roleCodes,
-            new AuthenticatedDepartment(department.Id, department.Name));
+            new AuthenticatedDepartment(department.Id, department.Name),
+            user.MustChangePassword);
     }
 }
