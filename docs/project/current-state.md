@@ -56,6 +56,7 @@ Initial authentication and application-shell implementation.
 - A 2026-09-04 rendered-UI correction replaced the audit custom-range year/month/day selects with a single Persian-calendar month view and a separate time field. Manager-facing page frames and the shell content gutter now use the full available workspace width with a consistent 16px edge gutter, removing excessive desktop side whitespace while preserving mobile alignment. Focused component tests, the full frontend component suite, typecheck, and mocked authenticated desktop/mobile browser checks passed.
 - On 2026-09-04 the audit filters were made self-describing: event filtering now uses Persian event labels, while actor and subject filtering use user-name/personnel-code selectors and submit the internal user ID behind the scenes. This prevents administrators from having to guess opaque database IDs; system-generated events remain visible when the actor filter is left at «همه انجام‌دهندگان».
 - The audit workspace now keeps its title/filter panel and refresh action fixed within the page frame; only the audit table panel scrolls vertically, so long histories do not move the controls out of view. A mocked authenticated browser assertion covers the bounded scroll region.
+- The user confirmed on 2026-09-04 that this is a whole-application scroll rule: the shell header, internal tabs, and status bar remain fixed, the central workspace is the only page-level scroll area, and data-heavy pages may add a bounded inner data-panel scroll without moving their controls.
 
 ## In progress
 
