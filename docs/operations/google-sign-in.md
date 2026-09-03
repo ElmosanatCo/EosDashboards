@@ -90,6 +90,11 @@ configuration error.
   above. A 403 or other outbound-network failure must be corrected in network
   policy or through the approved `BackchannelProxyUri`; never accept Google
   tokens without signature validation.
+- **Google action returns HTTP 500 before reaching Google:** inspect the API
+  error identified by its trace ID. If an optional local backchannel proxy is
+  configured but is no longer listening, remove that proxy setting only after
+  confirming direct access to the public OpenID metadata endpoint. Do not
+  replace it with an unverified proxy or weaken signature validation.
 - **Returned to local sign-in with a generic error:** the account was
   cancelled, not Google-verified, not pre-linked, inactive, or the callback
   could not be validated. Do not reveal which case applies to a user.
