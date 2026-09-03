@@ -198,7 +198,8 @@ public sealed class ManageDepartments(
     }
 
     private Task WriteAuditAsync(long actorUserId, long subjectId, string eventCode, CancellationToken cancellationToken) =>
-        auditWriter.WriteAsync(new AuditRecord(actorUserId, subjectId, eventCode, true, correlationContext.TraceId, null), cancellationToken);
+        auditWriter.WriteAsync(new AuditRecord(actorUserId, null, eventCode, true, correlationContext.TraceId,
+            new Dictionary<string, string> { ["departmentId"] = subjectId.ToString(System.Globalization.CultureInfo.InvariantCulture) }), cancellationToken);
 
     private static bool HasExpectedRowVersion(byte[]? rowVersion) => rowVersion is { Length: > 0 };
 
