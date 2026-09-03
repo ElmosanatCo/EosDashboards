@@ -56,6 +56,13 @@ internal route remains in the UI application and pool.
 
 Stop or drain the target application pool, switch the site path to the inspected versioned directory, start it, then check `/health/live`, `/health/ready`, UI loading, one login, refresh, and logout. On failure, switch the path back to the previous version and preserve logs plus trace IDs.
 
+Before switching an API release that contains EF Core migrations, take a
+verified local database backup and list/apply migrations from the same Release
+build configuration. Explicitly pass `--configuration Release` to the EF
+tools: their default Debug output can be stale and omit a newly built Release
+migration. The normal IIS publisher intentionally does not apply migrations,
+so a pending migration must never be deferred until after the API switch.
+
 The current local installation is described in `docs/project/current-state.md`.
 Both UI loading, a synthetic refreshed UI route, and API liveness/readiness
 must return HTTPS HTTP 200 after a deployment. The API uses anonymous IIS
