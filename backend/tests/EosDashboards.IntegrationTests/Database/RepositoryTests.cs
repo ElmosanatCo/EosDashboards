@@ -1,4 +1,6 @@
 using EosDashboards.Application.Abstractions;
+using EosDashboards.Application.Administration;
+using EosDashboards.Domain.Authorization;
 using EosDashboards.Domain.Entities;
 using EosDashboards.Domain.Enums;
 using EosDashboards.Infrastructure.Persistence;
@@ -88,6 +90,70 @@ public sealed class RepositoryTests(SqlServerDatabaseFixture database)
         Assert.Equal(user.Id, found!.Id);
         Assert.Equal(department.Name, found.DepartmentName);
         Assert.Equal(new[] { role.Id }, found.RoleIds);
+    }
+
+    [Fact]
+    public async Task ManageUsers_update_persists_existing_roles_without_error()
+    {
+        await using var context = database.CreateDbContext();
+        var suffix = Guid.NewGuid().ToString("N");
+        var department = Department.CreateRoot($"واحد ویرایش {suffix}", TestNow);
+        context.Departments.Add(department);
+        await context.SaveChangesAsync(CancellationToken.None);
+
+        var role = await context.Roles.AsNoTracking()
+            .SingleAsync(item => item.Code == SystemRoleCodes.DepartmentManager, CancellationToken.None);
+        var user = User.Create(
+            $"ORG-UPDATE-{suffix}".ToUpperInvariant(),
+            $"account-update-{suffix}",
+            "کاربر",
+            "ویرایش",
+            "protected-update",
+            "***3333",
+            department.Id,
+            TestNow);
+        context.Users.Add(user);
+        await context.SaveChangesAsync(CancellationToken.None);
+        user.SetLocalCredentials($"USER-{suffix}", "existing-hash", TestNow);
+        user.AssignRole(role.Id);
+        await context.SaveChangesAsync(CancellationToken.None);
+        context.ChangeTracker.Clear();
+
+        var found = await context.Users.AsNoTracking().SingleAsync(item => item.Id == user.Id, CancellationToken.None);
+        var useCase = new ManageUsers(
+            new FixedClock(TestNow.AddMinutes(1)),
+            new FixedCorrelationContext($"trace-update-{suffix}"),
+            new UserRepository(context),
+            new RoleRepository(context),
+            new DepartmentRepository(context),
+            new UserSessionRepository(context),
+            new NoopMobileProtector(),
+            new NoopPasswordHasher(),
+            new AuditWriter(context, new FixedClock(TestNow.AddMinutes(1)), new FixedCorrelationContext($"trace-update-{suffix}")),
+            new EfUnitOfWork(context));
+
+        var result = await useCase.UpdateAsync(
+            found.Id,
+            new UpdateUserCommand(
+                found.Id,
+                found.OrganizationalId,
+                found.AccountName,
+                found.FirstName,
+                found.LastName,
+                null,
+                found.Username!,
+                found.DepartmentId,
+                [role.Id],
+                found.RowVersion),
+            CancellationToken.None);
+
+        Assert.Equal(ManageUserStatus.Succeeded, result.Status);
+        context.ChangeTracker.Clear();
+        var assignments = await context.UserRoles.AsNoTracking()
+            .Where(item => item.UserId == found.Id)
+            .Select(item => item.RoleId)
+            .ToArrayAsync(CancellationToken.None);
+        Assert.Equal(new[] { role.Id }, assignments);
     }
 
     [Fact]
@@ -287,4 +353,26 @@ public sealed class RepositoryTests(SqlServerDatabaseFixture database)
     {
         public DateTime Now { get; } = utcNow;
     }
+
+    private sealed class FixedCorrelationContext(string traceId) : ICorrelationContext
+    {
+        public string TraceId { get; } = traceId;
+    }
+
+    private sealed class NoopMobileProtector : IMobileProtector
+    {
+        public string Protect(string normalizedMobile) => throw new NotSupportedException();
+
+        public string Unprotect(string protectedMobile) => throw new NotSupportedException();
+
+        public string Mask(string normalizedMobile) => throw new NotSupportedException();
+    }
+
+    private sealed class NoopPasswordHasher : IPasswordHasher
+    {
+        public string Hash(string password) => throw new NotSupportedException();
+
+        public PasswordVerificationResult Verify(string password, string passwordHash) => throw new NotSupportedException();
+    }
+
 }
