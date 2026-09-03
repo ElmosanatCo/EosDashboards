@@ -6,6 +6,11 @@
 2. Read `docs/project/README.md` and only the canonical documents relevant to the task.
 3. Treat repository documentation as authoritative over chat recollection.
 4. Report contradictions or missing decisions; do not silently invent answers.
+5. Before responding in a new chat, proactively reconstruct relevant prior context without requiring a user reminder: inspect `main` history and the commits, decisions, plans, and canonical documents related to the requested area. Do not rely on an old feature-branch name when its work has been merged into `main`.
+
+## New-chat continuity
+
+At the start of every new chat, automatically recall the project's prior agreements and implementation state from the canonical memory and relevant `main` history. Start with `current-state.md`, `README.md`, and `decisions/`; then read the task-relevant requirements, architecture, standards, roadmap, specifications, plans, and recent `main` commits. Ask the user only when these sources conflict or leave a material decision unresolved.
 
 ## Confirmed project baseline
 

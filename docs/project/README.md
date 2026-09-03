@@ -20,7 +20,7 @@ This directory is the canonical, compact memory for EosDashboards. Update existi
 - **Rejected:** considered and not selected.
 - **Unresolved:** a material answer is still required.
 
-Use ISO `YYYY-MM-DD` dates and repository-relative links. Never store secrets, credentials, personal data, or production connection details.
+Use ISO `YYYY-MM-DD` dates and repository-relative links. Never store personal data or production connection details. Follow accepted decisions governing any permitted local development configuration; never repeat those values in documentation.
 
 ## Formal documents
 
