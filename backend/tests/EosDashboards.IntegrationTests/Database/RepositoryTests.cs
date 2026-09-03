@@ -200,6 +200,7 @@ public sealed class RepositoryTests(SqlServerDatabaseFixture database)
         "User",
         "protected-test-value",
         "***0000",
+        1,
         TestNow);
 
     private static OtpChallenge CreateChallenge(long userId, DateTimeOffset createdAtUtc, string label) =>

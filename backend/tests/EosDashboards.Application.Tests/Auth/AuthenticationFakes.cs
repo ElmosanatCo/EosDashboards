@@ -47,6 +47,32 @@ internal sealed class FakeUserRepository : IUserRepository
     public void Add(User user) => Users.Add(user);
 }
 
+internal sealed class FakeRoleRepository : IRoleRepository
+{
+    public List<Role> Roles { get; } = [];
+
+    public Task<Role?> FindByCodeAsync(string code, CancellationToken cancellationToken) =>
+        Task.FromResult(Roles.SingleOrDefault(role => role.Code == code));
+
+    public Task<IReadOnlyList<Role>> GetByIdsAsync(
+        IReadOnlyCollection<long> ids,
+        CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<Role>>(Roles.Where(role => ids.Contains(role.Id)).ToArray());
+
+    public void Add(Role role) => Roles.Add(role);
+}
+
+internal sealed class FakeDepartmentRepository : IDepartmentRepository
+{
+    public List<Department> Departments { get; } = [];
+
+    public Task<Department?> FindByNameAsync(string name, CancellationToken cancellationToken) =>
+        Task.FromResult(Departments.SingleOrDefault(department => department.Name == name));
+
+    public Task<Department?> GetByIdAsync(long id, CancellationToken cancellationToken) =>
+        Task.FromResult(Departments.SingleOrDefault(department => department.Id == id));
+}
+
 internal sealed class FakeOtpChallengeRepository : IOtpChallengeRepository
 {
     public List<OtpChallenge> Challenges { get; } = [];

@@ -4,6 +4,11 @@ export type AuthenticatedUser = {
   firstName: string;
   lastName: string;
   roleIds: number[];
+  roleCodes: string[];
+  department: {
+    id: number;
+    name: string;
+  };
 };
 
 export type Challenge = {

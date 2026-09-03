@@ -21,10 +21,20 @@ import { useAuth } from "../app/providers/AuthProvider";
 import { ChangePasswordDialog } from "../features/auth/ChangePasswordDialog";
 import { useUserPreferences } from "../app/providers/UserPreferenceProvider";
 import { paletteOptions } from "../theme/palettes";
+import type { WorkspaceTarget } from "../navigation/workspaceTargets";
+import { CommandSearch } from "./CommandSearch";
 
 const eosLogoUrl = `${import.meta.env.BASE_URL}generated-assets/brand/eos.svg`;
 
-export function AppHeader({ onMenu }: { onMenu: () => void }) {
+export function AppHeader({
+  onMenu,
+  targets,
+  onOpenTarget,
+}: {
+  onMenu: () => void;
+  targets: readonly WorkspaceTarget[];
+  onOpenTarget: (target: WorkspaceTarget) => void;
+}) {
   const { user, logout, changePassword } = useAuth();
   const { palette, resolvedAppearanceMode, toggleAppearance, updatePalette } =
     useUserPreferences();
@@ -46,7 +56,7 @@ export function AppHeader({ onMenu }: { onMenu: () => void }) {
         <Stack
           direction="row"
           spacing={1}
-          sx={{ flexGrow: 1, alignItems: "center", minWidth: 0 }}
+          sx={{ alignItems: "center", minWidth: 0 }}
         >
           <Box
             component="img"
@@ -61,6 +71,11 @@ export function AppHeader({ onMenu }: { onMenu: () => void }) {
             علم و صنعت
           </Typography>
         </Stack>
+        <Box
+          sx={{ flexGrow: 1, display: "flex", justifyContent: "center", px: 1 }}
+        >
+          <CommandSearch targets={targets} onSelect={onOpenTarget} />
+        </Box>
         <IconButton
           color="inherit"
           aria-label="منوی کاربر"

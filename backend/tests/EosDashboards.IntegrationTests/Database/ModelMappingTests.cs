@@ -21,7 +21,7 @@ public sealed class ModelMappingTests
     }
 
     [Fact]
-    public void Model_MapsTheSevenApprovedTables()
+    public void Model_MapsTheApprovedTablesIncludingDepartments()
     {
         var tableNames = _model.GetEntityTypes()
             .Select(entity => entity.GetTableName()!)
@@ -29,7 +29,7 @@ public sealed class ModelMappingTests
             .ToArray();
 
         Assert.Equal(
-            ["AuditLogs", "ExternalIdentityLinks", "OtpChallenges", "Roles", "UserPreferences", "UserRoles", "UserSessions", "Users"],
+            ["AuditLogs", "Departments", "ExternalIdentityLinks", "OtpChallenges", "Roles", "UserPreferences", "UserRoles", "UserSessions", "Users"],
             tableNames);
     }
 
@@ -40,6 +40,7 @@ public sealed class ModelMappingTests
         {
             typeof(User),
             typeof(Role),
+            typeof(Department),
             typeof(OtpChallenge),
             typeof(UserSession),
             typeof(UserPreference),

@@ -106,10 +106,14 @@ public sealed record AuthenticatedUser(
     string AccountName,
     string FirstName,
     string LastName,
-    IReadOnlyCollection<long> RoleIds)
+    IReadOnlyCollection<long> RoleIds,
+    IReadOnlyCollection<string> RoleCodes,
+    AuthenticatedDepartment Department)
 {
     public override string ToString() => nameof(AuthenticatedUser);
 }
+
+public sealed record AuthenticatedDepartment(long Id, string Name);
 
 public sealed record AuthenticationResult(
     VerifyOtpStatus Status,

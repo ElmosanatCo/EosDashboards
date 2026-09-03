@@ -27,6 +27,9 @@ public sealed class VerifyOtpTests
         Assert.Equal(context.Clock.UtcNow.AddMinutes(10), result.AccessToken?.ExpiresAtUtc);
         Assert.Equal(context.User.Id, result.User?.Id);
         Assert.Equal([31], result.User?.RoleIds);
+        Assert.Equal(["SystemAdministrator"], result.User?.RoleCodes);
+        Assert.Equal(1, result.User?.Department.Id);
+        Assert.Equal("واحد آزمایشی", result.User?.Department.Name);
         Assert.Equal(1, context.UnitOfWork.SaveCount);
         var save = Assert.Single(context.UnitOfWork.Observations);
         Assert.Equal(OtpChallengeStatus.Consumed, Assert.Single(save.ChallengeStatuses));
@@ -195,6 +198,8 @@ public sealed class VerifyOtpTests
                 Clock,
                 Correlation,
                 Users,
+                Roles,
+                Departments,
                 OtpChallenges,
                 Sessions,
                 Hasher,
@@ -210,6 +215,10 @@ public sealed class VerifyOtpTests
 
         public FakeUserRepository Users { get; } = new();
 
+        public FakeRoleRepository Roles { get; } = CreateRoles();
+
+        public FakeDepartmentRepository Departments { get; } = CreateDepartments();
+
         public FakeOtpChallengeRepository OtpChallenges { get; } = new();
 
         public FakeUserSessionRepository Sessions { get; } = new();
@@ -223,6 +232,24 @@ public sealed class VerifyOtpTests
         public FakeAuditWriter Audit { get; } = new();
 
         public FakeUnitOfWork UnitOfWork { get; }
+
+        private static FakeRoleRepository CreateRoles()
+        {
+            var repository = new FakeRoleRepository();
+            var role = Role.Create("SystemAdministrator", "مدیر سامانه", true, Now);
+            EntityId.Set(role, 31);
+            repository.Roles.Add(role);
+            return repository;
+        }
+
+        private static FakeDepartmentRepository CreateDepartments()
+        {
+            var repository = new FakeDepartmentRepository();
+            var department = Department.CreateRoot("واحد آزمایشی", Now);
+            EntityId.Set(department, 1);
+            repository.Departments.Add(department);
+            return repository;
+        }
 
         public VerifyOtp UseCase { get; }
 
@@ -241,6 +268,7 @@ public sealed class VerifyOtpTests
                 "User",
                 "protected-mobile",
                 "masked-mobile",
+                1,
                 Now.AddDays(-1));
             EntityId.Set(user, 11);
             user.AssignRole(31);

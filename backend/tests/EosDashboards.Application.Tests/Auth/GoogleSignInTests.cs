@@ -25,6 +25,8 @@ public sealed class GoogleSignInTests
         Assert.Equal(context.User.Id, session.UserId);
         Assert.Equal(context.Clock.UtcNow.AddHours(8), session.ExpiresAtUtc);
         Assert.Equal("refresh-credential", result.Authentication?.RefreshCredential);
+        Assert.Equal(["SystemAdministrator"], result.Authentication?.User?.RoleCodes);
+        Assert.Equal("واحد آزمایشی", result.Authentication?.User?.Department.Name);
         Assert.Equal(context.Clock.UtcNow.AddMinutes(10), result.Authentication?.AccessToken?.ExpiresAtUtc);
         Assert.Equal(["GoogleSignIn"], context.UnitOfWork.OperationKeys);
         AuditRecordAssertions.AssertSingle(context.Audit, context.User.Id, context.User.Id, "GoogleAuthenticationSucceeded", true);
@@ -121,6 +123,7 @@ public sealed class GoogleSignInTests
                 "Google",
                 "protected-mobile",
                 "*******6789",
+                1,
                 Now.AddDays(-1));
             EntityId.Set(User, 11);
             User.AssignRole(31);
@@ -137,6 +140,8 @@ public sealed class GoogleSignInTests
                 Clock,
                 Correlation,
                 Users,
+                Roles,
+                Departments,
                 Links,
                 Sessions,
                 Hasher,
@@ -151,6 +156,10 @@ public sealed class GoogleSignInTests
         public FakeCorrelationContext Correlation { get; } = new("trace-test");
 
         public FakeUserRepository Users { get; } = new();
+
+        public FakeRoleRepository Roles { get; } = CreateRoles();
+
+        public FakeDepartmentRepository Departments { get; } = CreateDepartments();
 
         public FakeExternalIdentityLinkRepository Links { get; } = new();
 
@@ -167,6 +176,24 @@ public sealed class GoogleSignInTests
         public FakeAuditWriter Audit { get; } = new();
 
         public FakeUnitOfWork UnitOfWork { get; }
+
+        private static FakeRoleRepository CreateRoles()
+        {
+            var repository = new FakeRoleRepository();
+            var role = Role.Create("SystemAdministrator", "مدیر سامانه", true, Now);
+            EntityId.Set(role, 31);
+            repository.Roles.Add(role);
+            return repository;
+        }
+
+        private static FakeDepartmentRepository CreateDepartments()
+        {
+            var repository = new FakeDepartmentRepository();
+            var department = Department.CreateRoot("واحد آزمایشی", Now);
+            EntityId.Set(department, 1);
+            repository.Departments.Add(department);
+            return repository;
+        }
 
         public GoogleSignIn UseCase { get; }
 

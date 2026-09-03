@@ -197,7 +197,7 @@ The logical development database name is `EosDashboard`.
 ## Unresolved requirements
 
 - Dashboard catalogue, metrics, filters, and drill-down behavior.
-- The initial roles and policies, and whether access assignments are limited to roles or include granular permissions.
+- Detailed access policies beyond the four fixed initial roles, and whether later access assignments include granular permissions.
 - Exact user-account lifecycle operations, including activation, deactivation, password administration, and identity-link management.
 - Department metadata, manager assignment, deletion, and re-parenting rules.
 - Data sources, ownership, refresh frequency, and historical retention.

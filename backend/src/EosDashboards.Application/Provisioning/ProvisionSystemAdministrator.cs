@@ -1,5 +1,6 @@
 using EosDashboards.Application.Abstractions;
 using EosDashboards.Application.Auth;
+using EosDashboards.Domain.Authorization;
 using EosDashboards.Domain.Entities;
 using EosDashboards.Domain.Enums;
 
@@ -29,14 +30,18 @@ public sealed class ProvisionSystemAdministrator(
     ICorrelationContext correlationContext,
     IUserRepository users,
     IRoleRepository roles,
+    IDepartmentRepository departments,
     IMobileProtector mobileProtector,
     IPasswordHasher passwordHasher,
     IAuditWriter auditWriter,
     IExternalIdentityLinkRepository externalIdentityLinks,
     IUnitOfWork unitOfWork)
 {
-    private const string SystemAdministratorRoleCode = "SystemAdministrator";
+    private const string SystemAdministratorRoleCode = SystemRoleCodes.SystemAdministrator;
     private const string SystemAdministratorDisplayName = "مدیر سامانه";
+    private const string DepartmentManagerRoleCode = SystemRoleCodes.DepartmentManager;
+    private const string DepartmentManagerDisplayName = "مدیر بخش";
+    private const string SoftwareDepartmentName = "نرم افزار";
     private const string ProvisioningEventCode = "SystemAdministratorProvisioned";
     private const string ProvisioningOperationKey = "ProvisionSystemAdministrator";
 
@@ -71,39 +76,44 @@ public sealed class ProvisionSystemAdministrator(
             ProvisioningOperationKey,
             async transactionCancellationToken =>
             {
-                var role = await roles.FindByCodeAsync(
+                var systemAdministratorRole = await roles.FindByCodeAsync(
                     SystemAdministratorRoleCode,
                     transactionCancellationToken);
-                if (role is not null &&
-                    (!string.Equals(
-                         role.Code,
-                         SystemAdministratorRoleCode,
-                         StringComparison.Ordinal) ||
-                     !role.IsActive ||
-                     !role.IsSystem ||
-                     !string.Equals(
-                         role.DisplayName,
-                         SystemAdministratorDisplayName,
-                         StringComparison.Ordinal)))
-                {
-                    throw new InvalidOperationException(
-                        "The system administrator role is not valid.");
-                }
+                ValidateRole(systemAdministratorRole, SystemAdministratorRoleCode, SystemAdministratorDisplayName);
+                var departmentManagerRole = await roles.FindByCodeAsync(
+                    DepartmentManagerRoleCode,
+                    transactionCancellationToken);
+                ValidateRole(departmentManagerRole, DepartmentManagerRoleCode, DepartmentManagerDisplayName);
+                var softwareDepartment = await departments.FindByNameAsync(
+                    SoftwareDepartmentName,
+                    transactionCancellationToken)
+                    ?? throw new InvalidOperationException("The software department is not provisioned.");
 
                 var user = await users.FindByOrganizationalIdAsync(
                     normalizedOrganizationalId,
                     transactionCancellationToken);
-                var createdRole = role is null;
+                var createdSystemAdministratorRole = systemAdministratorRole is null;
+                var createdDepartmentManagerRole = departmentManagerRole is null;
                 var createdUser = user is null;
 
-                if (createdRole)
+                if (createdSystemAdministratorRole)
                 {
-                    role = Role.Create(
+                    systemAdministratorRole = Role.Create(
                         SystemAdministratorRoleCode,
                         SystemAdministratorDisplayName,
                         true,
                         now);
-                    roles.Add(role);
+                    roles.Add(systemAdministratorRole);
+                }
+
+                if (createdDepartmentManagerRole)
+                {
+                    departmentManagerRole = Role.Create(
+                        DepartmentManagerRoleCode,
+                        DepartmentManagerDisplayName,
+                        true,
+                        now);
+                    roles.Add(departmentManagerRole);
                 }
 
                 if (createdUser)
@@ -115,11 +125,12 @@ public sealed class ProvisionSystemAdministrator(
                         lastName,
                         protectedMobile,
                         maskedMobile,
+                        softwareDepartment.Id,
                         now);
                     users.Add(user);
                 }
 
-                if (createdRole || createdUser)
+                if (createdSystemAdministratorRole || createdDepartmentManagerRole || createdUser)
                 {
                     await unitOfWork.SaveChangesAsync(transactionCancellationToken);
                 }
@@ -134,6 +145,7 @@ public sealed class ProvisionSystemAdministrator(
                         maskedMobile,
                         now);
                     user.Activate(now);
+                    user.AssignDepartment(softwareDepartment.Id, now);
                 }
 
                 if (normalizedGoogleEmail is not null)
@@ -161,7 +173,8 @@ public sealed class ProvisionSystemAdministrator(
                     passwordHasher.Hash(command.Password),
                     now);
 
-                user!.AssignRole(role!.Id);
+                user!.AssignRole(systemAdministratorRole!.Id);
+                user.AssignRole(departmentManagerRole!.Id);
                 await auditWriter.WriteAsync(
                     new AuditRecord(
                         null,
@@ -218,4 +231,16 @@ public sealed class ProvisionSystemAdministrator(
 
     private static string? NormalizeOptionalGoogleEmail(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : ExternalIdentityLink.NormalizeEmail(value);
+
+    private static void ValidateRole(Role? role, string code, string displayName)
+    {
+        if (role is not null &&
+            (!string.Equals(role.Code, code, StringComparison.Ordinal) ||
+             !role.IsActive ||
+             !role.IsSystem ||
+             !string.Equals(role.DisplayName, displayName, StringComparison.Ordinal)))
+        {
+            throw new InvalidOperationException("A fixed system role is not valid.");
+        }
+    }
 }

@@ -280,6 +280,8 @@ public static class AuthEndpoints
     private static async Task<IResult> MeAsync(
         HttpContext context,
         IUserRepository users,
+        IRoleRepository roles,
+        IDepartmentRepository departments,
         CancellationToken cancellationToken)
     {
         if (!SessionAuthorizationHandler.TryReadId(context.User, JwtRegisteredClaimNames.Sub, out var userId))
@@ -290,7 +292,7 @@ public static class AuthEndpoints
         var user = await users.GetByIdAsync(userId, cancellationToken);
         return user is null
             ? ApiResults.Problem(context, 401, "invalid_access_token", "Authentication is required.")
-            : Results.Ok(VerifyOtp.Project(user));
+            : Results.Ok(await VerifyOtp.ProjectAsync(user, roles, departments, cancellationToken));
     }
 }
 

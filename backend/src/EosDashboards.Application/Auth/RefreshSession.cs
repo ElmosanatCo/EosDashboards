@@ -6,6 +6,8 @@ public sealed class RefreshSession(
     IClock clock,
     ICorrelationContext correlationContext,
     IUserRepository users,
+    IRoleRepository roles,
+    IDepartmentRepository departments,
     IUserSessionRepository sessions,
     ISecretHasher secretHasher,
     ISecureTokenGenerator tokenGenerator,
@@ -52,7 +54,7 @@ public sealed class RefreshSession(
             accessTokenIssuer.Issue(user, session.Id, now, accessTokenExpiresAtUtc),
             replacementCredential,
             session.ExpiresAtUtc,
-            VerifyOtp.Project(user));
+            await VerifyOtp.ProjectAsync(user, roles, departments, cancellationToken));
     }
 
     private async Task WriteDenialAsync(

@@ -78,9 +78,13 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
         Assert.Equal("مدیر سامانه", persistedRole.DisplayName);
         Assert.True(persistedRole.IsSystem);
         Assert.True(persistedRole.IsActive);
-        var assignment = Assert.Single(persistedUser.UserRoles);
-        Assert.Equal(persistedUser.Id, assignment.UserId);
-        Assert.Equal(persistedRole.Id, assignment.RoleId);
+        var departmentManagerRole = await verificationContext.Roles
+            .AsNoTracking()
+            .SingleAsync(item => item.Code == "DepartmentManager");
+        Assert.Equal(2, persistedUser.UserRoles.Count);
+        Assert.Contains(persistedUser.UserRoles, assignment => assignment.RoleId == persistedRole.Id);
+        Assert.Contains(persistedUser.UserRoles, assignment => assignment.RoleId == departmentManagerRole.Id);
+        Assert.Equal(1, persistedUser.DepartmentId);
         Assert.Equal(persistedUser.Id, firstResult.UserId);
         Assert.Equal(persistedUser.Id, secondResult.UserId);
         Assert.Equal("*******6789", firstResult.MaskedMobile);
@@ -169,6 +173,7 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
             new FixedCorrelationContext("trace-synthetic-rollback"),
                 new UserRepository(context),
                 new RoleRepository(context),
+                new DepartmentRepository(context),
                 mobileProtector,
                 new LocalPasswordHasher(),
                 auditWriter,
@@ -225,6 +230,7 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
                 new FixedCorrelationContext("trace-synthetic-role-drift"),
                 new UserRepository(context),
                 new RoleRepository(context),
+                new DepartmentRepository(context),
                 mobileProtector,
                 new LocalPasswordHasher(),
                 new AuditWriter(context, new FixedClock(TestNow)),
@@ -243,7 +249,7 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
                         mobile),
                     CancellationToken.None));
 
-            Assert.Equal("The system administrator role is not valid.", exception.Message);
+            Assert.Equal("A fixed system role is not valid.", exception.Message);
             var diagnosticText = exception.Message;
             Assert.DoesNotContain(storedRoleCode, diagnosticText, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain(organizationalId, diagnosticText, StringComparison.OrdinalIgnoreCase);
@@ -322,9 +328,13 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
                 1,
                 await verificationContext.Roles.CountAsync(
                     item => item.Code == "SystemAdministrator"));
-            var assignment = Assert.Single(user.UserRoles);
-            Assert.Equal(user.Id, assignment.UserId);
-            Assert.Equal(role.Id, assignment.RoleId);
+            var departmentManagerRole = await verificationContext.Roles
+                .AsNoTracking()
+                .SingleAsync(item => item.Code == "DepartmentManager");
+            Assert.Equal(2, user.UserRoles.Count);
+            Assert.Contains(user.UserRoles, assignment => assignment.RoleId == role.Id);
+            Assert.Contains(user.UserRoles, assignment => assignment.RoleId == departmentManagerRole.Id);
+            Assert.Equal(1, user.DepartmentId);
 
             var completeProfile = (
                 user.AccountName,
@@ -548,6 +558,7 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
             new FixedCorrelationContext("trace-synthetic-provisioning"),
             new UserRepository(context),
             new RoleRepository(context),
+            new DepartmentRepository(context),
             mobileProtector,
             new LocalPasswordHasher(),
             new AuditWriter(context, new FixedClock(TestNow)),
@@ -567,6 +578,7 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
             new FixedCorrelationContext(Guid.NewGuid().ToString("N")),
             new UserRepository(context),
             new CoordinatedRoleRepository(new RoleRepository(context), coordinator),
+            new DepartmentRepository(context),
             mobileProtector,
             new LocalPasswordHasher(),
             new AuditWriter(context, new FixedClock(TestNow)),
@@ -677,6 +689,11 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
         }
 
         public void Add(Role role) => inner.Add(role);
+
+        public Task<IReadOnlyList<Role>> GetByIdsAsync(
+            IReadOnlyCollection<long> ids,
+            CancellationToken cancellationToken) =>
+            inner.GetByIdsAsync(ids, cancellationToken);
     }
 
     private sealed class TwoParticipantReadCoordinator

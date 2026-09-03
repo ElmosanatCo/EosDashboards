@@ -21,7 +21,7 @@ public sealed class AuthContractSafetyTests
             new SmsMessage(secret, secret),
             new IssuedAccessToken(secret, expiresAtUtc),
             new StartSignInResult(StartSignInStatus.Succeeded, secret, secret, expiresAtUtc, expiresAtUtc),
-            new AuthenticatedUser(11, secret, secret, secret, [31]),
+            new AuthenticatedUser(11, secret, secret, secret, [31], ["SystemAdministrator"], new AuthenticatedDepartment(1, "واحد آزمایشی")),
             new AuthenticationResult(
                 VerifyOtpStatus.Succeeded,
                 new IssuedAccessToken(secret, expiresAtUtc),

@@ -156,6 +156,7 @@ public sealed class StartSignInTests
                     "User",
                     "protected-mobile",
                     "masked-mobile",
+                    1,
                     Now.AddDays(-1));
                 EntityId.Set(User, 11);
                 User.SetLocalCredentials("LOCAL.USER", "password-hash", Now);

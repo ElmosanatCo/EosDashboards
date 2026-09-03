@@ -17,6 +17,7 @@ public sealed class UserTests
             "Last",
             "protected-mobile",
             "masked-mobile",
+            1,
             Now));
     }
 
@@ -31,6 +32,20 @@ public sealed class UserTests
 
         var assignment = Assert.Single(user.UserRoles);
         Assert.Equal(7, assignment.RoleId);
+    }
+
+    [Fact]
+    public void Create_requires_a_positive_department_identifier()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => User.Create(
+            "stable-organizational-id",
+            "account",
+            "First",
+            "Last",
+            "protected-mobile",
+            "masked-mobile",
+            0,
+            Now));
     }
 
     [Fact]
@@ -123,6 +138,7 @@ public sealed class UserTests
             "Last",
             "protected-mobile",
             "masked-mobile",
+            1,
             Now);
     }
 }

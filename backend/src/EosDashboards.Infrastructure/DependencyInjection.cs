@@ -38,6 +38,7 @@ public static class DependencyInjection
         services.AddDbContext<EosDashboardDbContext>(options => options.UseSqlServer(connectionString));
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
+        services.AddScoped<IDepartmentRepository, DepartmentRepository>();
         services.AddScoped<IOtpChallengeRepository, OtpChallengeRepository>();
         services.AddScoped<IUserSessionRepository, UserSessionRepository>();
         services.AddScoped<IUserPreferenceRepository, UserPreferenceRepository>();
