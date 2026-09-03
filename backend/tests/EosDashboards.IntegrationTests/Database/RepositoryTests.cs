@@ -55,6 +55,42 @@ public sealed class RepositoryTests(SqlServerDatabaseFixture database)
     }
 
     [Fact]
+    public async Task AdministrationLookupReader_returns_user_details_for_edit_form()
+    {
+        await using var context = database.CreateDbContext();
+        var suffix = Guid.NewGuid().ToString("N");
+        var department = Department.CreateRoot($"واحد جزئیات {suffix}", TestNow);
+        var role = Role.Create($"role-details-{suffix}", "نقش جزئیات", true, TestNow);
+        context.Departments.Add(department);
+        context.Roles.Add(role);
+        await context.SaveChangesAsync(CancellationToken.None);
+
+        var user = User.Create(
+            $"org-details-{suffix}",
+            $"account-details-{suffix}",
+            "کاربر",
+            "جزئیات",
+            "protected-details",
+            "***2222",
+            department.Id,
+            TestNow);
+        context.Users.Add(user);
+        await context.SaveChangesAsync(CancellationToken.None);
+        user.AssignRole(role.Id);
+        await context.SaveChangesAsync(CancellationToken.None);
+        context.ChangeTracker.Clear();
+
+        var reader = new AdministrationLookupReader(context);
+
+        var found = await reader.GetUserAsync(user.Id, CancellationToken.None);
+
+        Assert.NotNull(found);
+        Assert.Equal(user.Id, found!.Id);
+        Assert.Equal(department.Name, found.DepartmentName);
+        Assert.Equal(new[] { role.Id }, found.RoleIds);
+    }
+
+    [Fact]
     public async Task OtpChallengeRepository_ReturnsLatestActiveChallengeTrackedForMutation()
     {
         await using var context = database.CreateDbContext();
