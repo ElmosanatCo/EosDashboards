@@ -13,6 +13,7 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  TextField,
   Typography,
 } from "@mui/material";
 import { useState } from "react";
@@ -20,15 +21,38 @@ import { administrationApi } from "../features/administration/administrationApi"
 import { eventLabel } from "../features/administration/administrationUi";
 import { formatPersianDateTime } from "../lib/date/persianDateTime";
 
-type Range = "LastSevenDays" | "LastThirtyDays";
+type Range = "LastSevenDays" | "LastThirtyDays" | "Custom";
 export function SystemAuditPage() {
   const [range, setRange] = useState<Range>("LastSevenDays");
   const [result, setResult] = useState<"" | "true" | "false">("");
+  const [eventCode, setEventCode] = useState("");
+  const [actorUserId, setActorUserId] = useState("");
+  const [subjectUserId, setSubjectUserId] = useState("");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
   const query = new URLSearchParams({ range, pageSize: "50" });
   if (result) query.set("succeeded", result);
+  if (eventCode.trim()) query.set("eventCode", eventCode.trim());
+  if (actorUserId) query.set("actorUserId", actorUserId);
+  if (subjectUserId) query.set("subjectUserId", subjectUserId);
+  if (range === "Custom" && from && to) {
+    query.set("from", from);
+    query.set("to", to);
+  }
   const audit = useQuery({
-    queryKey: ["administration", "audit", range, result],
+    queryKey: [
+      "administration",
+      "audit",
+      range,
+      result,
+      eventCode,
+      actorUserId,
+      subjectUserId,
+      from,
+      to,
+    ],
     queryFn: () => administrationApi.auditLogs(query),
+    enabled: range !== "Custom" || Boolean(from && to),
   });
   return (
     <Stack spacing={2.5} sx={{ maxWidth: 1320, mx: "auto" }}>
@@ -59,8 +83,31 @@ export function SystemAuditPage() {
             >
               <MenuItem value="LastSevenDays">هفت روز اخیر</MenuItem>
               <MenuItem value="LastThirtyDays">سی روز اخیر</MenuItem>
+              <MenuItem value="Custom">بازه سفارشی</MenuItem>
             </Select>
           </FormControl>
+          <TextField
+            size="small"
+            label="کد رویداد"
+            value={eventCode}
+            onChange={(event) => setEventCode(event.target.value)}
+          />
+          <TextField
+            size="small"
+            label="شناسه انجام‌دهنده"
+            value={actorUserId}
+            onChange={(event) =>
+              setActorUserId(event.target.value.replace(/\D/g, ""))
+            }
+          />
+          <TextField
+            size="small"
+            label="شناسه کاربر هدف"
+            value={subjectUserId}
+            onChange={(event) =>
+              setSubjectUserId(event.target.value.replace(/\D/g, ""))
+            }
+          />
           <FormControl size="small" sx={{ minWidth: 150 }}>
             <InputLabel id="result-label">نتیجه</InputLabel>
             <Select
@@ -80,6 +127,30 @@ export function SystemAuditPage() {
               : ""}
           </Typography>
         </Stack>
+        {range === "Custom" ? (
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1.5}
+            sx={{ mt: 1.5 }}
+          >
+            <TextField
+              size="small"
+              type="datetime-local"
+              label="از تاریخ و ساعت"
+              value={from}
+              onChange={(event) => setFrom(event.target.value)}
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+            <TextField
+              size="small"
+              type="datetime-local"
+              label="تا تاریخ و ساعت"
+              value={to}
+              onChange={(event) => setTo(event.target.value)}
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+          </Stack>
+        ) : null}
       </Paper>
       <Paper variant="outlined" sx={{ overflowX: "auto" }}>
         <Table size="small" aria-label="فهرست ممیزی سامانه">
