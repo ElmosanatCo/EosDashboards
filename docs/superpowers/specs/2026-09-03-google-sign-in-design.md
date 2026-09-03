@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-03
 
-**Status:** Proposed — approved in-chat outline, pending document review
+**Status:** Approved
 
 ## Goal
 
