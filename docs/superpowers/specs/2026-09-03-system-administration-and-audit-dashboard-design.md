@@ -95,8 +95,8 @@ layouts, and no simulated activity.
 
 The System Administrator dashboard is read from the same authoritative audit
 and session data. It shows the latest audit records with Persian descriptions,
-time, result, actor, and affected user/subject; a direct link opens the filtered
-audit workspace. It also shows these truthful 24-hour metrics: successful
+separate Persian-calendar date and time values, result, actor, and affected
+user/subject; a direct link opens the filtered audit workspace. It also shows these truthful 24-hour metrics: successful
 sign-ins, failed sign-in/security attempts, active users, inactive users, and
 users with an unrevoked, unexpired session. The last metric is labelled
 `کاربران دارای نشست فعال`; it does not claim live browser presence. The audit
