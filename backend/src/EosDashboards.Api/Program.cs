@@ -1,4 +1,5 @@
 using System.Threading.RateLimiting;
+using System.Net;
 using EosDashboards.Api.Auth;
 using EosDashboards.Api.Errors;
 using EosDashboards.Api.Preferences;
@@ -70,6 +71,14 @@ if (googleAuthentication.Enabled)
         options.MapInboundClaims = false;
         options.Scope.Add("email");
         options.RemoteAuthenticationTimeout = TimeSpan.FromMinutes(10);
+        if (!string.IsNullOrWhiteSpace(googleAuthentication.BackchannelProxyUri))
+        {
+            options.Backchannel = new HttpClient(new HttpClientHandler
+            {
+                Proxy = new WebProxy(googleAuthentication.BackchannelProxyUri),
+                UseProxy = true,
+            });
+        }
         options.CorrelationCookie.Name = "__Host-Eos.Google.Correlation";
         options.CorrelationCookie.Path = "/";
         options.CorrelationCookie.HttpOnly = true;

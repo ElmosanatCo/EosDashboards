@@ -532,10 +532,11 @@ Expected: PASS. Record the verification result without private values.
 Open `https://localhost/EosDashboards/`, select Google, authenticate only with the already linked account, confirm dashboard entry, refresh once to confirm the ordinary session lifecycle, then logout. Do not inspect cookies, tokens, password fields, OTPs, or Google account data. If Google Cloud client configuration is unavailable, stop before this step and report the exact configuration dependency.
 
 The 2026-09-03 attempt reached the configured API but stopped before Google
-authorization because the local network returned HTTP 403 for Google's public
-signing-key endpoint. Do not bypass signature validation; allow the IIS API
-application-pool identity to reach the required Google OpenID endpoints, then
-retry this step.
+authorization because direct access to Google's public signing-key endpoint
+returned HTTP 403. A validated server-only OIDC backchannel-proxy setting is
+staged for publication because the approved local proxy can reach that
+endpoint. Do not bypass signature validation; publish the setting and retry
+this step.
 
 - [ ] **Step 6: Commit documentation and integration state.**
 

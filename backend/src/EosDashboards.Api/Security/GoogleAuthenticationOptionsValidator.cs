@@ -29,6 +29,15 @@ public sealed class GoogleAuthenticationOptionsValidator : IValidateOptions<Goog
             return ValidateOptionsResult.Fail("Google sign-in callback configuration is invalid.");
         }
 
+        if (!string.IsNullOrWhiteSpace(options.BackchannelProxyUri) &&
+            (!Uri.TryCreate(options.BackchannelProxyUri, UriKind.Absolute, out var proxyUri) ||
+             (proxyUri.Scheme != Uri.UriSchemeHttp && proxyUri.Scheme != Uri.UriSchemeHttps) ||
+             string.IsNullOrWhiteSpace(proxyUri.Host) ||
+             !string.IsNullOrWhiteSpace(proxyUri.UserInfo)))
+        {
+            return ValidateOptionsResult.Fail("Google sign-in backchannel proxy configuration is invalid.");
+        }
+
         return ValidateOptionsResult.Success;
     }
 }

@@ -48,4 +48,43 @@ public sealed class GoogleAuthenticationOptionsTests
 
         Assert.True(result.Succeeded);
     }
+
+    [Fact]
+    public void Enabled_google_accepts_an_optional_https_backchannel_proxy()
+    {
+        var result = _validator.Validate(null, new GoogleAuthenticationOptions
+        {
+            Enabled = true,
+            ClientId = "synthetic-client-id",
+            ClientSecret = "synthetic-client-secret",
+            RedirectUri = "https://localhost/EosDashboardsApi/api/v1/auth/google/callback",
+            BackchannelProxyUri = "http://proxy.example.test:8080",
+        });
+
+        Assert.True(result.Succeeded);
+    }
+
+    [Fact]
+    public void Enabled_google_rejects_an_invalid_or_credentialed_backchannel_proxy()
+    {
+        var invalid = _validator.Validate(null, new GoogleAuthenticationOptions
+        {
+            Enabled = true,
+            ClientId = "synthetic-client-id",
+            ClientSecret = "synthetic-client-secret",
+            RedirectUri = "https://localhost/EosDashboardsApi/api/v1/auth/google/callback",
+            BackchannelProxyUri = "not-a-uri",
+        });
+        var credentialed = _validator.Validate(null, new GoogleAuthenticationOptions
+        {
+            Enabled = true,
+            ClientId = "synthetic-client-id",
+            ClientSecret = "synthetic-client-secret",
+            RedirectUri = "https://localhost/EosDashboardsApi/api/v1/auth/google/callback",
+            BackchannelProxyUri = "http://user:password@proxy.example.test:8080",
+        });
+
+        Assert.False(invalid.Succeeded);
+        Assert.False(credentialed.Succeeded);
+    }
 }

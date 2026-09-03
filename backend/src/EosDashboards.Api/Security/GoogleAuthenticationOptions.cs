@@ -15,4 +15,6 @@ public sealed class GoogleAuthenticationOptions
     public string? ClientSecret { get; init; }
 
     public string? RedirectUri { get; init; }
+
+    public string? BackchannelProxyUri { get; init; }
 }

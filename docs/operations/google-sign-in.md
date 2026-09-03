@@ -53,6 +53,15 @@ available to the API process after publication. The local development release
 uses its approved server-only values; no client value is present in frontend
 settings.
 
+### Optional local backchannel proxy
+
+If an IIS application pool cannot reach Google's public signing-key endpoint
+directly while the workstation uses an approved local proxy, set the optional
+server-side `BackchannelProxyUri` to that proxy's HTTP or HTTPS URI. It is used
+only by the Google OpenID Connect backchannel. The validator rejects embedded
+proxy credentials; configure any required proxy authentication outside this
+setting. Do not record the proxy address or credentials in this runbook.
+
 ## Publish and smoke-check
 
 1. Publish the paired API and UI releases, retaining the prior versioned
@@ -79,7 +88,8 @@ configuration error.
 - **Google action returns immediately to local sign-in:** confirm that the IIS
   API application-pool identity can retrieve the public signing-key endpoint
   above. A 403 or other outbound-network failure must be corrected in network
-  policy; never accept Google tokens without signature validation.
+  policy or through the approved `BackchannelProxyUri`; never accept Google
+  tokens without signature validation.
 - **Returned to local sign-in with a generic error:** the account was
   cancelled, not Google-verified, not pre-linked, inactive, or the callback
   could not be validated. Do not reveal which case applies to a user.
