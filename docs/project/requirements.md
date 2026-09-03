@@ -1,6 +1,6 @@
 # Requirements
 
-**Last updated:** 2026-09-02
+**Last updated:** 2026-09-03
 
 ## Confirmed functional requirements
 
@@ -35,6 +35,17 @@ One active user is pre-provisioned directly through a controlled deployment tool
 **Status:** Confirmed for phase 1
 
 The user signs in with a pre-provisioned username and password. After successful password verification, every new application session requires a valid SMS OTP sent to the mobile number stored for that user. A signed-in user can change their password by supplying the current password. A user who has forgotten a password can reset it by completing a separate SMS OTP challenge. User and password administration UI remain deferred; the deployment tool manages pre-provisioned accounts and passwords in this slice.
+
+### FR-008 — Pre-linked Google sign-in
+
+**Status:** Confirmed for phase 1
+
+An active, pre-provisioned user whose Google email has been explicitly linked
+by the deployment-only administrator procedure may sign in through Google. The
+first verified Google sign-in binds the immutable provider subject. It creates
+the normal application session without a local password or SMS OTP. Google
+does not self-register users, roles, permissions, or links, and the local
+credential route remains available.
 
 ### FR-006 — Tabbed SPA workspace
 
@@ -108,7 +119,13 @@ The backend uses lightweight clean layering: API calls Application, Application 
 
 **Status:** Confirmed for phase 1
 
-The first release uses pre-provisioned local usernames and passwords, followed by mandatory SMS OTP. First visit and post-logout states show the local sign-in form. A valid application session signs the user in automatically. Application authorization remains server-side. Passwords must be 8 to 128 characters long with no character-class composition rule; their plaintext values are never stored or logged.
+The first release uses pre-provisioned local usernames and passwords followed
+by mandatory SMS OTP, plus an optional server-owned Google route for explicitly
+linked active users. First visit and post-logout states keep the local sign-in
+form available. A valid application session signs the user in automatically.
+Application authorization remains server-side. Passwords must be 8 to 128
+characters long with no character-class composition rule; their plaintext
+values are never stored or logged.
 
 ### TC-011 — Separate hosting
 
@@ -162,7 +179,11 @@ The single repository contains a `backend/` Visual Studio solution and an indepe
 
 **Status:** Confirmed
 
-Database, JWT/session, OTP, and SMS service settings have typed API configuration sections. Secrets and environment-specific connection values are supplied outside tracked configuration files. The logical development database name is `EosDashboard`.
+Database, JWT/session, OTP, SMS service, and Google identity-provider settings
+have typed API configuration sections. Under decision 0006, local development
+server settings may be tracked in the private repository's API/IIS
+configuration. Browser-delivered frontend configuration remains public only.
+The logical development database name is `EosDashboard`.
 
 ## Unresolved requirements
 

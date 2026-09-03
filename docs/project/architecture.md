@@ -51,6 +51,14 @@ Phase 1 uses local credentials for active pre-provisioned database users. A user
 
 After OTP verification, the application creates an eight-hour session. JWT access tokens normally expire ten minutes after issuance and are held in browser memory. Refresh remains available at every instant strictly before the absolute session expiry; the final access token is shortened to end at that expiry and never outlives the session. Tokens are renewed through a hashed, revocable refresh credential carried only by a Secure, HttpOnly cookie. Logout or session expiry revokes access and returns to the local sign-in form. Plaintext local passwords are never stored.
 
+An enabled Google Web OAuth client supports a separate server-owned OpenID
+Connect Authorization Code flow with PKCE. Google sign-in is available only to
+an active user with an explicitly provisioned `ExternalIdentityLinks` record.
+The first verified email match binds Google's stable subject; later sign-ins
+use that subject. The API creates the same session and refresh cookie used by
+OTP verification. React discovers only whether Google is enabled and never
+receives the client secret, authorization code, ID token, or linked email.
+
 The first user is created or updated before application startup with an idempotent deployment-only administrator provisioning tool and receives the System Administrator role. Personal values, usernames, passwords, and database credentials enter through secure runtime input and never enter source control. A signed-in user changes a password by verifying the current password; password recovery completes a purpose-isolated SMS OTP challenge. Password changes and resets revoke that user's active sessions.
 
 The company SMS service is integrated through an Infrastructure adapter for the `SendSmsMessage` SOAP operation. The endpoint and timeouts are typed configuration values; automated tests use a fake sender and never contact the real service. A send timeout is not automatically retried because the service does not provide an idempotency contract.
@@ -75,7 +83,9 @@ Windows/AD, LDAP, and other organizational identity-provider access are deferred
 - Principal tables use auto-incrementing `bigint` keys named `Id`; narrow exceptions are documented in `standards.md`.
 - Lazy loading is disabled. Reads favor projections and no tracking. Large results are filtered and paged on the server.
 - Business-operation transaction boundaries belong to Application and are implemented through Infrastructure.
-- The first migration contains `Users`, `Roles`, `UserRoles`, `OtpChallenges`, `UserSessions`, `UserPreferences`, and `AuditLogs`.
+- The initial migration contains `Users`, `Roles`, `UserRoles`,
+  `OtpChallenges`, `UserSessions`, `UserPreferences`, and `AuditLogs`; the
+  additive `ExternalIdentityLinks` migration holds explicit provider links.
 - Mobile numbers are encrypted at application level with protected keys outside source control. OTP codes and refresh credentials are stored only as keyed hashes.
 
 ## Frontend workspace

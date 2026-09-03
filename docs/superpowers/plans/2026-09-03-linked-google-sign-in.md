@@ -261,7 +261,7 @@ Run: `dotnet test backend/tests/EosDashboards.Application.Tests/EosDashboards.Ap
 
 Expected: PASS, confirming Google cannot bypass the active-user/link constraints but receives the ordinary secure session on success.
 
-- [ ] **Step 5: Commit the session-issuance slice.**
+- [x] **Step 5: Commit the session-issuance slice.**
 
 ```powershell
 git add backend/src/EosDashboards.Application/Auth backend/tests/EosDashboards.Application.Tests/Auth
@@ -384,7 +384,7 @@ Run: `dotnet build backend/EosDashboards.sln --no-restore -c Release`
 
 Expected: PASS. The OpenAPI document lists capability/start endpoints only; no response, header, or log assertion contains tokens or secrets.
 
-- [ ] **Step 7: Commit the OIDC and endpoint slice.**
+- [x] **Step 7: Commit the OIDC and endpoint slice.**
 
 ```powershell
 git add backend/Directory.Packages.props backend/src/EosDashboards.Api backend/tests/EosDashboards.IntegrationTests
@@ -471,7 +471,7 @@ Run: `npx playwright test tests/e2e/auth-shell.spec.ts`
 
 Expected: PASS, including theme-safe Google action presentation and safe callback feedback.
 
-- [ ] **Step 7: Commit the UI slice.**
+- [x] **Step 7: Commit the UI slice.**
 
 ```powershell
 git add frontend/src frontend/tests/e2e/auth-shell.spec.ts
@@ -495,7 +495,7 @@ git commit -m "feat: offer linked Google sign-in"
 - Consumes the migration, provisioner, typed API options, endpoint routes, and UI produced by Tasks 1–5.
 - Produces repeatable, secret-free local setup instructions and canonical documentation of the approved external-authentication boundary.
 
-- [ ] **Step 1: Write focused operations/documentation acceptance checks.**
+- [x] **Step 1: Write focused operations/documentation acceptance checks.**
 
 ```powershell
 rg -n -S "nasimbaledi|ClientSecret.*[A-Za-z0-9]{16,}|GoogleAuthentication.*secret" docs scripts backend/tests
@@ -503,7 +503,7 @@ rg -n -S "nasimbaledi|ClientSecret.*[A-Za-z0-9]{16,}|GoogleAuthentication.*secre
 
 Expected: no personal email, client secret, token, or copied configuration value. Add an operations checklist test/inspection that requires the exact localhost callback URI and never instructs an HTTP Vite smoke test.
 
-- [ ] **Step 2: Document the required local Google Cloud setup.**
+- [x] **Step 2: Document the required local Google Cloud setup.**
 
 Document: create a Google consent screen; create a Web OAuth client; add exactly `https://localhost/EosDashboardsApi/api/v1/auth/google/callback`; place ClientId/ClientSecret/RedirectUri in server-side API/IIS settings; provision the approved email through the hidden-entry tool; publish; then use only the IIS HTTPS UI for the authorized manual smoke check. Do not include actual values or screenshots containing them.
 

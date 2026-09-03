@@ -18,11 +18,17 @@ Project-wide foundation standards are complete. Dashboard-specific discovery rem
 
 ## Phase 3 — Architecture and foundation
 
-**Status:** Core implementation and local IIS deployment complete; SMS connectivity blocked
+**Status:** Core implementation and local IIS deployment complete; Google activation pending client configuration
 
 Scaffold the separate backend and frontend foundations; add database migrations and administrator provisioning; implement local username/password sign-in, SMS OTP, password recovery/change, session management, the RTL themed tabbed SPA shell, branding, status bar, and automated verification.
 
-The code, isolated database verification, mocked browser flow, approved branding, separate IIS deployment, database migration, and initial administrator provisioning are complete. UI and API readiness pass locally. A user-authorized live sign-in reached the API and validated the provisioned account, but the configured external SMS endpoint timed out; end-to-end OTP, refresh, and logout smoke verification remains blocked until that private endpoint or its connectivity is corrected.
+The code, isolated database verification, mocked browser flow, approved branding,
+separate IIS deployment, database migration, and initial administrator
+provisioning are complete. Local username/password plus SMS OTP remains
+available. Pre-linked Google sign-in has its data model, server-owned PKCE
+flow, API capability endpoints, and UI action implemented. Its real local
+activation and smoke test await a Google Cloud Web OAuth client and its
+server-side Client ID/Client Secret configuration.
 
 ## Phase 4 — First vertical dashboard slice
 
