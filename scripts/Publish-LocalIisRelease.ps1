@@ -6,6 +6,8 @@ param(
 
     [string]$ReleaseId = (Get-Date -Format 'yyyyMMdd-HHmmss'),
 
+    [string]$ExpectedMigration = '20260903173032_AddSystemAdministrationAndAuditDashboard',
+
     [string]$StatusFile = (Join-Path $env:LOCALAPPDATA 'Temp\EosDashboards-local-publish-status.txt')
 )
 
@@ -84,10 +86,42 @@ function Get-NewReleasePath {
     return $releasePath
 }
 
+function Test-ExpectedDevelopmentMigration {
+    param([string]$MigrationId)
+
+    $configurationPath = Join-Path $scriptRoot '..\backend\src\EosDashboards.Api\appsettings.Development.json'
+    if (-not (Test-Path -LiteralPath $configurationPath -PathType Leaf)) {
+        throw 'The development API configuration required for migration verification was not found.'
+    }
+
+    $configuration = Get-Content -Raw -Encoding utf8 $configurationPath | ConvertFrom-Json
+    $connectionString = [string]$configuration.ConnectionStrings.EosDashboard
+    if ([string]::IsNullOrWhiteSpace($connectionString)) {
+        throw 'The development database connection required for migration verification was not configured.'
+    }
+
+    $connection = [System.Data.SqlClient.SqlConnection]::new($connectionString)
+    $command = $connection.CreateCommand()
+    $command.CommandText = 'SELECT COUNT(*) FROM [__EFMigrationsHistory] WHERE [MigrationId] = @migrationId'
+    [void]$command.Parameters.AddWithValue('@migrationId', $MigrationId)
+    try {
+        $connection.Open()
+        if ([int]$command.ExecuteScalar() -ne 1) {
+            throw 'The expected development database migration has not been applied.'
+        }
+    }
+    finally {
+        $connection.Dispose()
+    }
+}
+
 $deploymentStage = 'administrator-check'
 if (-not (Test-IsAdministrator)) {
     throw 'Run this script from an elevated PowerShell window.'
 }
+
+$deploymentStage = 'development-migration-verification'
+Test-ExpectedDevelopmentMigration -MigrationId $ExpectedMigration
 
 $deploymentStage = 'artifact-check'
 foreach ($artifactPath in @($ApiArtifact, $UiArtifact)) {

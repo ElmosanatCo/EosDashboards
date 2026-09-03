@@ -62,6 +62,11 @@ build configuration. Explicitly pass `--configuration Release` to the EF
 tools: their default Debug output can be stale and omit a newly built Release
 migration. The normal IIS publisher intentionally does not apply migrations,
 so a pending migration must never be deferred until after the API switch.
+On this workstation, also set `ASPNETCORE_ENVIRONMENT=Development` for the EF
+command: an unset environment can target the base configuration instead of the
+development database used by IIS and falsely report that it is up to date.
+The publisher now refuses to switch IIS unless the expected migration is found
+in that development database's migration history.
 The System Administrator release specifically includes
 `20260903173032_AddSystemAdministrationAndAuditDashboard`; verify that this
 migration has been applied after the backup and before switching the API.
