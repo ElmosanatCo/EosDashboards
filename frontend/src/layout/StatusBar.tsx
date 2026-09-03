@@ -2,7 +2,7 @@ import { Box, Typography } from "@mui/material";
 import { memo, useEffect, useState } from "react";
 import { formatPersianDateTime } from "../lib/date/persianDateTime";
 
-export const statusBarHeight = 38;
+export const statusBarHeight = 54;
 
 const Clock = memo(function Clock() {
   const [now, setNow] = useState(() => new Date());
@@ -12,9 +12,21 @@ const Clock = memo(function Clock() {
   }, []);
   const value = formatPersianDateTime(now);
   return (
-    <Typography variant="caption">
-      {value.date}، {value.time}
-    </Typography>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-end",
+        gap: 0,
+      }}
+    >
+      <Typography aria-label="تاریخ سیستم" variant="caption">
+        تاریخ: {value.date}
+      </Typography>
+      <Typography aria-label="ساعت سیستم" variant="caption">
+        ساعت: {value.time}
+      </Typography>
+    </Box>
   );
 });
 
