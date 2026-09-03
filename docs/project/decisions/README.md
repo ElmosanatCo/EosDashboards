@@ -19,3 +19,4 @@ Do not rewrite an accepted record to hide history. Add a new record that superse
 - `0009-administration-and-department-hierarchy.md`
 - `0010-role-filtered-global-command-search.md`
 - `0011-server-local-millisecond-timestamps.md`
+- `0012-system-administration-and-audit-visibility.md`

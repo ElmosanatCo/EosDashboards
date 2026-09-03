@@ -91,6 +91,10 @@ Organizational directory and federation-provider access is deferred until IT dis
   `فناوری اطلاعات` organizational baseline. It fails rather than guessing an
   assignment for an existing user without the System Administrator role.
 - Mobile numbers are encrypted at application level with protected keys outside source control. OTP codes and refresh credentials are stored only as keyed hashes.
+- The approved administration slice adds optimistic concurrency for mutable user
+  and department records, server-paged safe projections, and immutable audit
+  queries. User and department mutations revoke the target user's sessions and
+  retain no password, OTP, or full mobile value in audit metadata.
 
 ## Frontend workspace
 
@@ -103,9 +107,10 @@ The frontend is an RTL-first React SPA. Internal workspace tabs are route-aware 
 - Session tab descriptors survive refresh but are cleared on logout.
 - Overflow is accessible through a compact list on narrow displays.
 - The sidebar, route guard, and `Ctrl+K` command search share one
-  role-filtered target catalogue. The initial targets are empty Department,
-  Human Resources, and CEO dashboard pages; client filtering is not API
-  authorization.
+  role-filtered target catalogue. Department, Human Resources, and CEO pages
+  remain honest no-data dashboards. The approved System Administrator slice
+  adds its operational dashboard, users, departments, and audit targets;
+  client filtering is not API authorization.
 
 The supplied EOS logo and company name `علم و صنعت` appear on sign-in and in the shell. The fixed status bar displays build-derived version, live local-system time, and Persian-calendar date.
 

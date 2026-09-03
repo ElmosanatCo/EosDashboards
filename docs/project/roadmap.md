@@ -12,7 +12,7 @@ Create and verify the repository-based context and decision system.
 
 **Status:** In progress
 
-Identify users, dashboards, metrics, data sources, quality attributes, and the first deliverable slice. The approved system-administration scope includes user/access management and a company-department hierarchy limited to parent departments and their direct children. The data foundation, fixed roles, authorized empty-dashboard shell, and command search are complete; administration forms and operational policies remain a later design item.
+Identify users, dashboards, metrics, data sources, quality attributes, and the first deliverable slice. The approved system-administration scope includes user/access management, a company-department hierarchy limited to parent departments and their direct children, and an operational audit dashboard. The data foundation, fixed roles, authorized empty-dashboard shell, command search, and the administration design are complete; implementation planning is next.
 
 Project-wide foundation standards are complete. Dashboard-specific discovery remains in progress.
 

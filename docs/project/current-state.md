@@ -61,7 +61,7 @@ Initial authentication and application-shell implementation.
 - The local Google sign-in start route was diagnosed on 2026-09-03: its optional backchannel proxy had stopped, so OpenID metadata retrieval failed before the browser could be redirected to Google. The operator restarted the approved proxy, its availability was verified, and the API was restored to use it. The focused Google-configuration test set passed. Local IIS release `20260903-194345` returns HTTP 302 from the Google start route to `accounts.google.com`; API liveness/readiness and UI entry each return HTTPS HTTP 200. The proxy must remain available while the IIS application-pool identity requires it for Google's metadata and signing keys; signature validation remains enabled.
 - If Google is temporarily unavailable while its authorization flow starts, the API now redirects to the local sign-in page instead of returning a technical JSON error. The sign-in page presents a specific Persian availability message while retaining local credential access; API and browser-flow regression tests cover both sides of this behavior. Local IIS release `20260903-195212` was built from committed `main` source `c074414`; API liveness/readiness and UI entry each returned HTTPS HTTP 200, and the available Google path returned HTTP 302 to Google.
 - A user-provided manager-workforce dashboard screenshot is stored unchanged as `resources/images/references/manager-workforce-dashboard-reference.png`. It is the approved internal visual reference for compact dashboard composition and a role-filtered global command search that opens authorized results in workspace tabs; it does not approve or supply the depicted data, operations, or branding.
-- System-administrator user-account/access management and company-department definition are approved scope. The completed foundation provides two-level departments, required user department membership, fixed role codes, the `نرم افزار` / `فناوری اطلاعات` baseline, role-filtered empty dashboards, and Ctrl+K command search. Administration forms, account lifecycle actions, department metadata, deletion, re-parenting, and granular permissions remain unresolved.
+- System-administrator user-account/access management and company-department definition are approved scope. The completed foundation provides two-level departments, required user department membership, fixed role codes, the `نرم افزار` / `فناوری اطلاعات` baseline, role-filtered empty dashboards, and Ctrl+K command search. The approved administration design now defines account lifecycle, temporary passwords, session revocation, last-administrator protection, organization-wide department-name uniqueness, deletion/re-parenting rules, System Administrator audit visibility, and truthful active-session/sign-in metrics. Implementation planning remains next; custom roles, granular permissions, Google-link management, audit retention, exports, and alerts remain deferred.
 - Resolve the configured external SMS endpoint/connectivity only if it recurs in a new local live sign-in attempt; the user confirmed that a full username/password-and-OTP sign-in succeeded on 2026-09-02.
 - A local provisioning defect was corrected: Persian administrator profile text had been corrupted while being passed from the deployment helper to its child process, despite Unicode SQL Server columns. The helper and provisioner now declare UTF-8 at every process boundary. A safe database-wide text scan found exactly two affected values, both in the initial administrator's first/last-name fields, and none elsewhere. A parameterized corrective update restored the affected profile; a non-sensitive verification confirmed zero remaining corrupted profiles and one exact Unicode profile match. No private value is recorded in repository documentation.
 - The private local deployment file is interpreted by named administrator fields rather than positional values; only username, password, first name, last name, and mobile are consumed. Extra labelled values are ignored. It is now reserved for an explicitly requested first-machine provisioning or repair, not ordinary publication.
@@ -83,7 +83,9 @@ Initial authentication and application-shell implementation.
 
 ## Next agreed step
 
-Complete one user-initiated end-to-end HTTPS smoke flow for local credential/OTP sign-in and linked Google sign-in, including session refresh and logout. Do not deploy to company production servers in this slice.
+Write and approve the implementation plan for the System Administrator user,
+department, audit, and operational-dashboard slice. Do not deploy to company
+production servers in this slice.
 
 ## Blockers
 
@@ -91,9 +93,11 @@ Complete one user-initiated end-to-end HTTPS smoke flow for local credential/OTP
 
 ## Immediate unresolved questions
 
-- Which business dashboards and metrics are required first?
+- Which business dashboards and metrics are required first beyond the approved
+  System Administrator dashboard?
 - Which managers or roles will use each dashboard?
 - What source systems will supply dashboard data?
 - Is the organization's LDAP service separate from Active Directory, and which supported identity infrastructure is available?
 - What are the approved internal hostnames, certificates, browser versions, retention periods, recovery objectives, and monitoring tools?
-- Should the reversible privacy-conservative mobile mask that shows only the final four digits be formally approved or changed?
+- What organizational retention, ownership, and non-administrator-access policy
+  applies to audit records?

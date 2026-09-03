@@ -59,6 +59,18 @@ independent or an immediate child of one other department. The hierarchy has a
 maximum of two levels: a parent department and its direct children; a third
 level is not permitted.
 
+### FR-010 — System administration and audit visibility
+
+**Status:** Confirmed
+
+The System Administrator manages users, assignments of the four fixed roles,
+and company departments through the application. Accounts are activated or
+deactivated rather than deleted. The System Administrator also receives an
+operational dashboard and filtered audit history for administration and
+security actions, including sign-ins, failed attempts, password changes, and
+access changes. The dashboard's user-presence metric is active sessions, not
+live browser presence.
+
 ### FR-006 — Tabbed SPA workspace
 
 **Status:** Confirmed
@@ -199,10 +211,13 @@ The logical development database name is `EosDashboard`.
 
 ## Unresolved requirements
 
-- Dashboard catalogue, metrics, filters, and drill-down behavior.
+- Dashboard catalogue, metrics, filters, and drill-down behavior beyond the
+  approved System Administrator dashboard.
 - Detailed access policies beyond the four fixed initial roles, and whether later access assignments include granular permissions.
-- Exact user-account lifecycle operations, including activation, deactivation, password administration, and identity-link management.
-- Department metadata, manager assignment, deletion, and re-parenting rules.
+- Google identity-link management and account lifecycle behavior beyond the
+  approved local-account administration rules.
+- Department metadata and manager-assignment policy beyond the approved
+  two-level structure, uniqueness, deletion, and re-parenting rules.
 - Data sources, ownership, refresh frequency, and historical retention.
 - Exact performance service levels, availability targets, retention periods, approved organizational browser versions, and recovery objectives.
 - Exporting, printing, alerts, subscriptions, and administration capabilities.
