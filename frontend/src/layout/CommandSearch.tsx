@@ -19,7 +19,7 @@ export function CommandSearch({
 }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
-  const [anchorEl, setAnchorEl] = useState<HTMLInputElement | null>(null);
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const matches = useMemo(() => {
     const normalized = query.trim();
