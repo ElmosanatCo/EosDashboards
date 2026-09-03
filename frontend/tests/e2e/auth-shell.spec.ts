@@ -104,7 +104,7 @@ test("local credential OTP opens the authenticated shell and logout returns to s
       return { width: bounds.width };
     });
   expect(Math.round(homeCardBounds.width)).toBe(
-    Math.round(mainBounds.width - 48),
+    Math.round(mainBounds.width - 32),
   );
   await expect(
     page.getByRole("tab", { name: "خانه" }).locator("img"),
@@ -387,6 +387,19 @@ test("a System Administrator can open the operational dashboard", async ({
   await expect(page.getByText("کاربر ایجاد شد")).toBeVisible();
   await expect(page.getByLabel("تاریخ سیستم")).toHaveCount(1);
   await expect(page.getByLabel("ساعت سیستم")).toHaveCount(1);
+  const dashboardMainWidth = await page
+    .locator("main")
+    .evaluate((element) => Math.round(element.getBoundingClientRect().width));
+  const dashboardCardWidth = await page
+    .getByText("کاربران فعال")
+    .locator("xpath=../..")
+    .evaluate((element) => Math.round(element.getBoundingClientRect().width));
+  expect(dashboardCardWidth).toBeLessThanOrEqual(dashboardMainWidth - 32);
+  const auditCardWidth = await page
+    .getByRole("heading", { name: "آخرین رویدادهای ممیزی" })
+    .locator("xpath=../../..")
+    .evaluate((element) => Math.round(element.getBoundingClientRect().width));
+  expect(auditCardWidth).toBe(dashboardMainWidth - 32);
   await page.screenshot({
     path: "test-results/system-administration-dashboard.png",
   });

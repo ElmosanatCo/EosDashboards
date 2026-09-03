@@ -45,7 +45,7 @@ export function UserManagementPage() {
   });
   const openForm = (id?: number) => setSelectedUserId(id ?? null);
   return (
-    <Stack spacing={2.5} sx={{ maxWidth: 1320, mx: "auto" }}>
+    <Stack spacing={2.5} sx={{ width: "100%" }}>
       <Stack
         direction={{ xs: "column", sm: "row" }}
         spacing={1}

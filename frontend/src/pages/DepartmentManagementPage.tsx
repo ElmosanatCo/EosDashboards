@@ -45,7 +45,7 @@ export function DepartmentManagementPage() {
   const childrenOf = (id: number) =>
     departments.data?.filter((item) => item.parentDepartmentId === id) ?? [];
   return (
-    <Stack spacing={2.5} sx={{ maxWidth: 1060, mx: "auto" }}>
+    <Stack spacing={2.5} sx={{ width: "100%" }}>
       <Stack
         direction={{ xs: "column", sm: "row" }}
         spacing={1}

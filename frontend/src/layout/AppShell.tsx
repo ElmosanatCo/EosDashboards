@@ -116,10 +116,7 @@ export function AppShell() {
           }}
         >
           <WorkspaceTabs />
-          <Box
-            component="main"
-            sx={{ flex: 1, overflow: "auto", p: { xs: 2, md: 3 } }}
-          >
+          <Box component="main" sx={{ flex: 1, overflow: "auto", p: 2 }}>
             {active.routeId === "home" ||
             targetForRouteId(active.routeId) ||
             active.routeId === "administration-user-create" ||

@@ -59,7 +59,7 @@ export function SystemAuditPage() {
     enabled: range !== "Custom" || Boolean(from && to),
   });
   return (
-    <Stack spacing={2.5} sx={{ maxWidth: 1320, mx: "auto" }}>
+    <Stack spacing={2.5} sx={{ width: "100%" }}>
       <Box>
         <Typography component="h1" variant="h5" sx={{ fontWeight: 750 }}>
           ممیزی سامانه

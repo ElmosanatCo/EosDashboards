@@ -1,6 +1,6 @@
 # Current Project State
 
-**Last updated:** 2026-09-03
+**Last updated:** 2026-09-04
 
 ## Phase
 
@@ -53,6 +53,7 @@ Initial authentication and application-shell implementation.
 - The authentication documentation was aligned on 2026-09-03: the only phase-1 sign-in flow is pre-provisioned username/password followed by mandatory SMS OTP. Legacy integrated-directory sign-in wording was removed from current specifications, decisions, and operations guidance.
 - A follow-up administration UI correction on 2026-09-03 resolved three rendered defects: the create-user dialog spinner was caused by treating React Query's intentionally disabled user-details query as pending; the create/edit form surfaces now fill their dialog width; and every manager-facing accent panel uses the shared `eos-accent-card` hover rule to turn its top line gold. Red/green component tests cover the create form, dialog width, and theme rule. Release `20260903-231951` was built from committed source `46326ea` and verified in Chrome at desktop and phone sizes: the create-user and create-department dialogs rendered their fields, desktop form/card gaps were limited to the surrounding 1px border, and a hovered dashboard card computed the gold `#E0A13A` top line. API readiness, UI entry, and a refreshed department route returned HTTPS HTTP 200; no relevant browser-console messages were present.
 - The redundant user-account-name field was removed on 2026-09-03 after confirming that local sign-in uses the username and Google sign-in uses its linked identity. The field is gone from user forms, administration request/response contracts, authenticated-user responses, the domain model, and the deployment provisioner; migration `20260903200248_RemoveUserAccountName` drops the legacy SQL column and index. A verified backup was taken and this migration was applied to the local development database, with the column absence and migration-history entry confirmed. IIS release `20260903-234405` was then published from the matching API/UI artifacts; API liveness/readiness, UI entry, and the refreshed internal SPA route each returned HTTPS HTTP 200.
+- A 2026-09-04 rendered-UI correction replaced the audit custom-range year/month/day selects with a single Persian-calendar month view and a separate time field. Manager-facing page frames and the shell content gutter now use the full available workspace width with a consistent 16px edge gutter, removing excessive desktop side whitespace while preserving mobile alignment. Focused component tests, the full frontend component suite, typecheck, and mocked authenticated desktop/mobile browser checks passed.
 
 ## In progress
 

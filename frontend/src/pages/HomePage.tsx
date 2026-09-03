@@ -2,7 +2,7 @@ import { Box, Paper, Stack, Typography } from "@mui/material";
 
 export function HomePage() {
   return (
-    <Box sx={{ width: "100%", maxWidth: 1120, mx: "auto" }}>
+    <Box sx={{ width: "100%" }}>
       <Paper
         variant="outlined"
         className="eos-accent-card"
