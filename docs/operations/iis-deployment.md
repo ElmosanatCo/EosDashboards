@@ -7,7 +7,7 @@ The React UI and ASP.NET Core API must use separate IIS sites/applications and s
 ```powershell
 dotnet publish backend/src/EosDashboards.Api/EosDashboards.Api.csproj -c Release -o <versioned-api-directory>
 npm ci --prefix frontend
-npm --prefix frontend run build
+npm --prefix frontend run build:iis
 ```
 
 Copy `frontend/dist/` to a versioned UI directory. Point IIS to the versioned directories only after inspection; keep the previous directories for rollback.
@@ -20,14 +20,15 @@ Copy `frontend/dist/` to a versioned UI directory. Point IIS to the versioned di
 - Keep local server-only settings in the private repository's API configuration
   or the API IIS application configuration under decision 0006. Never place
   them in frontend build settings.
-- Enable Windows Authentication and disable Anonymous Authentication for the API application. ASP.NET Core's Negotiate handler intentionally refuses to start when IIS does not provide this boundary.
-- The Windows-authenticated API may return `401` to an unauthenticated health request. Local probes must use the current Windows identity, for example `Invoke-WebRequest -UseDefaultCredentials`; successful `/health/live` and `/health/ready` responses return `200`.
+- Enable Anonymous Authentication and disable Windows Authentication for the API application. This prevents IIS from injecting the retired Negotiate handler into local credential, OTP, and Google sign-in flows.
+- Successful `/health/live` and `/health/ready` responses return `200` without Windows credentials.
 - Keep the API application configuration when switching versioned release directories. It contains the environment-specific values outside the artifact.
 
 ## Local runtime conditions
 
 - Serve both child applications through the `Default Web Site` HTTPS binding. The local UI origin configured for credentialed CORS is exactly `https://localhost`; paths do not form part of an origin.
 - Keep UI and API in separate child applications and pools. The UI build must retain `VITE_PUBLIC_BASE=/EosDashboards/`; the API base remains `/EosDashboardsApi`.
+- The fixed home workspace tab must preserve `/EosDashboards/` as its browser path. A successful sign-in followed by refresh must never navigate to the IIS site root, which serves the default IIS page.
 - Keep the persistent Data Protection key ring outside the web root, at a path writable by the API pool identity and not by the UI pool. The installed local path is `C:\ProgramData\EosDashboards\keys`.
 - The normal local publisher reuses the existing IIS runtime configuration and
   does not require a private-data file. It must not move server credentials or

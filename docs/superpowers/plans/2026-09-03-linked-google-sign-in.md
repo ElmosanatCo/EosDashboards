@@ -537,8 +537,11 @@ returned HTTP 403. A validated server-only OIDC backchannel-proxy setting is
 staged for publication because the approved local proxy can reach that
 endpoint. The first authorization attempt also identified a missing cross-site
 `SameSite=None` setting on the temporary OIDC cookies; that correction is
-staged alongside the proxy. Do not bypass signature validation; publish both
-settings and retry this step.
+staged alongside the proxy. A successful callback then identified that the
+fixed home workspace tab rewrote the deployed `/EosDashboards/` path to the
+IIS site root, breaking refresh; its tested UI correction is also staged. Do
+not bypass signature validation; publish the paired corrections and retry this
+step.
 
 - [ ] **Step 6: Commit documentation and integration state.**
 

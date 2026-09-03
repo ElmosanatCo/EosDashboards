@@ -58,17 +58,20 @@ Initial authentication and application-shell implementation.
   settings. The final user-authorized Google sign-in smoke flow remains
   pending.
 - The elevated normal local publisher completed successfully on 2026-09-03,
-  switching both IIS applications to release `20260903-145626`. The HTTPS UI,
-  existing-session refresh, provider discovery, and logout were observed
-  successfully. Direct access from the IIS application-pool context to
+  switching both IIS applications to release `20260903-150910`. The HTTPS UI,
+  provider discovery, and logout were observed successfully. Direct access from the IIS application-pool context to
   Google's public signing-key endpoint returned HTTP 403 while the configured
   local proxy succeeded. A server-only, validated optional Google OIDC
   backchannel-proxy setting is staged for publication so signature validation
   remains intact. The first successful authorization attempt then identified
   that the temporary OIDC nonce and correlation cookies need `SameSite=None`
   for the cross-site callback; the standards-compliant cookie correction is
-  also staged for publication. The final user-authorized sign-in smoke flow
-  remains pending that publication.
+  also staged for publication. A successful Google callback then exposed a UI
+  routing defect: the fixed home tab rewrote the deployed application path to
+  the IIS site root, so refresh served the default IIS page. The home-tab path
+  correction is staged with a focused regression test and IIS UI build. The
+  final user-authorized sign-in, refresh, and logout smoke flow remains pending
+  that paired publication.
 - Final pre-publication verification passed on 2026-09-03: 195 backend tests
   (including 113 SQL-backed integration tests against the guarded test
   catalog), 12 frontend tests, TypeScript checking, the production frontend
@@ -93,9 +96,10 @@ Initial authentication and application-shell implementation.
 
 ## Next agreed step
 
-Publish the staged API backchannel-proxy and OIDC temporary-cookie correction,
-then complete one user-authorized IIS HTTPS Google sign-in, refresh, and logout
-smoke flow. Do not deploy to company production servers in this slice.
+Publish the staged API backchannel-proxy, OIDC temporary-cookie, and UI
+home-path corrections, then complete one user-authorized IIS HTTPS Google
+sign-in, refresh, and logout smoke flow. Do not deploy to company production
+servers in this slice.
 
 ## Blockers
 

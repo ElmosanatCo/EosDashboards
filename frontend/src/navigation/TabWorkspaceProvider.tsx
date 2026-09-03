@@ -6,7 +6,12 @@ import {
   useReducer,
 } from "react";
 import type { Dispatch, PropsWithChildren } from "react";
-import { initialTabState, restoreTabs, tabReducer } from "./tabReducer";
+import {
+  initialTabState,
+  resolveTabPathname,
+  restoreTabs,
+  tabReducer,
+} from "./tabReducer";
 import type { TabAction } from "./tabReducer";
 import type { TabDescriptor, TabState } from "./tabTypes";
 
@@ -25,12 +30,16 @@ export function TabWorkspaceProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     sessionStorage.setItem(storageKey, JSON.stringify(state));
     const active = state.tabs.find((tab) => tab.key === state.activeKey);
+    const pathname = active
+      ? resolveTabPathname(active, import.meta.env.BASE_URL)
+      : undefined;
     if (
+      pathname &&
       active &&
       `${location.pathname}${location.search}` !==
-        `${active.pathname}${active.search}`
+        `${pathname}${active.search}`
     ) {
-      history.replaceState(null, "", `${active.pathname}${active.search}`);
+      history.replaceState(null, "", `${pathname}${active.search}`);
     }
   }, [state]);
   const value = useMemo(
