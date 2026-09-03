@@ -318,6 +318,33 @@ test("a Google callback failure keeps local credential sign-in available", async
   await expect(page).toHaveURL(/\/$/);
 });
 
+test("a temporarily unavailable Google service keeps local credential sign-in available", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/**", async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith("/auth/refresh")) {
+      await route.fulfill({ status: 401, body: JSON.stringify({}) });
+    } else if (path.endsWith("/auth/providers")) {
+      await route.fulfill({ json: { google: false } });
+    } else {
+      await route.fulfill({ status: 404 });
+    }
+  });
+
+  await page.goto("/?authError=google-unavailable");
+
+  await expect(
+    page.getByText(
+      "ورود با Google در حال حاضر در دسترس نیست. لطفاً بعداً تلاش کنید یا با رمز عبور وارد شوید.",
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "ورود و دریافت کد تأیید" }),
+  ).toBeVisible();
+  await expect(page).toHaveURL(/\/$/);
+});
+
 test("OTP offers a one-click resend after its 60-second cooldown", async ({
   page,
 }) => {

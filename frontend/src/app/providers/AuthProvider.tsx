@@ -125,11 +125,16 @@ export function AuthProvider({
   }, [refresh]);
   useEffect(() => {
     const url = new URL(window.location.href);
-    if (url.searchParams.get("authError") !== "google") return;
+    const authError = url.searchParams.get("authError");
+    const error =
+      authError === "google-unavailable"
+        ? "ورود با Google در حال حاضر در دسترس نیست. لطفاً بعداً تلاش کنید یا با رمز عبور وارد شوید."
+        : authError === "google"
+          ? "ورود با Google انجام نشد. دوباره تلاش کنید یا با رمز عبور وارد شوید."
+          : undefined;
+    if (!error) return;
 
-    setError(
-      "ورود با Google انجام نشد. دوباره تلاش کنید یا با رمز عبور وارد شوید.",
-    );
+    setError(error);
     url.searchParams.delete("authError");
     window.history.replaceState(
       null,

@@ -45,7 +45,10 @@ by the deployment-only administrator procedure may sign in through Google. The
 first verified Google sign-in binds the immutable provider subject. It creates
 the normal application session without a local password or SMS OTP. Google
 does not self-register users, roles, permissions, or links, and the local
-credential route remains available.
+credential route remains available. If the application cannot reach Google
+while starting the authorization flow, it returns the visitor to that local
+sign-in page with an explicit temporary-unavailability message, never a
+technical JSON error.
 
 ### FR-009 — Company department hierarchy
 

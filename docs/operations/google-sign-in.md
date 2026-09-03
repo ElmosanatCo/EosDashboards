@@ -95,6 +95,10 @@ configuration error.
   configured but is no longer listening, remove that proxy setting only after
   confirming direct access to the public OpenID metadata endpoint. Do not
   replace it with an unverified proxy or weaken signature validation.
+- **Google is temporarily unreachable at start:** the visitor is redirected
+  back to the local sign-in page with a clear availability message. The API
+  keeps the technical exception and trace ID in server logs; do not expose it
+  through the browser response.
 - **Returned to local sign-in with a generic error:** the account was
   cancelled, not Google-verified, not pre-linked, inactive, or the callback
   could not be validated. Do not reveal which case applies to a user.

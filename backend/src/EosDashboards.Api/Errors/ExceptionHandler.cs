@@ -9,6 +9,14 @@ public sealed class ExceptionHandler(ILogger<ExceptionHandler> logger) : IExcept
         Exception exception,
         CancellationToken cancellationToken)
     {
+        if (httpContext.Request.Path == "/api/v1/auth/google/start" &&
+            exception is InvalidOperationException)
+        {
+            logger.LogWarning(exception, "Google sign-in provider is temporarily unavailable. TraceId: {TraceId}", httpContext.TraceIdentifier);
+            httpContext.Response.Redirect("/EosDashboards/?authError=google-unavailable");
+            return true;
+        }
+
         var isClientError = exception is ArgumentException;
         if (isClientError)
         {
