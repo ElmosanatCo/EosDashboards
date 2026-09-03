@@ -66,7 +66,7 @@ The React application is an SPA whose opened pages appear in closable internal w
 
 **Status:** Confirmed
 
-The UI displays the company name `علم و صنعت` and the approved EOS logo. The fixed bottom status bar displays the actual application version, live Asia/Tehran time, and Persian-calendar date.
+The UI displays the company name `علم و صنعت` and the approved EOS logo. The fixed bottom status bar displays the actual application version, live local-system time, and Persian-calendar date.
 
 ## Confirmed technical constraints
 
@@ -164,7 +164,7 @@ Reusable logos, fonts, icons, images, and document templates are managed from th
 
 **Status:** Confirmed
 
-Persist instants in a normalized universal representation. Display dates using the Persian calendar, Persian digits, and the Asia/Tehran time zone unless a feature explicitly requires another representation.
+Persist the application server's local date and time only, at millisecond precision, using SQL Server `datetime2(3)`. Persisted-time names must not contain `Utc` or underscore-based time suffixes. Store no UTC value or offset and perform no Tehran-time conversion in normal application logic. Display dates with the Persian calendar and Persian digits using applicable local system time unless a feature explicitly requires another representation.
 
 ### TC-016 — Quality and operations
 

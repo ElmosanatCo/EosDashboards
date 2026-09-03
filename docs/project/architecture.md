@@ -107,9 +107,11 @@ The frontend is an RTL-first React SPA. Internal workspace tabs are route-aware 
   Human Resources, and CEO dashboard pages; client filtering is not API
   authorization.
 
-The supplied EOS logo and company name `علم و صنعت` appear on sign-in and in the shell. The fixed status bar displays build-derived version, live Tehran time, and Persian-calendar date.
+The supplied EOS logo and company name `علم و صنعت` appear on sign-in and in the shell. The fixed status bar displays build-derived version, live local-system time, and Persian-calendar date.
 
 ## Cross-cutting architecture
+
+Persisted application times are local wall-clock values produced by the application server clock and truncated to millisecond precision. Domain and Application properties use names such as `CreatedAt` and `ExpiresAt`; Infrastructure maps them to SQL Server `datetime2(3)`. No persisted property or API contract uses a `Utc` name, no database timestamp stores an offset, and normal application logic does not perform an Asia/Tehran conversion. External protocol adapters may create a transient protocol-required representation without changing this local persistence boundary.
 
 - Central exception handling returns safe standard error objects with trace identifiers.
 - Transport and background adapters provide the current correlation identifier through an Application port; every audit record created by one operation uses that same identifier.

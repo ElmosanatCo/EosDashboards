@@ -55,6 +55,7 @@ Initial authentication and application-shell implementation.
 ## In progress
 
 - The role-based dashboard foundation is integrated in `main` at commit `c199489`: the local development database migration created the fixed roles, `نرم افزار` and its `فناوری اطلاعات` child, and aligned the existing System Administrator with the Software department and Department Manager role. Release builds, 204 backend tests (including 115 SQL-backed integration tests), 28 frontend component/unit tests, and 7 browser flows passed. Local IIS release `20260903-184849` was published from committed `main` source `d4e15a5`; API liveness/readiness, the UI entry route, and a refreshed internal SPA route each returned HTTPS HTTP 200.
+- The user approved a server-local timestamp standard on 2026-09-03: every persisted application time will use a no-`Utc` name and SQL Server `datetime2(3)`, storing only local year through millisecond. Existing UTC values will be converted once to their equivalent local wall-clock values during the migration; ordinary logic will not use UTC persistence or Tehran-time conversion. The approved design also corrects home-tab menu activation and confines the mobile navigation drawer above the status bar. Written-design review is pending before implementation.
 - A user-provided manager-workforce dashboard screenshot is stored unchanged as `resources/images/references/manager-workforce-dashboard-reference.png`. It is the approved internal visual reference for compact dashboard composition and a role-filtered global command search that opens authorized results in workspace tabs; it does not approve or supply the depicted data, operations, or branding.
 - System-administrator user-account/access management and company-department definition are approved scope. The completed foundation provides two-level departments, required user department membership, fixed role codes, the `نرم افزار` / `فناوری اطلاعات` baseline, role-filtered empty dashboards, and Ctrl+K command search. Administration forms, account lifecycle actions, department metadata, deletion, re-parenting, and granular permissions remain unresolved.
 - Resolve the configured external SMS endpoint/connectivity only if it recurs in a new local live sign-in attempt; the user confirmed that a full username/password-and-OTP sign-in succeeded on 2026-09-02.
@@ -86,7 +87,6 @@ Complete one user-initiated end-to-end HTTPS smoke flow for local credential/OTP
 
 ## Immediate unresolved questions
 
-- The approved time standard stores technical instants in a universal representation and displays them as Persian-calendar Asia/Tehran time. A request to store local time in the database instead would change OTP/session expiry and audit behavior as well as every `...Utc` field; its exact scope requires an explicit decision before implementation.
 - Which business dashboards and metrics are required first?
 - Which managers or roles will use each dashboard?
 - What source systems will supply dashboard data?
