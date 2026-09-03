@@ -34,4 +34,17 @@ describe("createAppTheme", () => {
       caretColor: "#EDF2F0",
     });
   });
+
+  it("turns every accent card's top line gold on hover", () => {
+    const theme = createAppTheme("dark", "teal");
+    const paper = theme.components?.MuiPaper?.styleOverrides?.root as Record<
+      string,
+      Record<string, unknown>
+    >;
+
+    expect(paper["&.eos-accent-card"]).toMatchObject({
+      transition: "border-top-color 175ms ease",
+      "&:hover": { borderTopColor: "#E0A13A" },
+    });
+  });
 });

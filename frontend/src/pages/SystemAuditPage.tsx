@@ -70,6 +70,7 @@ export function SystemAuditPage() {
       </Box>
       <Paper
         variant="outlined"
+        className="eos-accent-card"
         sx={{ p: 2, borderTop: 3, borderTopColor: "primary.main" }}
       >
         <Stack
@@ -150,7 +151,15 @@ export function SystemAuditPage() {
           </Stack>
         ) : null}
       </Paper>
-      <Paper variant="outlined" sx={{ overflowX: "auto" }}>
+      <Paper
+        variant="outlined"
+        className="eos-accent-card"
+        sx={{
+          overflowX: "auto",
+          borderTop: 3,
+          borderTopColor: "primary.main",
+        }}
+      >
         <Table size="small" aria-label="فهرست ممیزی سامانه">
           <TableHead>
             <TableRow>

@@ -5,13 +5,12 @@ export function HomePage() {
     <Box sx={{ width: "100%", maxWidth: 1120, mx: "auto" }}>
       <Paper
         variant="outlined"
+        className="eos-accent-card"
         sx={{
           borderTop: "3px solid",
           borderTopColor: "primary.main",
           p: { xs: 2.5, md: 3 },
           textAlign: "right",
-          transition: "border-color 175ms ease",
-          "&:hover": { borderTopColor: "#E0A13A" },
         }}
       >
         <Stack spacing={1.25} sx={{ maxWidth: 560 }}>

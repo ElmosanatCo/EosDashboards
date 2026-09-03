@@ -80,7 +80,9 @@ export function DepartmentFormPage({
     <Paper
       component="form"
       variant="outlined"
+      className="eos-accent-card"
       sx={{
+        width: "100%",
         maxWidth: 700,
         mx: "auto",
         p: { xs: 2, md: 3 },

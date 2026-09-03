@@ -52,6 +52,10 @@ internal route remains in the UI application and pool.
 
 - Serve the static Vite output over HTTPS.
 - Configure the API origin exactly and do not use wildcard credentialed CORS.
+- Administration create/edit forms are source-page dialogs; their inner form
+  surface must use the full dialog content width so a desktop flex layout does
+  not create a side gutter. Manager-facing primary panels use the
+  `eos-accent-card` class and must retain the gold top-line hover treatment.
 
 ## Deployment and rollback
 

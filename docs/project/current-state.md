@@ -51,10 +51,11 @@ Initial authentication and application-shell implementation.
 - IIS URL Rewrite is not installed locally. The UI SPA fallback uses IIS custom 404 execution, avoiding that unavailable module. API Anonymous Authentication is enabled and Windows Authentication is disabled. The API also disables IIS automatic authentication in-process so the retired Negotiate handler cannot be injected during local credential sign-in.
 - The development SQL connection, SMS endpoint, authentication keys, local IIS origin, and API-only key-ring path are tracked in the API development configuration under decision 0006. The persistent key ring remains outside the web root. The deprecated private-data helper is limited to explicitly requested first-administrator provisioning or repair. The local development migration completed and one initial System Administrator user, role assignment, and provisioning audit record were created. No personal or production value is stored in this repository.
 - The authentication documentation was aligned on 2026-09-03: the only phase-1 sign-in flow is pre-provisioned username/password followed by mandatory SMS OTP. Legacy integrated-directory sign-in wording was removed from current specifications, decisions, and operations guidance.
+- A follow-up administration UI correction on 2026-09-03 resolved three rendered defects: the create-user dialog spinner was caused by treating React Query's intentionally disabled user-details query as pending; the create/edit form surfaces now fill their dialog width; and every manager-facing accent panel uses the shared `eos-accent-card` hover rule to turn its top line gold. Red/green component tests cover the create form, dialog width, and theme rule. The deployed release `20260903-231457` was verified in Chrome at desktop and phone sizes: the create-user and create-department dialogs rendered their fields, desktop form/card gaps were limited to the surrounding 1px border, and a hovered dashboard card computed the gold `#E0A13A` top line. API readiness, UI entry, and a refreshed department route returned HTTPS HTTP 200; no relevant browser-console messages were present.
 
 ## In progress
 
-- The first administration release exposed a usability gap: create/edit forms opened as workspace tabs and no request-path regression test covered their submissions. The corrective slice moves those forms to their source-page dialogs, restores a one-line footer date/time layout, adds Persian-calendar audit range selection, and adds nullable direct-IP/coarse-device audit attribution through migration `20260903190243_AddAuditRequestAttribution`. Raw user-agent and forwarded headers are not retained or trusted. Full publication and browser interaction verification remain next.
+- The first administration release exposed a usability gap: create/edit forms opened as workspace tabs and no request-path regression test covered their submissions. The corrective slice now keeps those forms in source-page dialogs, restores a one-line footer date/time layout, uses Persian-calendar audit range selection, and records nullable direct-IP/coarse-device audit attribution through migration `20260903190243_AddAuditRequestAttribution`. Raw user-agent and forwarded headers are not retained or trusted. Request-path regression coverage and the rendered UI correction are complete; future changes must preserve these boundaries.
 
 - A live 2026-09-03 edit-user failure was traced to applying the detail lookup predicate to the projected record used by the user list; its nested department lookup and role-ID array could not be translated by EF Core for SQL Server. User details now use a SQL-translatable user/department join followed by a separate role-ID query. The focused integration regression test is red before the fix and green after it; Release build and typecheck passed. Elevated local IIS publication completed as release `20260903-224942`; API readiness and UI entry returned HTTPS 200, while the protected detail route correctly returned HTTP 401 without a session.
 
@@ -91,10 +92,9 @@ Initial authentication and application-shell implementation.
 
 ## Next agreed step
 
-Finish the protected System Administrator APIs and the approved Persian RTL
-management, audit, and operational-dashboard UI; then complete integrated
-verification and publication. Do not deploy to company production servers in
-this slice.
+Continue product discovery for the first business dashboard and its approved
+metrics, data source, users, and authorization. Do not deploy to company
+production servers in this slice.
 
 ## Blockers
 

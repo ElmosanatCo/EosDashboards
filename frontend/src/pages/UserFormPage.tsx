@@ -120,7 +120,13 @@ export function UserFormPage({
       setForm((previous) => ({ ...previous, temporaryPassword: "" }));
     },
   });
-  const busy = details.isPending || roles.isPending || departments.isPending;
+  // The details query is intentionally disabled while creating a user. React
+  // Query still reports a disabled query as pending, so it must not keep the
+  // create form behind an endless spinner.
+  const busy =
+    (Boolean(userId) && details.isPending) ||
+    roles.isPending ||
+    departments.isPending;
   if (busy)
     return (
       <Box sx={{ minHeight: 220, display: "grid", placeItems: "center" }}>
@@ -149,7 +155,9 @@ export function UserFormPage({
     <Paper
       component="form"
       variant="outlined"
+      className="eos-accent-card"
       sx={{
+        width: "100%",
         maxWidth: 900,
         mx: "auto",
         p: { xs: 2, md: 3 },

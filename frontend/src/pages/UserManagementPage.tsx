@@ -69,6 +69,7 @@ export function UserManagementPage() {
       </Stack>
       <Paper
         variant="outlined"
+        className="eos-accent-card"
         sx={{ borderTop: 3, borderTopColor: "primary.main", overflowX: "auto" }}
       >
         {users.isPending ? (

@@ -58,6 +58,10 @@ export function createAppTheme(mode: PaletteMode, palette: PaletteId) {
               backgroundImage: "none",
               border: `1px solid ${paletteColors.divider}`,
               boxShadow: "none",
+              "&.eos-accent-card": {
+                transition: "border-top-color 175ms ease",
+                "&:hover": { borderTopColor: "#E0A13A" },
+              },
             },
           },
         },
