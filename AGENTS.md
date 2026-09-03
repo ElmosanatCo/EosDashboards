@@ -18,10 +18,10 @@
 - Hosting: the React UI and ASP.NET Core API are separate IIS sites/applications with separate application pools.
 - Architecture: lightweight clean layering; API -> Application -> Domain, with Infrastructure as the only database and external-system access layer.
 - Repository layout: independently openable `backend/` Visual Studio solution and `frontend/` VS Code workspace in one repository.
-- Authentication phase 1: Windows/AD organizational sign-in followed by mandatory SMS OTP for every new eight-hour application session; no local password.
+- Authentication phase 1: local username/password sign-in followed by mandatory SMS OTP for every new eight-hour application session. Passwords are managed only through the deployment tool in this slice; user-management UI is deferred.
 - Initial access: one pre-provisioned database user has the System Administrator role; user/role administration UI is deferred.
 - All principal application tables use auto-incrementing SQL Server `bigint` primary keys named `Id`, subject to the documented narrow exceptions.
-- Branding: company name is `علم و صنعت`; the approved supplied EOS logo is imported during implementation.
+- Branding: company name is `علم و صنعت`; use the approved `resources/branding/eos.svg` unchanged. Do not recolor or substitute it.
 - Documentation: concise, plain English.
 - User conversation: Persian unless the user requests otherwise.
 
@@ -45,7 +45,7 @@ Before finishing a task, update the appropriate canonical document when a durabl
 - Integrate facts into the current source of truth; do not append raw chat logs.
 - Mark unapproved ideas as proposed or unresolved.
 - Add a decision record only for consequential choices whose rationale must remain auditable.
-- Never store secrets, credentials, personal data, or production connection details.
+- Never store personal data or production connection details. Under decision 0006, the user explicitly permits local development SQL credentials, SMS endpoint settings, and API security keys in the tracked API development configuration of this private repository; do not print those values in output or documentation.
 - Keep `current-state.md` short and replace stale operational details.
 - Version documentation with the code it describes.
 
@@ -54,7 +54,12 @@ Before finishing a task, update the appropriate canonical document when a durabl
 - Preserve user changes and avoid unrelated edits.
 - Make assumptions explicit when they are necessary.
 - Verify changes in proportion to risk and report what was checked.
+- Keep development cost-conscious: use the smallest sufficient test set during implementation, avoid repeated full-suite runs, and reserve full verification for meaningful checkpoints such as task completion, integration, or publication.
+- Do not use subagents, parallel review loops, or repeated independent reviews unless the user explicitly requests them or a concrete high-risk blocker cannot be resolved efficiently in the primary task.
+- Prefer focused tests for changed behavior and critical security boundaries; do not add redundant, low-value, or coverage-only tests.
 - Keep files focused so future tasks can load only relevant context.
+- Treat Persian and every other non-ASCII value as Unicode end-to-end. At a cross-process, file, database, or web-service boundary, explicitly select UTF-8 or the destination's documented Unicode encoding; never depend on a Windows console code page or process default.
+- Before a deployment tool writes user-supplied text, validate that the text survives its boundary unchanged. Use a synthetic Unicode probe or a non-sensitive integrity result and never expose the checked value in logs, diagnostics, source control, or test output.
 
 ## Integration and publication
 

@@ -14,4 +14,11 @@ This directory is the authoritative source for reusable EosDashboards visual and
 
 For every added asset, record its source, owner, license, version or acquisition date, permitted uses, and optimization notes in this file or an adjacent metadata file. Do not add confidential assets or files without redistribution permission.
 
-No production assets have been supplied yet.
+## Imported assets
+
+- Vazirmatn variable web font, version 33.003, from the official
+  `rastikerdar/vazirmatn` release. Licensed under SIL Open Font License 1.1.
+  SHA-256: `4E3FA217D38FDAFC1FEA4414CEB58CA5E662CF0AB5FA735A8C8C20E8B42CAD92`.
+- EOS logo: user-provided approved SVG, acquired 2026-09-02, SHA-256
+  `4CDAFBE41DF7653BBEC3CC9D201D3DC974306BC2CC2B1A02424E3E03F770FC6F`.
+  Use only for EosDashboards branding; do not recolor or substitute it.

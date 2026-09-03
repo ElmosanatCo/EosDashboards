@@ -808,9 +808,9 @@ npm --prefix frontend run e2e
 
 Expected: zero failed tests, zero analyzer/type/format errors, and no real SMS/network dependency beyond the isolated SQL Server test database.
 
-- [ ] **Step 4: Build and inspect deployment outputs**
+- [ ] **Step 4: Build, inspect, and deploy to the local development IIS targets**
 
-Publish API and frontend into separate temporary/versioned directories, generate an idempotent EF migration script or migration bundle, and inspect outputs for secrets, development files, source maps policy, correct static caching, `web.config`, health endpoints, and independent IIS deployability. Do not deploy to IIS in this task.
+Publish API and frontend into separate temporary/versioned directories, generate an idempotent EF migration script or migration bundle, and inspect outputs for secrets, development files, source maps policy, correct static caching, `web.config`, health endpoints, and independent IIS deployability. After inspection, deploy the two artifacts to the already configured IIS targets on the developer's machine, using separate sites/applications and application pools, connect the API only to the local development database, and run local smoke tests. Do not deploy to company production servers in this task.
 
 - [ ] **Step 5: Perform an explicitly authorized real-development smoke test**
 

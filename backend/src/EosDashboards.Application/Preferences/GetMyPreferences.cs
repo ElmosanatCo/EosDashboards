@@ -1,0 +1,21 @@
+using EosDashboards.Application.Abstractions;
+
+namespace EosDashboards.Application.Preferences;
+
+public sealed class GetMyPreferences(IUserPreferenceRepository preferences)
+{
+    public const string DefaultAppearanceMode = "system";
+    public const string DefaultPalette = "navyTeal";
+
+    public async Task<UserPreferenceDto> HandleAsync(long userId, CancellationToken cancellationToken)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(userId);
+        var preference = await preferences.FindByUserIdAsync(userId, cancellationToken);
+        return preference is null
+            ? new UserPreferenceDto(DefaultAppearanceMode, DefaultPalette, false)
+            : new UserPreferenceDto(
+                preference.AppearanceMode,
+                preference.Palette,
+                preference.SidebarCollapsed);
+    }
+}

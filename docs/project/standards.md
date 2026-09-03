@@ -13,7 +13,7 @@ This is the canonical implementation standard for EosDashboards. Feature specifi
 - Maintain analysis, requirements, design, architecture, operations, and decision documentation with the code.
 - Keep concise technical sources of truth in plain English and formal printable documents in Persian.
 - Update affected documents whenever a durable requirement, decision, rule, state, or next step changes.
-- Do not store raw chat transcripts, secrets, credentials, personal data, or production connection details.
+- Do not store raw chat transcripts, personal data, or production connection details. Decision 0006 permits local development SQL credentials, SMS endpoint settings, and API security keys in the tracked API development configuration of this private repository; documentation and tool output must still omit their values.
 - Use decision records for consequential choices and retain rationale, status, and supersession history.
 - Before every local merge or push, update and verify `AGENTS.md` and the affected canonical documents.
 - Every successful local merge must be verified and immediately pushed to the destination branch. A failed push means integration is incomplete.
@@ -82,24 +82,27 @@ This is the canonical implementation standard for EosDashboards. Feature specifi
 - Enforce authorization on the server using roles and policies, least privilege, and deny-by-default behavior.
 - Never rely on hidden UI elements as authorization.
 - Rate-limit sign-in and other sensitive endpoints.
-- Keep secrets outside source control and protect them per environment.
+- Keep production secrets outside source control and protect them per environment. By explicit user approval, the private repository may track local development SQL credentials, SMS endpoint settings, and API security keys in the API development configuration; never expose those values through logs, errors, documentation, or test output.
 - Audit authentication, permission, administration, and sensitive export events without recording credentials, tokens, or sensitive payloads.
 - Address material dependency or security findings before merge, or record an explicitly approved exception.
 
-## 8. Organizational authentication
+## 8. Authentication
 
-- Phase 1 is intranet-only.
-- First visit and post-logout states show one button: organizational sign-in.
+- Phase 1 uses a pre-provisioned local username and password followed by mandatory SMS OTP.
+- First visit and post-logout states show the local sign-in form.
 - A valid application session signs the user in automatically without showing the sign-in page.
-- Windows/AD may recognize the internal organizational identity; application roles and policies remain authoritative for application access.
-- Logout revokes the application session even if the browser still has a Windows identity.
-- Every new phase-1 application session requires SMS OTP after organizational identity recognition; no local password is stored.
+- Application roles and policies remain authoritative for application access.
+- Logout revokes the application session.
+- Every new phase-1 application session requires SMS OTP after successful password verification.
+- Passwords are stored only as standard salted hashes. They are 8 to 128 characters long and have no character-class composition rule. Plaintext passwords never enter logs, audit records, error responses, source control, or tracked settings.
+- Signed-in password change requires the current password. Password recovery requires a purpose-isolated SMS OTP and never creates an authenticated session. Password change or reset revokes all active sessions for that user.
+- User and password administration UI are deferred. The controlled deployment tool is the sole account/password-management mechanism for this slice.
 - OTPs are six digits, valid for five minutes, limited to five verification attempts, and subject to a 60-second resend cooldown and endpoint rate limits.
 - Store OTPs only as keyed hashes and mobile numbers in protected encrypted form; mask mobile numbers in UI and logs.
 - An eight-hour application session uses ten-minute access tokens and a revocable refresh credential. Logout or expiry requires a new OTP.
-- Any LDAP interaction is server-side, uses TLS, validates certificates, and follows current directory hardening requirements.
+- Any future LDAP interaction is server-side, uses TLS, validates certificates, and follows current directory hardening requirements.
 - Never expose AD or LDAP directly to a browser or the internet.
-- External access, the precise AD/LDAP relationship, available Entra ID/AD FS services, and any future stronger-factor design remain deferred pending IT discovery.
+- Windows/AD, LDAP, Entra ID, AD FS, and any future stronger-factor design remain deferred pending IT discovery.
 - SMS OTP must remain replaceable behind an Application port and Infrastructure adapter; it is not treated as the sole permanent high-assurance option.
 
 ## 9. UI, RTL, and design system
@@ -138,6 +141,13 @@ resources/
 - Optimize fonts and images before use and avoid uncontrolled duplicate copies.
 - Never commit confidential or redistribution-restricted assets.
 
+## 10.1 Unicode data integrity
+
+- Treat Persian and every other non-ASCII value as Unicode end-to-end.
+- At every cross-process, file, database, and external-service text boundary, explicitly select UTF-8 or the destination's documented Unicode encoding. Do not rely on Windows console code pages or process defaults.
+- Before a deployment or provisioning tool writes user-supplied text, verify text-boundary integrity with a synthetic Unicode probe or non-sensitive validation result. Do not reveal the supplied value in logs, diagnostics, source control, or test output.
+- Use Unicode SQL Server data types (`nvarchar`/`nchar`) for application text that can contain Persian or other non-ASCII characters.
+
 ## 11. Localization, time, and accessibility
 
 - Store instants in a normalized universal representation and convert only at boundaries.
@@ -171,6 +181,11 @@ resources/
 
 ## 14. Testing and quality gates
 
+- Keep development and verification cost-conscious. Choose the smallest test scope that provides credible evidence for the changed behavior and its material risks.
+- During implementation, run focused tests for the affected component or flow. Avoid repeatedly running full backend, frontend, integration, browser, or multi-environment suites.
+- Run broader suites only at meaningful checkpoints: completion of an integrated task, pre-merge/publication, or when a cross-cutting change creates a concrete regression risk.
+- Test essential behavior, boundaries, security controls, and regressions. Do not add redundant tests merely to increase test count or coverage.
+- Use one primary implementation/review path by default. Additional agents or repeated independent review loops require explicit user approval or a documented exceptional risk.
 - Unit-test Domain and Application behavior.
 - Integration-test API, Infrastructure, authentication/authorization boundaries, and database behavior.
 - Component-test forms and reusable UI behavior.
@@ -220,6 +235,7 @@ resources/
 - Expose appropriately protected liveness and readiness endpoints.
 - Retain the previous deployable artifact and a documented application rollback procedure.
 - Record deployment version, operator/process, result, migration, smoke-test outcome, and rollback if used.
+- Treat correct preservation of non-ASCII provisioned profile text as a deployment smoke-test requirement whenever provisioning input is changed.
 
 ## 18. Backup and recovery
 
