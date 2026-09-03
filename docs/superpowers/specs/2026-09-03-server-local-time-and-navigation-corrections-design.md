@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-03
 
-**Status:** Approved in conversation; awaiting written-spec review
+**Status:** Approved in conversation; implementation planned
 
 ## Goal
 
