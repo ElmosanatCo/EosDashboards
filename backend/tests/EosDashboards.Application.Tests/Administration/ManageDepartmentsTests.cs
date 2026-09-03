@@ -66,7 +66,9 @@ public sealed class ManageDepartmentsTests
             CancellationToken.None);
 
         Assert.Equal(DepartmentOperationStatus.Succeeded, result.Status);
-        Assert.Equal("DepartmentCreated", Assert.Single(context.Audit.Records).EventCode);
+        var audit = Assert.Single(context.Audit.Records);
+        Assert.Equal("DepartmentCreated", audit.EventCode);
+        Assert.Null(audit.SubjectUserId);
     }
 
     private sealed class ManageDepartmentsContext

@@ -6,6 +6,7 @@ namespace EosDashboards.Infrastructure.Persistence.Repositories;
 public sealed class AdministrationLookupReader(EosDashboardDbContext context) : IAdministrationLookupReader
 {
     private IQueryable<AdministrationUserListItem> Users => context.Users.AsNoTracking()
+            .OrderBy(user => user.LastName).ThenBy(user => user.FirstName).ThenBy(user => user.Id)
             .Select(user => new AdministrationUserListItem(user.Id, user.OrganizationalId, user.AccountName,
                 user.FirstName, user.LastName, user.Username, user.MaskedMobileNumber, user.DepartmentId,
                 context.Departments.Where(department => department.Id == user.DepartmentId).Select(department => department.Name).Single(),
@@ -14,8 +15,7 @@ public sealed class AdministrationLookupReader(EosDashboardDbContext context) : 
     public async Task<PagedResult<AdministrationUserListItem>> GetUsersAsync(int pageNumber, int pageSize, CancellationToken cancellationToken)
     {
         var totalCount = await Users.LongCountAsync(cancellationToken);
-        var items = await Users.OrderBy(user => user.LastName).ThenBy(user => user.FirstName).ThenBy(user => user.Id)
-            .Skip((pageNumber - 1) * pageSize).Take(pageSize).ToArrayAsync(cancellationToken);
+        var items = await Users.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToArrayAsync(cancellationToken);
         return new PagedResult<AdministrationUserListItem>(items, pageNumber, pageSize, totalCount);
     }
 
