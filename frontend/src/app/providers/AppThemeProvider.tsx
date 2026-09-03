@@ -14,7 +14,7 @@ import {
 } from "react";
 import type { PropsWithChildren } from "react";
 import { createAppTheme } from "../../theme/createAppTheme";
-import { defaultPaletteId } from "../../theme/palettes";
+import { defaultPaletteId, normalizePaletteId } from "../../theme/palettes";
 import type { PaletteId } from "../../theme/palettes";
 
 export type AppearanceMode = "light" | "dark" | "system";
@@ -43,22 +43,13 @@ function readStoredMode(...storageKeys: string[]): AppearanceMode {
       return value;
     }
   }
-  return "system";
+  return "dark";
 }
 
 function readStoredPalette(...storageKeys: string[]): PaletteId {
   for (const storageKey of storageKeys) {
     const value = localStorage.getItem(storageKey);
-    if (
-      value === "forestGreen" ||
-      value === "navyTeal" ||
-      value === "turquoise" ||
-      value === "plum" ||
-      value === "amber" ||
-      value === "burgundy"
-    ) {
-      return value;
-    }
+    if (value) return normalizePaletteId(value);
   }
   return defaultPaletteId;
 }

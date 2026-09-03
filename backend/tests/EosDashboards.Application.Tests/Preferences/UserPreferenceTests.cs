@@ -15,14 +15,14 @@ public sealed class UserPreferenceTests
         var update = new UpdateMyPreferences(
             new Clock(), new Correlation(), repository, audit, new UnitOfWork());
 
-        Assert.Equal(new UserPreferenceDto("system", "amber", false),
+        Assert.Equal(new UserPreferenceDto("dark", "teal", false),
             await read.HandleAsync(7, CancellationToken.None));
         var saved = await update.HandleAsync(
             7,
-            new UpdateMyPreferencesCommand("dark", "navyTeal", true),
+            new UpdateMyPreferencesCommand("dark", "indigo", true),
             CancellationToken.None);
 
-        Assert.Equal(new UserPreferenceDto("dark", "navyTeal", true), saved);
+        Assert.Equal(new UserPreferenceDto("dark", "indigo", true), saved);
         Assert.Equal(7, Assert.Single(repository.Items).UserId);
         Assert.Equal("UserPreferenceChanged", Assert.Single(audit.Records).EventCode);
     }
@@ -36,13 +36,13 @@ public sealed class UserPreferenceTests
 
         await Assert.ThrowsAsync<ArgumentException>(() => useCase.HandleAsync(
             7,
-            new UpdateMyPreferencesCommand("automatic", "navyTeal", false),
+            new UpdateMyPreferencesCommand("automatic", "indigo", false),
             CancellationToken.None));
         Assert.Empty(repository.Items);
     }
 
     [Fact]
-    public async Task Update_accepts_the_forest_green_palette()
+    public async Task Update_accepts_the_emerald_palette()
     {
         var repository = new PreferenceRepository();
         var useCase = new UpdateMyPreferences(
@@ -50,10 +50,10 @@ public sealed class UserPreferenceTests
 
         var saved = await useCase.HandleAsync(
             7,
-            new UpdateMyPreferencesCommand("dark", "forestGreen", false),
+            new UpdateMyPreferencesCommand("dark", "emerald", false),
             CancellationToken.None);
 
-        Assert.Equal("forestGreen", saved.Palette);
+        Assert.Equal("emerald", saved.Palette);
     }
 
     private sealed class PreferenceRepository : IUserPreferenceRepository

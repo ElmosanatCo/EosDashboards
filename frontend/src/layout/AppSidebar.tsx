@@ -37,6 +37,7 @@ export function AppSidebar({
         flexShrink: temporary ? undefined : 0,
         "& .MuiDrawer-paper": {
           width: { xs: "min(280px, 86vw)", md: sidebarWidth },
+          border: "none",
           top: temporary ? 0 : 64,
           bottom: temporary ? 0 : statusBarHeight,
           boxSizing: "border-box",

@@ -33,8 +33,8 @@ export function AppHeader({ onMenu }: { onMenu: () => void }) {
   const [passwordBusy, setPasswordBusy] = useState(false);
   const [passwordError, setPasswordError] = useState<string>();
   return (
-    <AppBar position="static" component="header" elevation={1}>
-      <Toolbar>
+    <AppBar position="static" component="header" elevation={0}>
+      <Toolbar sx={{ px: { xs: 1, sm: 2 }, gap: 0.5 }}>
         <IconButton
           color="inherit"
           edge="start"
@@ -46,18 +46,20 @@ export function AppHeader({ onMenu }: { onMenu: () => void }) {
         <Stack
           direction="row"
           spacing={1}
-          sx={{ flexGrow: 1, alignItems: "center" }}
+          sx={{ flexGrow: 1, alignItems: "center", minWidth: 0 }}
         >
           <Box
             component="img"
             src={eosLogoUrl}
             alt="EOS"
-            sx={{ width: 38, height: 38 }}
+            sx={{ width: 32, height: 32 }}
             onError={(event) => {
               event.currentTarget.style.display = "none";
             }}
           />
-          <Typography variant="h6">علم و صنعت</Typography>
+          <Typography variant="subtitle1" sx={{ fontWeight: 750 }}>
+            علم و صنعت
+          </Typography>
         </Stack>
         <IconButton
           color="inherit"
@@ -121,10 +123,9 @@ export function AppHeader({ onMenu }: { onMenu: () => void }) {
                       border: "2px solid",
                       borderColor:
                         palette === option.id ? "text.primary" : "transparent",
-                      boxShadow:
-                        palette === option.id
-                          ? "0 0 0 2px rgba(255,255,255,.78)"
-                          : "none",
+                      outline: palette === option.id ? "2px solid" : "none",
+                      outlineColor: "text.primary",
+                      outlineOffset: 2,
                       color: "transparent",
                       "&:hover": { bgcolor: option.swatch, opacity: 0.82 },
                     }}

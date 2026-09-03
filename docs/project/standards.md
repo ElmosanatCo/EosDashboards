@@ -4,7 +4,7 @@
 
 **Approved:** 2026-09-02
 
-**Last updated:** 2026-09-02
+**Last updated:** 2026-09-03
 
 This is the canonical implementation standard for EosDashboards. Feature specifications may add stricter rules but may not silently weaken these rules. Proposed exceptions require explicit approval and an auditable decision record.
 
@@ -109,18 +109,23 @@ This is the canonical implementation standard for EosDashboards. Feature specifi
 ## 9. UI, RTL, and design system
 
 - Use Material UI as the component foundation. Paid MUI X features require explicit approval.
-- Design Persian RTL first while preserving an internationalization foundation for future English LTR.
-- Use one coherent design system for spacing, typography, elevation, shape, color, focus, motion, forms, feedback, and charts.
-- Adopt a balanced corporate visual direction: medium density, professional modern appearance, controlled color, and brief functional motion.
+- Design manager-facing pages as one consistent Persian RTL workforce-operations workspace. The visual direction is calm, technical, authoritative, and suited to serious industrial management work; it is not a generic AI or consumer SaaS dashboard.
+- Use Vazirmatn as the primary font. Use full RTL layout and Persian content, Persian numerals where appropriate, and deliberate LTR formatting for identifiers, technical terms, dates, and numerical data. Preserve an internationalization foundation for future English LTR.
+- Use a compact, desktop-first operational workspace with responsive mobile behavior. Do not use gradients, glassmorphism, floating panels, oversized rounded cards, excessive whitespace, generic hero sections, or consumer-SaaS visual patterns.
+- Use one coherent design system for spacing, typography, elevation, shape, color, focus, motion, forms, feedback, data visualization, and tables.
 - Treat visual quality, order, and harmony as core acceptance criteria. Before implementing a UI change, define its hierarchy, spacing, typography, color, responsive behavior, states, and RTL implications; review the rendered result and refine it until it is professionally cohesive. Do not assemble interfaces from disconnected defaults, rushed layouts, or placeholder visual decisions.
-- Use amber as the default palette, with forest green, navy, turquoise, plum, and burgundy as the other approved selectable palettes.
-- Support light, dark, and system appearance modes independently from selectable color palettes.
+- Support light, dark, and system appearance modes; default manager-facing pages to dark mode. The default dark palette uses page `#0D1113`, primary surface `#13191C`, secondary surface `#182024`, separator `#2A3538`, primary text `#EDF2F0`, muted text `#96A4A6`, and teal accent `#38B8AA`. The light palette uses page `#F2F5F3`, primary surface `#FBFCFA`, secondary surface `#F3F6F4`, raised surface `#E8EFEB`, separator `#D8E0DC`, stronger border `#C3CFCA`, primary text `#17201F`, and muted text `#5C6B69`; it remains precise, technical, and airy rather than decorative or consumer-oriented.
+- Offer teal, indigo, emerald, amber, and rose accent choices. Accent colors affect interaction highlights only; semantic status colors remain fixed: green for approved/healthy, amber for pending or attention, red for rejected/critical, and blue or teal for informational or active states. Maintain accessible contrast in every appearance and palette.
 - Persist appearance per user in the database and cache the last applied appearance and palette locally so the sign-in page renders with the last selected theme without a flash.
-- Keep the top header and bottom status bar fixed. Only central content scrolls.
+- Keep the top header, internal tab bar immediately beneath it, and bottom status bar fixed. Prevent whole-page scrolling; only the workspace between the tab bar and status bar scrolls.
 - Provide a persistent collapsible hamburger side menu and remember its supported user preference.
-- Present opened SPA pages as closable internal workspace tabs. Keep home fixed, focus existing logical tabs, protect dirty pages, synchronize the active route, restore tab descriptors after refresh, and clear them on logout.
+- Present opened SPA pages as closable internal workspace tabs. Keep the first tab, `خانه`, fixed and non-closable. Pages opened from the menu, a table row, an AI insight, a report, or a dashboard action open or activate a workspace tab; reopen an exact page by activating its existing tab. Use concise Persian tab titles, icons, active states, close controls, and an unsaved-change marker when required. Use a compact, quiet inactive state and an amber/gold underline for the active tab. On narrow screens, make the strip horizontally scrollable and provide an accessible overflow menu for open tabs.
 - Render only the active tab's page tree while preserving approved serializable state for inactive tabs.
-- Design explicit loading, empty, error, offline, permission-denied, and success states.
+- Include brand, current role and organizational scope, global search or compact AI command bar, theme control, notifications, and user profile in the header. The status bar shows data synchronization state, last-update time, active organization or department, system health, and the existing required application version and Tehran/Persian-calendar time information.
+- Use flat panels with thin 1px borders, small corner radii, compact spacing, and a thin colored top accent line. Every primary panel has the accent line; active, selected, and hovered panels change it to gold/amber without shadows, glow, or excessive animation. Establish hierarchy through typography, row density, dividers, and tonal contrast. Treat tables, lists, review queues, and structured rows as primary interface elements.
+- Use subtle 150–200 ms transitions only for state changes, panel emphasis, tab activation, navigation, filters, notifications, and theme changes. Design explicit empty, loading, error, success, denied-access, offline, and no-data states. Never rely on color alone: pair status with clear Persian text and, where useful, a compact icon. Provide compact filtering, search, sorting, inline actions, tooltips for unfamiliar icons, confirmation for consequential actions, and undo where relevant.
+- Keep AI visible but restrained; do not make a large chatbot the central visual element. Every AI insight includes a concise title, evidence, reason, confidence level, organizational impact, and actionable next step, with links to its supporting department, report, person, job description, or source data.
+- Use these role-content defaults when the corresponding approved page is designed: System Administrator—company departments, manager accounts, roles, permissions, and system activity; Department Manager—department personnel, job descriptions, Excel upload, submission status, incomplete data, and requested corrections; HR Manager—review and approval inbox, approve/reject/request-edits actions, HR statistics, data quality, skill coverage, and organizational gaps; CEO—read-only strategic dashboard, major changes, critical workforce risks, organization-level trends, reports, and AI-supported decision insights. These defaults do not approve the underlying data, permissions, workflows, metrics, or sources; those remain subject to dashboard discovery and authorization design.
 - Defer the charting library until the first dashboard's visualization requirements are known.
 
 ## 10. Typography and shared resources

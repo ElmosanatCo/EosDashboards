@@ -14,6 +14,7 @@ import type { UserPreference } from "../../features/preferences/preferencesApi";
 import { useAppearance } from "./AppThemeProvider";
 import type { AppearanceMode } from "./AppThemeProvider";
 import { nextAppearanceForToggle } from "../../theme/appearanceToggle";
+import { normalizePaletteId } from "../../theme/palettes";
 import type { PaletteId } from "../../theme/palettes";
 
 type PreferenceContextValue = {
@@ -80,10 +81,14 @@ export function UserPreferenceProvider({
       setSidebarCollapsed(query.data.sidebarCollapsed);
       return;
     }
-    preferenceRef.current = query.data;
-    setMode(query.data.appearanceMode);
-    setPalette(query.data.palette);
-    setSidebarCollapsed(query.data.sidebarCollapsed);
+    const normalized = {
+      ...query.data,
+      palette: normalizePaletteId(query.data.palette),
+    };
+    preferenceRef.current = normalized;
+    setMode(normalized.appearanceMode);
+    setPalette(normalized.palette);
+    setSidebarCollapsed(normalized.sidebarCollapsed);
   }, [
     hasPersistedAppearance,
     mode,

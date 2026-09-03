@@ -37,7 +37,7 @@ function PreferenceProbe() {
 }
 
 describe("UserPreferenceProvider", () => {
-  it("keeps the stored device appearance when signed-in preferences are still default", async () => {
+  it("keeps the stored device appearance and safely migrates its retired palette", async () => {
     localStorage.setItem("eos.appearance.last-used", "dark");
     localStorage.setItem("eos.palette.last-used", "burgundy");
     vi.mocked(preferencesApi.get).mockResolvedValue({
@@ -47,7 +47,7 @@ describe("UserPreferenceProvider", () => {
     });
     vi.mocked(preferencesApi.update).mockResolvedValue({
       appearanceMode: "dark",
-      palette: "burgundy",
+      palette: "teal",
       sidebarCollapsed: false,
     });
     const queryClient = new QueryClient({
@@ -70,7 +70,7 @@ describe("UserPreferenceProvider", () => {
     await waitFor(() =>
       expect(vi.mocked(preferencesApi.update).mock.calls[0]?.[0]).toEqual({
         appearanceMode: "dark",
-        palette: "burgundy",
+        palette: "teal",
         sidebarCollapsed: false,
       }),
     );

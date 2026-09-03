@@ -72,17 +72,16 @@ test("local credential OTP opens the authenticated shell and logout returns to s
   await page.getByRole("button", { name: "ورود و دریافت کد تأیید" }).click();
   await page.getByLabel("کد شش‌رقمی").fill("۱۲۳۴۵۶");
   await page.getByRole("button", { name: "تأیید کد" }).click();
-  await expect(page.getByText("داشبوردها به‌زودی اضافه می‌شوند")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "خوش آمدید" })).toHaveCSS(
-    "text-align",
-    "start",
-  );
+  await expect(page.getByText("داده‌ای برای نمایش وجود ندارد.")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "فضای کاری مدیریت" }),
+  ).toHaveCSS("text-align", "start");
   const mainBounds = await page.locator("main").evaluate((element) => {
     const bounds = element.getBoundingClientRect();
     return { width: bounds.width };
   });
   const homeCardBounds = await page
-    .getByRole("heading", { name: "خوش آمدید" })
+    .getByRole("heading", { name: "فضای کاری مدیریت" })
     .locator("xpath=../..")
     .evaluate((element) => {
       const bounds = element.getBoundingClientRect();
@@ -108,7 +107,7 @@ test("local credential OTP opens the authenticated shell and logout returns to s
   await page.getByRole("button", { name: "تغییر حالت نمایش" }).click();
   await expect(page.locator("body")).toHaveCSS(
     "background-color",
-    "rgb(12, 19, 14)",
+    "rgb(13, 17, 19)",
   );
   await page.waitForTimeout(500);
   await expect(
@@ -140,11 +139,11 @@ test("local credential OTP opens the authenticated shell and logout returns to s
   await page.getByRole("button", { name: "منوی کاربر" }).click();
   await expect(
     page.getByRole("button", { name: /انتخاب رنگ‌بندی/ }),
-  ).toHaveCount(6);
+  ).toHaveCount(5);
   await page.getByRole("button", { name: "انتخاب رنگ‌بندی فیروزه‌ای" }).click();
   await expect(page.locator("body")).toHaveCSS(
     "background-color",
-    "rgb(11, 23, 21)",
+    "rgb(13, 17, 19)",
   );
   await page.getByRole("menuitem", { name: "خروج" }).click();
   await expect(
@@ -169,11 +168,11 @@ test("sign-in respects a saved dark appearance", async ({ page }) => {
 
   await expect(page.locator("main > div").last()).toHaveCSS(
     "background-color",
-    "rgb(11, 23, 21)",
+    "rgb(13, 17, 19)",
   );
   await expect(page.locator("label").first()).toHaveCSS(
     "color",
-    "rgb(53, 169, 155)",
+    "rgb(56, 184, 170)",
   );
   await expect(page.getByAltText("EOS").locator("xpath=..")).toHaveCSS(
     "background-color",
@@ -195,7 +194,7 @@ test("sign-in respects a saved dark appearance", async ({ page }) => {
     name: "ورود و دریافت کد تأیید",
   });
   await signInButton.hover();
-  await expect(signInButton).toHaveCSS("color", "rgb(255, 255, 255)");
+  await expect(signInButton).toHaveCSS("color", "rgb(7, 19, 18)");
 });
 
 test("a strict-mode bootstrap restores a session with one refresh request", async ({
@@ -235,7 +234,7 @@ test("a strict-mode bootstrap restores a session with one refresh request", asyn
 
   await page.goto("/");
 
-  await expect(page.getByText("داشبوردها به‌زودی اضافه می‌شوند")).toBeVisible();
+  await expect(page.getByText("داده‌ای برای نمایش وجود ندارد.")).toBeVisible();
   expect(refreshRequests).toBe(1);
 });
 
