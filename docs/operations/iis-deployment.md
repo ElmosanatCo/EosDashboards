@@ -104,6 +104,24 @@ Record the source commit, artifact release identifier, operator, and smoke-test
 outcome with the release. Do not record credentials, personal data, OAuth
 secrets, tokens, or private endpoints.
 
+### Remote push-protection lesson
+
+On 2026-09-03, GitHub Push Protection correctly blocked the merged local
+release because it detected the approved local server-side Google OAuth
+configuration. The release was pushed only after the repository owner gave
+action-time approval through GitHub for this private-repository exception.
+
+If a source-control protection rule blocks a server-side local setting:
+
+1. Do not mislabel a real credential as a false positive or a test value.
+2. Stop the push and obtain explicit, contemporaneous owner approval for the
+   exact repository and setting category before using a provider bypass.
+3. Keep the setting server-side; never solve the block by moving it into
+   frontend build settings, browser storage, documentation, or logs.
+4. Record the protection event and approval outcome without copying the value.
+   Reassess and rotate the affected credential when repository access or its
+   exposure risk changes.
+
 ## Initial-machine provisioning only
 
 `scripts/Configure-LocalIisFromPrivateData.ps1` remains available only for a
