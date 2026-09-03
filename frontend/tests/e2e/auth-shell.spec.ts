@@ -366,6 +366,34 @@ test("a System Administrator can open the operational dashboard", async ({
           ],
         },
       });
+    } else if (path.endsWith("/administration/users")) {
+      await route.fulfill({
+        json: {
+          items: [
+            {
+              id: 7,
+              personnelCode: "P-7",
+              firstName: "مدیر",
+              lastName: "سامانه",
+              username: "admin",
+              maskedMobile: "09******00",
+              departmentId: 1,
+              departmentName: "نرم افزار",
+              isActive: true,
+              mustChangePassword: false,
+              roleIds: [1],
+              rowVersion: "row",
+            },
+          ],
+          pageNumber: 1,
+          pageSize: 100,
+          totalCount: 1,
+        },
+      });
+    } else if (path.endsWith("/administration/audit-logs")) {
+      await route.fulfill({
+        json: { items: [], pageNumber: 1, pageSize: 50, totalCount: 0 },
+      });
     } else if (path.endsWith("/auth/providers")) {
       await route.fulfill({ json: { google: false } });
     } else {
@@ -408,6 +436,34 @@ test("a System Administrator can open the operational dashboard", async ({
   await page.screenshot({
     path: "test-results/system-administration-dashboard-mobile.png",
   });
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.keyboard.press("Control+k");
+  await page
+    .getByRole("list", { name: "نتیجه‌های جست‌وجوی سراسری" })
+    .getByRole("button", { name: "ممیزی سامانه" })
+    .click();
+  await expect(page.getByRole("combobox", { name: "کد رویداد" })).toBeVisible();
+  await page.getByRole("combobox", { name: "کد رویداد" }).click();
+  await expect(
+    page.getByRole("option", { name: "کاربر ایجاد شد" }),
+  ).toBeVisible();
+  await page.keyboard.press("Escape");
+  await page.getByRole("combobox", { name: "انجام‌دهنده" }).click();
+  await expect(page.getByRole("option", { name: /مدیر سامانه/ })).toBeVisible();
+  await page.keyboard.press("Escape");
+  const auditLayout = await page.locator("table").evaluate((table) => {
+    const main = table.closest("main");
+    const tablePanel = table.closest(".MuiPaper-root");
+    if (!main || !tablePanel) throw new Error("Audit layout is incomplete.");
+    return {
+      mainScrollHeight: main.scrollHeight,
+      mainClientHeight: main.clientHeight,
+      tablePanelOverflowY: getComputedStyle(tablePanel).overflowY,
+    };
+  });
+  expect(auditLayout.mainScrollHeight).toBe(auditLayout.mainClientHeight);
+  expect(auditLayout.tablePanelOverflowY).toBe("auto");
+  await expect(page.getByRole("button", { name: "تازه‌سازی" })).toBeVisible();
 });
 
 test("linked Google sign-in is initiated through the API endpoint", async ({

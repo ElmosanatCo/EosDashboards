@@ -13,12 +13,14 @@ import {
   TableCell,
   TableHead,
   TableRow,
-  TextField,
   Typography,
 } from "@mui/material";
 import { useState } from "react";
 import { administrationApi } from "../features/administration/administrationApi";
-import { eventLabel } from "../features/administration/administrationUi";
+import {
+  eventLabel,
+  eventOptions,
+} from "../features/administration/administrationUi";
 import { formatPersianDateTime } from "../lib/date/persianDateTime";
 import {
   PersianDateTimePicker,
@@ -34,6 +36,11 @@ export function SystemAuditPage() {
   const [subjectUserId, setSubjectUserId] = useState("");
   const [from, setFrom] = useState<Date | null>(null);
   const [to, setTo] = useState<Date | null>(null);
+  const users = useQuery({
+    queryKey: ["administration", "users", "audit-filter"],
+    queryFn: () => administrationApi.users(1, 100),
+    staleTime: 5 * 60 * 1000,
+  });
   const query = new URLSearchParams({ range, pageSize: "50" });
   if (result) query.set("succeeded", result);
   if (eventCode.trim()) query.set("eventCode", eventCode.trim());
@@ -59,7 +66,7 @@ export function SystemAuditPage() {
     enabled: range !== "Custom" || Boolean(from && to),
   });
   return (
-    <Stack spacing={2.5} sx={{ width: "100%" }}>
+    <Stack spacing={2.5} sx={{ width: "100%", height: "100%", minHeight: 0 }}>
       <Box>
         <Typography component="h1" variant="h5" sx={{ fontWeight: 750 }}>
           ممیزی سامانه
@@ -91,28 +98,56 @@ export function SystemAuditPage() {
               <MenuItem value="Custom">بازه سفارشی</MenuItem>
             </Select>
           </FormControl>
-          <TextField
-            size="small"
-            label="کد رویداد"
-            value={eventCode}
-            onChange={(event) => setEventCode(event.target.value)}
-          />
-          <TextField
-            size="small"
-            label="شناسه انجام‌دهنده"
-            value={actorUserId}
-            onChange={(event) =>
-              setActorUserId(event.target.value.replace(/\D/g, ""))
-            }
-          />
-          <TextField
-            size="small"
-            label="شناسه کاربر هدف"
-            value={subjectUserId}
-            onChange={(event) =>
-              setSubjectUserId(event.target.value.replace(/\D/g, ""))
-            }
-          />
+          <FormControl size="small" sx={{ minWidth: 220 }}>
+            <InputLabel id="event-label">کد رویداد</InputLabel>
+            <Select
+              labelId="event-label"
+              label="کد رویداد"
+              value={eventCode}
+              onChange={(event) => setEventCode(event.target.value)}
+            >
+              <MenuItem value="">همه رویدادها</MenuItem>
+              {eventOptions.map((option) => (
+                <MenuItem key={option.code} value={option.code}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl size="small" sx={{ minWidth: 220 }}>
+            <InputLabel id="actor-label">انجام‌دهنده</InputLabel>
+            <Select
+              labelId="actor-label"
+              label="انجام‌دهنده"
+              value={actorUserId}
+              disabled={users.isPending}
+              onChange={(event) => setActorUserId(event.target.value)}
+            >
+              <MenuItem value="">همه انجام‌دهندگان</MenuItem>
+              {users.data?.items.map((user) => (
+                <MenuItem key={user.id} value={String(user.id)}>
+                  {userDisplayName(user)}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl size="small" sx={{ minWidth: 220 }}>
+            <InputLabel id="subject-label">کاربر هدف</InputLabel>
+            <Select
+              labelId="subject-label"
+              label="کاربر هدف"
+              value={subjectUserId}
+              disabled={users.isPending}
+              onChange={(event) => setSubjectUserId(event.target.value)}
+            >
+              <MenuItem value="">همه کاربران هدف</MenuItem>
+              {users.data?.items.map((user) => (
+                <MenuItem key={user.id} value={String(user.id)}>
+                  {userDisplayName(user)}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <FormControl size="small" sx={{ minWidth: 150 }}>
             <InputLabel id="result-label">نتیجه</InputLabel>
             <Select
@@ -155,7 +190,10 @@ export function SystemAuditPage() {
         variant="outlined"
         className="eos-accent-card"
         sx={{
+          flex: 1,
+          minHeight: 0,
           overflowX: "auto",
+          overflowY: "auto",
           borderTop: 3,
           borderTopColor: "primary.main",
         }}
@@ -226,4 +264,12 @@ function deviceLabel(value: string | null) {
       value ?? ""
     ] ?? "ثبت نشده"
   );
+}
+
+function userDisplayName(user: {
+  firstName: string;
+  lastName: string;
+  personnelCode: string;
+}) {
+  return `${user.firstName} ${user.lastName} — ${user.personnelCode}`;
 }
