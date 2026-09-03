@@ -16,9 +16,13 @@ public static class AuthEndpoints
 
         group.MapPost("/sign-in/challenges", StartChallengeAsync)
             .RequireRateLimiting("auth-sensitive");
+        group.MapPost("/sign-in/challenges/{challengeToken}/resend", ResendSignInAsync)
+            .RequireRateLimiting("auth-sensitive");
         group.MapPost("/sign-in/challenges/{challengeToken}/verify", VerifyAsync)
             .RequireRateLimiting("auth-sensitive");
         group.MapPost("/password-reset/challenges", StartPasswordResetAsync)
+            .RequireRateLimiting("auth-sensitive");
+        group.MapPost("/password-reset/challenges/{challengeToken}/resend", ResendPasswordResetAsync)
             .RequireRateLimiting("auth-sensitive");
         group.MapPost("/password-reset/challenges/{challengeToken}/complete", CompletePasswordResetAsync)
             .RequireRateLimiting("auth-sensitive");
@@ -63,6 +67,31 @@ public static class AuthEndpoints
         };
     }
 
+    private static async Task<IResult> ResendSignInAsync(
+        string challengeToken,
+        HttpContext context,
+        StartSignIn startSignIn,
+        CancellationToken cancellationToken)
+    {
+        var result = await startSignIn.ResendAsync(
+            new ResendOtpCommand(challengeToken, context.Connection.RemoteIpAddress?.ToString()),
+            cancellationToken);
+        return result.Status switch
+        {
+            StartSignInStatus.Succeeded => Results.Ok(new ChallengeResponse(
+                result.ChallengeToken!,
+                result.MaskedMobile!,
+                result.ExpiresAtUtc!.Value,
+                result.ResendAvailableAtUtc!.Value)),
+            StartSignInStatus.Cooldown => Results.Json(
+                new { code = "otp_cooldown", retryAtUtc = result.ResendAvailableAtUtc, traceId = context.TraceIdentifier },
+                statusCode: StatusCodes.Status429TooManyRequests),
+            StartSignInStatus.DependencyUnavailable => ApiResults.Problem(
+                context, 503, "sms_unavailable", "The verification service is temporarily unavailable."),
+            _ => ApiResults.Problem(context, 403, "otp_resend_denied", "The verification code is unavailable."),
+        };
+    }
+
     private static async Task<IResult> StartPasswordResetAsync(
         PasswordResetStartRequest request,
         HttpContext context,
@@ -78,7 +107,28 @@ public static class AuthEndpoints
                 result.ChallengeToken,
                 "",
                 result.ExpiresAtUtc,
-                result.ExpiresAtUtc)),
+                result.ResendAvailableAtUtc)),
+            _ => ApiResults.Problem(
+                context, 503, "sms_unavailable", "The verification service is temporarily unavailable."),
+        };
+    }
+
+    private static async Task<IResult> ResendPasswordResetAsync(
+        string challengeToken,
+        HttpContext context,
+        StartPasswordReset startPasswordReset,
+        CancellationToken cancellationToken)
+    {
+        var result = await startPasswordReset.ResendAsync(
+            new ResendOtpCommand(challengeToken, context.Connection.RemoteIpAddress?.ToString()),
+            cancellationToken);
+        return result.Status switch
+        {
+            PasswordResetStartStatus.Succeeded => Results.Ok(new ChallengeResponse(
+                result.ChallengeToken,
+                "",
+                result.ExpiresAtUtc,
+                result.ResendAvailableAtUtc)),
             _ => ApiResults.Problem(
                 context, 503, "sms_unavailable", "The verification service is temporarily unavailable."),
         };

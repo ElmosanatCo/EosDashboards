@@ -1,5 +1,6 @@
 using EosDashboards.Application.Abstractions;
 using EosDashboards.Domain.Entities;
+using EosDashboards.Domain.Enums;
 
 namespace EosDashboards.Application.Auth;
 
@@ -68,6 +69,56 @@ public sealed class StartSignIn(
         }
 
         latestChallenge?.Supersede();
+        return await IssueChallengeAsync(user, now, traceId, "OtpSent", "OtpSendFailed", cancellationToken);
+    }
+
+    public async Task<StartSignInResult> ResendAsync(
+        ResendOtpCommand command,
+        CancellationToken cancellationToken)
+    {
+        var now = clock.UtcNow;
+        var traceId = correlationContext.TraceId;
+        var previous = await otpChallenges.FindByPublicTokenAsync(command.ChallengeToken, cancellationToken);
+        if (previous is null ||
+            previous.Purpose != OtpChallengePurpose.SignIn ||
+            previous.Status != OtpChallengeStatus.Sent ||
+            now >= previous.ExpiresAtUtc)
+        {
+            return await ResendDeniedAsync(null, traceId, cancellationToken);
+        }
+
+        if (now < previous.ResendAvailableAtUtc)
+        {
+            await auditWriter.WriteAsync(
+                new AuditRecord(null, previous.UserId, "OtpResendCooldown", false, traceId, null),
+                cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            return new StartSignInResult(
+                StartSignInStatus.Cooldown,
+                null,
+                null,
+                null,
+                previous.ResendAvailableAtUtc);
+        }
+
+        var user = await users.GetByIdAsync(previous.UserId, cancellationToken);
+        if (user is null || !user.IsActive || user.PasswordHash is null)
+        {
+            return await ResendDeniedAsync(previous.UserId, traceId, cancellationToken);
+        }
+
+        previous.Supersede();
+        return await IssueChallengeAsync(user, now, traceId, "OtpResent", "OtpResendSendFailed", cancellationToken);
+    }
+
+    private async Task<StartSignInResult> IssueChallengeAsync(
+        User user,
+        DateTimeOffset now,
+        string traceId,
+        string sentAuditEvent,
+        string failedAuditEvent,
+        CancellationToken cancellationToken)
+    {
         var code = tokenGenerator.CreateSixDigitCode();
         var publicToken = tokenGenerator.CreateOpaqueToken(32);
         var challenge = OtpChallenge.Create(
@@ -85,7 +136,7 @@ public sealed class StartSignIn(
             sendResult = await smsSender.SendAsync(
                 new SmsMessage(
                     mobileProtector.Unprotect(user.ProtectedMobileNumber),
-                    $"EosDashboards verification code: {code}"),
+                    $"داشبورد علم و صنعت، کد تأیید شما: {code}"),
                 cancellationToken);
         }
         catch (TimeoutException)
@@ -100,7 +151,7 @@ public sealed class StartSignIn(
                 new AuditRecord(
                     null,
                     user.Id,
-                    "OtpSendFailed",
+                    failedAuditEvent,
                     false,
                     traceId,
                     SafeErrorMetadata(sendResult.SafeErrorCode)),
@@ -111,7 +162,7 @@ public sealed class StartSignIn(
 
         challenge.MarkSent();
         await auditWriter.WriteAsync(
-            new AuditRecord(null, user.Id, "OtpSent", true, traceId, null),
+            new AuditRecord(null, user.Id, sentAuditEvent, true, traceId, null),
             cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -130,6 +181,18 @@ public sealed class StartSignIn(
     {
         await auditWriter.WriteAsync(
             new AuditRecord(null, user?.Id, "SignInDenied", false, traceId, null),
+            cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        return new StartSignInResult(StartSignInStatus.Denied, null, null, null, null);
+    }
+
+    private async Task<StartSignInResult> ResendDeniedAsync(
+        long? userId,
+        string traceId,
+        CancellationToken cancellationToken)
+    {
+        await auditWriter.WriteAsync(
+            new AuditRecord(null, userId, "OtpResendRejected", false, traceId, null),
             cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return new StartSignInResult(StartSignInStatus.Denied, null, null, null, null);

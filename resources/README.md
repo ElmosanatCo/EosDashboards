@@ -21,4 +21,4 @@ For every added asset, record its source, owner, license, version or acquisition
   SHA-256: `4E3FA217D38FDAFC1FEA4414CEB58CA5E662CF0AB5FA735A8C8C20E8B42CAD92`.
 - EOS logo: user-provided approved SVG, acquired 2026-09-02, SHA-256
   `4CDAFBE41DF7653BBEC3CC9D201D3DC974306BC2CC2B1A02424E3E03F770FC6F`.
-  Use only for EosDashboards branding; do not recolor or substitute it.
+  Use only for EosDashboards branding, including the browser favicon; do not recolor or substitute it.

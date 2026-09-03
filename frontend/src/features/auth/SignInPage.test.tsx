@@ -17,6 +17,7 @@ describe("SignInPage", () => {
         onVerifyOtp={vi.fn(async () => undefined)}
         onStartPasswordReset={vi.fn(async () => undefined)}
         onCompletePasswordReset={vi.fn(async () => undefined)}
+        onResendOtp={vi.fn(async () => undefined)}
         onBack={vi.fn()}
       />,
     );
@@ -41,6 +42,7 @@ describe("SignInPage", () => {
         onVerifyOtp={vi.fn(async () => undefined)}
         onStartPasswordReset={vi.fn(async () => undefined)}
         onCompletePasswordReset={vi.fn(async () => undefined)}
+        onResendOtp={vi.fn(async () => undefined)}
         onBack={vi.fn()}
       />,
     );

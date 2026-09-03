@@ -14,13 +14,18 @@ import {
 } from "react";
 import type { PropsWithChildren } from "react";
 import { createAppTheme } from "../../theme/createAppTheme";
+import { defaultPaletteId } from "../../theme/palettes";
+import type { PaletteId } from "../../theme/palettes";
 
 export type AppearanceMode = "light" | "dark" | "system";
 
 type AppearanceContextValue = {
   mode: AppearanceMode;
   resolvedMode: "light" | "dark";
+  palette: PaletteId;
+  hasPersistedAppearance: boolean;
   setMode: (mode: AppearanceMode) => void;
+  setPalette: (palette: PaletteId) => void;
 };
 
 const cache = createCache({
@@ -28,12 +33,40 @@ const cache = createCache({
   stylisPlugins: [prefixer, rtlPlugin],
 });
 const AppearanceContext = createContext<AppearanceContextValue | null>(null);
+const lastUsedModeStorageKey = "eos.appearance.last-used";
+const lastUsedPaletteStorageKey = "eos.palette.last-used";
 
-function readStoredMode(storageKey: string): AppearanceMode {
-  const value = localStorage.getItem(storageKey);
-  return value === "light" || value === "dark" || value === "system"
-    ? value
-    : "system";
+function readStoredMode(...storageKeys: string[]): AppearanceMode {
+  for (const storageKey of storageKeys) {
+    const value = localStorage.getItem(storageKey);
+    if (value === "light" || value === "dark" || value === "system") {
+      return value;
+    }
+  }
+  return "system";
+}
+
+function readStoredPalette(...storageKeys: string[]): PaletteId {
+  for (const storageKey of storageKeys) {
+    const value = localStorage.getItem(storageKey);
+    if (
+      value === "forestGreen" ||
+      value === "navyTeal" ||
+      value === "turquoise" ||
+      value === "plum" ||
+      value === "amber" ||
+      value === "burgundy"
+    ) {
+      return value;
+    }
+  }
+  return defaultPaletteId;
+}
+
+function hasStoredAppearance(...storageKeys: string[]) {
+  return storageKeys.some(
+    (storageKey) => localStorage.getItem(storageKey) !== null,
+  );
 }
 
 export function AppThemeProvider({
@@ -43,25 +76,66 @@ export function AppThemeProvider({
   const storageKey = userId
     ? `eos.appearance.user.${userId}`
     : "eos.appearance.anonymous";
+  const paletteStorageKey = userId
+    ? `eos.palette.user.${userId}`
+    : "eos.palette.anonymous";
+  const modeStorageKeys = userId
+    ? [storageKey, lastUsedModeStorageKey]
+    : [lastUsedModeStorageKey, storageKey];
+  const paletteStorageKeys = userId
+    ? [paletteStorageKey, lastUsedPaletteStorageKey]
+    : [lastUsedPaletteStorageKey, paletteStorageKey];
   const prefersDark = useMediaQuery("(prefers-color-scheme: dark)");
   const [mode, setModeState] = useState<AppearanceMode>(() =>
-    readStoredMode(storageKey),
+    readStoredMode(...modeStorageKeys),
+  );
+  const [palette, setPaletteState] = useState<PaletteId>(() =>
+    readStoredPalette(...paletteStorageKeys),
+  );
+  const [hasPersistedAppearance] = useState(() =>
+    hasStoredAppearance(...modeStorageKeys, ...paletteStorageKeys),
   );
 
-  useEffect(() => setModeState(readStoredMode(storageKey)), [storageKey]);
+  useEffect(
+    () => setModeState(readStoredMode(...modeStorageKeys)),
+    [storageKey, userId],
+  );
+  useEffect(
+    () => setPaletteState(readStoredPalette(...paletteStorageKeys)),
+    [paletteStorageKey, userId],
+  );
   const setMode = useCallback(
     (nextMode: AppearanceMode) => {
       localStorage.setItem(storageKey, nextMode);
+      localStorage.setItem(lastUsedModeStorageKey, nextMode);
       setModeState(nextMode);
     },
     [storageKey],
   );
+  const setPalette = useCallback(
+    (nextPalette: PaletteId) => {
+      localStorage.setItem(paletteStorageKey, nextPalette);
+      localStorage.setItem(lastUsedPaletteStorageKey, nextPalette);
+      setPaletteState(nextPalette);
+    },
+    [paletteStorageKey],
+  );
   const resolvedMode =
     mode === "system" ? (prefersDark ? "dark" : "light") : mode;
-  const theme = useMemo(() => createAppTheme(resolvedMode), [resolvedMode]);
+  const theme = useMemo(
+    () => createAppTheme(resolvedMode, palette),
+    [palette, resolvedMode],
+  );
   const value = useMemo(
-    () => ({ mode, resolvedMode, setMode }),
-    [mode, resolvedMode, setMode],
+    () => ({
+      mode,
+      resolvedMode,
+      palette,
+      hasPersistedAppearance,
+      setMode,
+      setPalette,
+    }),
+    [hasPersistedAppearance, mode, palette, resolvedMode, setMode, setPalette],
   );
 
   useEffect(() => {

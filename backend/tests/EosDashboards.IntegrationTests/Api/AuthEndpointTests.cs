@@ -55,7 +55,9 @@ public sealed class AuthEndpointTests : IClassFixture<AuthEndpointTests.ApiFacto
         var document = await _client.GetStringAsync("/openapi/v1.json");
 
         Assert.Contains("/api/v1/auth/sign-in/challenges", document, StringComparison.Ordinal);
+        Assert.Contains("/api/v1/auth/sign-in/challenges/{challengeToken}/resend", document, StringComparison.Ordinal);
         Assert.Contains("/api/v1/auth/password-reset/challenges", document, StringComparison.Ordinal);
+        Assert.Contains("/api/v1/auth/password-reset/challenges/{challengeToken}/resend", document, StringComparison.Ordinal);
         Assert.DoesNotContain("/api/v1/auth/challenges\"", document, StringComparison.Ordinal);
         Assert.Contains("/api/v1/auth/refresh", document, StringComparison.Ordinal);
         Assert.Contains("/api/v1/users/me/preferences", document, StringComparison.Ordinal);

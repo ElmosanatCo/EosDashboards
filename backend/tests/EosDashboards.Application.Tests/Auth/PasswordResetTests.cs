@@ -61,7 +61,29 @@ public sealed class PasswordResetTests
 
         Assert.Equal(PasswordResetStartStatus.Succeeded, result.Status);
         Assert.Equal(OtpChallengePurpose.PasswordReset, Assert.Single(context.Challenges.Challenges, item => item.PublicToken == "reset-challenge-token").Purpose);
+        var message = Assert.Single(context.Sms.Messages);
+        Assert.Equal(
+            $"داشبورد علم و صنعت، کد بازیابی رمز عبور شما: {context.Tokens.SixDigitCode}",
+            message.Text);
+    }
+
+    [Fact]
+    public async Task Password_reset_resend_after_sixty_seconds_replaces_only_its_own_challenge()
+    {
+        // Break caught: reusing a recovery OTP or making the visitor re-enter a password to request another one.
+        var context = new PasswordResetContext();
+        var start = context.CreateStart();
+
+        var result = await start.ResendAsync(
+            new ResendOtpCommand(context.Challenge.PublicToken, "network"),
+            CancellationToken.None);
+
+        Assert.Equal(PasswordResetStartStatus.Succeeded, result.Status);
+        Assert.Equal("reset-challenge-token", result.ChallengeToken);
+        Assert.Equal(OtpChallengeStatus.Superseded, context.Challenge.Status);
+        Assert.Equal(2, context.Challenges.Challenges.Count);
         Assert.Single(context.Sms.Messages);
+        AuditRecordAssertions.AssertSingle(context.Audit, null, 11, "PasswordResetOtpResent", true);
     }
 
     private sealed class PasswordResetContext
@@ -135,5 +157,17 @@ public sealed class PasswordResetTests
         public UserSession Session { get; }
 
         public CompletePasswordReset Complete { get; }
+
+        public StartPasswordReset CreateStart() => new(
+            Clock,
+            Correlation,
+            Users,
+            Challenges,
+            Sms,
+            Secrets,
+            Tokens,
+            Mobile,
+            Audit,
+            UnitOfWork);
     }
 }

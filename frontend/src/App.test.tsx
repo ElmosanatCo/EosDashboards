@@ -4,7 +4,7 @@ import App from "./App";
 import { AppProviders } from "./app/providers/AppProviders";
 
 describe("application", () => {
-  it("starts by checking the existing session", () => {
+  it("shows a branded loading state while checking the existing session", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(
@@ -20,6 +20,9 @@ describe("application", () => {
         <App />
       </AppProviders>,
     );
-    expect(screen.getByRole("status")).toHaveTextContent("در حال بررسی نشست");
+    expect(
+      screen.getByRole("progressbar", { name: "در حال آماده‌سازی سامانه" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("داشبوردهای علم و صنعت")).toBeInTheDocument();
   });
 });

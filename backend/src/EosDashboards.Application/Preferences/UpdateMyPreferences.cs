@@ -26,7 +26,7 @@ public sealed class UpdateMyPreferences(
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(userId);
         ArgumentNullException.ThrowIfNull(command);
         if (!AppearanceModes.Contains(command.AppearanceMode) ||
-            command.Palette != GetMyPreferences.DefaultPalette)
+            !UserPreferencePalettes.All.Contains(command.Palette))
         {
             throw new ArgumentException("The preference value is not supported.", nameof(command));
         }

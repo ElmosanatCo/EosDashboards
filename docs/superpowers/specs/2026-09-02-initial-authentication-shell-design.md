@@ -1,4 +1,4 @@
-# Initial Authentication and Tabbed Application Shell Design
+# Initial Local-Credential Authentication and Tabbed Application Shell Design
 
 **Date:** 2026-09-02
 
@@ -6,7 +6,7 @@
 
 ## 1. Goal
 
-Create the first production-shaped vertical slice of EosDashboards: separately maintainable backend and frontend foundations, controlled initial administrator provisioning, Windows/AD organizational sign-in, mandatory SMS OTP, secure application sessions, and a polished Persian RTL tabbed shell ready for future dashboards.
+Create the first production-shaped vertical slice of EosDashboards: separately maintainable backend and frontend foundations, controlled initial administrator provisioning, local username/password sign-in, mandatory SMS OTP, secure application sessions, and a polished Persian RTL tabbed shell ready for future dashboards.
 
 No real dashboard, user-management screen, external/internet authentication, or charting library is included.
 
@@ -61,11 +61,11 @@ Owns user, role, OTP, session, and audit business state and invariants without f
 
 ### Application
 
-Owns sign-in use cases and ports for user/session persistence, organizational identity, SMS delivery, time, randomness, cryptographic protection, and audit recording. It determines outcomes but not HTTP/SOAP/database details.
+Owns credential sign-in use cases and ports for user/session persistence, password hashing, SMS delivery, time, randomness, cryptographic protection, and audit recording. It determines outcomes but not HTTP/SOAP/database details.
 
 ### Infrastructure
 
-Implements EF Core persistence, SQL Server access, Windows identity adaptation, mobile encryption, keyed hashing, protected key use, and the SOAP SMS client. It is the only database/external-system access layer.
+Implements EF Core persistence, SQL Server access, password hashing, mobile encryption, keyed hashing, protected key use, and the SOAP SMS client. It is the only database/external-system access layer.
 
 ### API
 
@@ -77,8 +77,8 @@ All principal keys are auto-incrementing SQL Server `bigint` values named `Id`.
 
 ### Users
 
-- stable organizational identifier, unique;
-- current domain/account name and display data;
+- unique normalized username;
+- salted password hash and display data;
 - first and last name;
 - encrypted normalized mobile number and masked display value;
 - active flag and audit timestamps.
@@ -123,7 +123,7 @@ Immutable application records for sign-in, OTP send/verify, refresh, logout, pro
 
 ## 7. Initial administrator provisioning
 
-`EosDashboards.AdminProvisioner` is a deployment-only console tool. It receives the connection, organizational identity, personal attributes, and mobile number through secure runtime input. It:
+`EosDashboards.AdminProvisioner` is a deployment-only console tool. It receives the connection, username, password, personal attributes, and mobile number through secure runtime input. It:
 
 1. validates and normalizes input;
 2. verifies the target schema;
@@ -137,9 +137,9 @@ The tool does not run automatically with the API. No real administrator data app
 
 ## 8. Sign-in and session flow
 
-1. The unauthenticated SPA shows one organizational sign-in button.
-2. The browser calls the challenge endpoint with credentials enabled; IIS/ASP.NET Core supplies Windows identity.
-3. The API maps the stable organizational identifier to one active pre-provisioned user. Unknown or inactive users receive a generic denial and an audit record.
+1. The unauthenticated SPA displays username and password fields.
+2. The browser submits the credentials over HTTPS to the sign-in challenge endpoint.
+3. The API performs a generic, rate-limited verification against one active pre-provisioned user. Unknown or inactive users receive a generic denial and an audit record.
 4. Application generates a cryptographically secure six-digit OTP, stores only its keyed hash, and requests SMS delivery through the application port.
 5. Successful delivery returns an opaque challenge token plus masked mobile, expiry, and resend timing. No session exists yet.
 6. Verification accepts the challenge token and code. Five failed attempts, five-minute expiry, consumption, supersession, or invalid status terminates the challenge.
@@ -152,8 +152,12 @@ OTP resend has a 60-second cooldown, invalidates the prior usable challenge, and
 ## 9. API surface
 
 ```text
-POST /api/v1/auth/challenges
-POST /api/v1/auth/challenges/{token}/verify
+POST /api/v1/auth/sign-in/challenges
+POST /api/v1/auth/sign-in/challenges/{token}/resend
+POST /api/v1/auth/sign-in/challenges/{token}/verify
+POST /api/v1/auth/password-reset/challenges
+POST /api/v1/auth/password-reset/challenges/{token}/resend
+POST /api/v1/auth/password-reset/challenges/{token}/complete
 POST /api/v1/auth/refresh
 POST /api/v1/auth/logout
 GET  /api/v1/auth/me
@@ -165,7 +169,7 @@ GET  /health/live
 GET  /health/ready
 ```
 
-Only challenge creation consumes the IIS-established Windows identity. Normal protected API calls require the application JWT. Cookie-changing endpoints apply exact-origin CORS, secure cookie policy, and anti-forgery/origin defenses. Errors use a consistent safe problem-details response with trace identifier.
+The credential challenge endpoint uses anonymous IIS transport access and rate-limited credential verification. Normal protected API calls require the application JWT. Cookie-changing endpoints apply exact-origin CORS, secure cookie policy, and anti-forgery/origin defenses. Errors use a consistent safe problem-details response with trace identifier.
 
 ## 10. SMS integration
 
@@ -177,9 +181,9 @@ The adapter validates response shape, maps failure and timeout to explicit Appli
 
 ### Sign-in
 
-The centered RTL sign-in card displays the approved EOS logo, company name `علم و صنعت`, application title, appearance control, and one organizational sign-in button. It has explicit loading and traceable safe error states.
+The composed RTL sign-in view displays the approved EOS logo, company name `علم و صنعت`, application title, appearance control, username and password fields, a password-visibility control, a prominent sign-in action, and a password-recovery path. It has explicit loading and traceable safe error states.
 
-After identity recognition, the OTP view displays the user's name, masked mobile, six accessible digit inputs, five-minute countdown, resend cooldown, cancel/back action, and error/status feedback that does not rely on color alone.
+After identity recognition, the OTP view displays the user's name, masked mobile, six accessible digit inputs, a five-minute validity notice, a separate 60-second resend cooldown and action, cancel/back action, and error/status feedback that does not rely on color alone.
 
 ### Authenticated shell
 
@@ -227,7 +231,7 @@ Development values use .NET user secrets or ignored local environment configurat
 - Application tests cover known/unknown/inactive users, SMS success/failure/timeout, resend rules, verification, refresh rotation, logout, and full-access policy.
 - Integration tests cover EF mappings/migrations, API contracts, errors, cookies, CORS/origin protection, authorization, and health endpoints using isolated test data.
 - Frontend component tests cover sign-in, OTP, countdown/resend, theme/palette, menu, footer, tab behavior, dirty-close confirmation, and logout clearing.
-- End-to-end tests use fake Windows identity and fake SMS to cover administrator sign-in through the home shell and key denial paths.
+- End-to-end tests use fake credential and SMS services to cover administrator sign-in through the home shell and key denial paths.
 - Automated tests never contact the real SMS service or use real personal data.
 
 ## 15. Acceptance criteria
@@ -236,7 +240,7 @@ Development values use .NET user secrets or ignored local environment configurat
 - `frontend/` installs/builds/tests independently in VS Code with locked dependencies.
 - EF migrations create the approved schema in an isolated target database.
 - The provisioning tool idempotently creates the initial full-access administrator without repository-stored personal data.
-- A known Windows/AD user must complete SMS OTP; an unknown, inactive, invalid-code, expired-code, exhausted, or revoked case is denied safely.
+- A known username/password user must complete SMS OTP; an unknown, inactive, invalid-code, expired-code, exhausted, or revoked case is denied safely.
 - Successful verification creates the approved token/session behavior; logout and eight-hour expiry require a new OTP.
 - The branded Persian RTL shell, themes, palette, collapsible menu, internal tabs, version, Persian date, and Tehran time satisfy the approved behavior and accessibility rules.
 - Health, error, log, and audit behavior is verifiable.
@@ -247,6 +251,6 @@ Development values use .NET user secrets or ignored local environment configurat
 - Real dashboards, metrics, data ingestion, and charting.
 - User, role, and permission administration UI.
 - Department/CEO authorization assignments beyond the initial full-access administrator.
-- Internet/external authentication and exact LDAP/AD/Entra ID/AD FS topology.
-- Trusted-device OTP bypass or password-based local login.
+- Internet/external authentication and any directory or federation topology.
+- Trusted-device OTP bypass.
 - Production hostnames, certificates, monitoring product, backup schedule, and recovery objectives.

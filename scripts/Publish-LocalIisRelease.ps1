@@ -1,22 +1,33 @@
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory = $true)]
-    [ValidateNotNullOrEmpty()]
-    [string]$PrivateDataFile,
-
     [string]$ApiArtifact,
 
     [string]$UiArtifact,
 
     [string]$ReleaseId = (Get-Date -Format 'yyyyMMdd-HHmmss'),
 
-    [string]$StatusFile = (Join-Path $env:LOCALAPPDATA 'Temp\EosDashboards-local-publish-status.txt'),
-
-    [string]$Utf8PowerShell
+    [string]$StatusFile = (Join-Path $env:LOCALAPPDATA 'Temp\EosDashboards-local-publish-status.txt')
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+$deploymentStage = 'startup'
+
+function Set-DeploymentStatus {
+    param([string]$Status)
+
+    $statusDirectory = Split-Path -Parent $StatusFile
+    if (-not [string]::IsNullOrWhiteSpace($statusDirectory)) {
+        New-Item -ItemType Directory -Path $statusDirectory -Force | Out-Null
+    }
+
+    [IO.File]::WriteAllText($StatusFile, $Status, [Text.Encoding]::UTF8)
+}
+
+trap {
+    Set-DeploymentStatus "$deploymentStage|$($_.Exception.GetType().Name)"
+    exit 1
+}
 
 $scriptRoot = $PSScriptRoot
 if ([string]::IsNullOrWhiteSpace($scriptRoot)) {
@@ -35,14 +46,6 @@ if ([string]::IsNullOrWhiteSpace($UiArtifact)) {
     $UiArtifact = Join-Path $scriptRoot '..\frontend\dist'
 }
 
-if ([string]::IsNullOrWhiteSpace($Utf8PowerShell)) {
-    $Utf8PowerShell = (Get-Command 'pwsh.exe' -ErrorAction Stop).Source
-}
-
-if (-not (Test-Path -LiteralPath $Utf8PowerShell -PathType Leaf)) {
-    throw 'The UTF-8 capable PowerShell executable was not found.'
-}
-
 $siteName = 'Default Web Site'
 $apiPath = '/EosDashboardsApi'
 $uiPath = '/EosDashboards'
@@ -50,23 +53,6 @@ $apiPool = 'EosDashboardsApiPool'
 $uiPool = 'EosDashboardsUiPool'
 $apiReleaseRoot = 'C:\inetpub\wwwroot\EosDashboards\Api\releases'
 $uiReleaseRoot = 'C:\inetpub\wwwroot\EosDashboards\Ui\releases'
-$deploymentStage = 'startup'
-
-function Set-DeploymentStatus {
-    param([string]$Status)
-
-    $statusDirectory = Split-Path -Parent $StatusFile
-    if (-not [string]::IsNullOrWhiteSpace($statusDirectory)) {
-        New-Item -ItemType Directory -Path $statusDirectory -Force | Out-Null
-    }
-
-    [IO.File]::WriteAllText($StatusFile, $Status, [Text.Encoding]::UTF8)
-}
-
-trap {
-    Set-DeploymentStatus "$deploymentStage|$($_.Exception.GetType().Name)"
-    exit 1
-}
 
 function Test-IsAdministrator {
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -161,12 +147,10 @@ foreach ($release in @(
     }
 }
 
-$deploymentStage = 'configure-api'
-& $Utf8PowerShell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $scriptRoot 'Configure-LocalIisFromPrivateData.ps1') `
-    -PrivateDataFile $PrivateDataFile `
-    -ProvisionAdministratorFromPrivateData
-if ($LASTEXITCODE -ne 0) {
-    throw 'The local API configuration did not complete.'
+$deploymentStage = 'api-readiness-check'
+$apiStatusCode = & curl.exe --insecure --silent --output NUL --write-out '%{http_code}' 'https://localhost/EosDashboardsApi/health/ready'
+if ($LASTEXITCODE -ne 0 -or $apiStatusCode -ne '200') {
+    throw 'The local API did not return HTTP 200.'
 }
 
 $deploymentStage = 'ui-readiness-check'
@@ -174,6 +158,12 @@ Restart-WebAppPool -Name $uiPool
 $uiStatusCode = & curl.exe --insecure --silent --output NUL --write-out '%{http_code}' 'https://localhost/EosDashboards/'
 if ($LASTEXITCODE -ne 0 -or $uiStatusCode -ne '200') {
     throw 'The local UI did not return HTTP 200.'
+}
+
+$deploymentStage = 'ui-spa-refresh-check'
+$uiSpaRefreshStatusCode = & curl.exe --insecure --silent --output NUL --write-out '%{http_code}' 'https://localhost/EosDashboards/__eos-spa-refresh-probe'
+if ($LASTEXITCODE -ne 0 -or $uiSpaRefreshStatusCode -ne '200') {
+    throw 'The local UI did not return the SPA entry point for a refreshed internal route.'
 }
 
 Set-DeploymentStatus "completed|$ReleaseId"

@@ -10,6 +10,11 @@ public sealed record VerifyOtpCommand(string ChallengeToken, string Code, string
     public override string ToString() => nameof(VerifyOtpCommand);
 }
 
+public sealed record ResendOtpCommand(string ChallengeToken, string? NetworkKey)
+{
+    public override string ToString() => nameof(ResendOtpCommand);
+}
+
 public sealed record StartPasswordResetCommand(string Username, string? NetworkKey)
 {
     public override string ToString() => nameof(StartPasswordResetCommand);
@@ -44,7 +49,8 @@ public enum PasswordResetStartStatus
 public sealed record PasswordResetStartResult(
     PasswordResetStartStatus Status,
     string ChallengeToken,
-    DateTimeOffset ExpiresAtUtc)
+    DateTimeOffset ExpiresAtUtc,
+    DateTimeOffset ResendAvailableAtUtc)
 {
     public override string ToString() => nameof(PasswordResetStartResult);
 }

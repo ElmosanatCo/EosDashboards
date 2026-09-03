@@ -10,6 +10,12 @@ export const authApi = {
       { method: "POST", body: JSON.stringify({ username, password }) },
       false,
     ),
+  resendSignInOtp: (challengeToken: string) =>
+    apiFetch<Challenge>(
+      `/api/v1/auth/sign-in/challenges/${encodeURIComponent(challengeToken)}/resend`,
+      { method: "POST" },
+      false,
+    ),
   verifyOtp: (challengeToken: string, code: string) =>
     apiFetch<AuthResponse>(
       `/api/v1/auth/sign-in/challenges/${encodeURIComponent(challengeToken)}/verify`,
@@ -20,6 +26,12 @@ export const authApi = {
     apiFetch<Challenge>(
       "/api/v1/auth/password-reset/challenges",
       { method: "POST", body: JSON.stringify({ username }) },
+      false,
+    ),
+  resendPasswordResetOtp: (challengeToken: string) =>
+    apiFetch<Challenge>(
+      `/api/v1/auth/password-reset/challenges/${encodeURIComponent(challengeToken)}/resend`,
+      { method: "POST" },
       false,
     ),
   completePasswordReset: (

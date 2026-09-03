@@ -1,9 +1,10 @@
 import { apiFetch } from "../../lib/api/apiClient";
 import type { AppearanceMode } from "../../app/providers/AppThemeProvider";
+import type { PaletteId } from "../../theme/palettes";
 
 export type UserPreference = {
   appearanceMode: AppearanceMode;
-  palette: "navyTeal";
+  palette: PaletteId;
   sidebarCollapsed: boolean;
 };
 

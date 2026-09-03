@@ -6,11 +6,11 @@
 
 ## Context
 
-The original phase-1 Windows/AD sign-in flow could not be reliably browser-validated from the developer's home VPN connection because the workstation secure channel was unavailable and Chrome rejected IIS integrated-authentication credentials. The first release needs a working local development authentication flow without changing organizational directory infrastructure.
+The first release needs a browser-verifiable local authentication flow that does not depend on unapproved organizational identity infrastructure.
 
 ## Decision
 
-Replace phase-1 Windows/AD sign-in with pre-provisioned local username/password authentication followed by mandatory SMS OTP for every new eight-hour application session.
+Use pre-provisioned local username/password authentication followed by mandatory SMS OTP for every new eight-hour application session.
 
 Passwords are 8 to 128 characters long with no character-class composition rule. They are held only as standard salted hashes. The private deployment provisioner is the sole account and password-management mechanism in this slice. Signed-in users can change passwords by supplying their current password. Password recovery requires a purpose-isolated SMS OTP. Changing or resetting a password revokes every active session for that user.
 
@@ -22,10 +22,6 @@ This focused implementation preserves the approved second factor and session sec
 
 ## Consequences
 
-- The current Windows/AD adapter, Windows-specific API authorization policy, and IIS Windows Authentication requirement are replaced for this slice.
+- IIS Anonymous Authentication is enabled for the API transport boundary; application credentials, OTP, JWTs, refresh cookies, origin/anti-forgery protections, rate limits, and server-side authorization protect application access.
 - A schema migration, private-provisioning input, API endpoints, focused tests, and redesigned Persian RTL sign-in, recovery, and password-change UI are required.
 - Future organizational directory integration remains a separately approved discovery and implementation effort.
-
-## Supersedes
-
-This supersedes the Windows/AD identity portion of decision 0004. All unrelated repository, session, OTP, shell, and delivery choices in decision 0004 remain accepted.

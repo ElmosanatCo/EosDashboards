@@ -9,6 +9,7 @@ import type { Dispatch, PropsWithChildren } from "react";
 import { initialTabState, restoreTabs, tabReducer } from "./tabReducer";
 import type { TabAction } from "./tabReducer";
 import type { TabDescriptor, TabState } from "./tabTypes";
+import { toWorkspaceUrl } from "./workspaceUrl";
 
 const storageKey = "eos.workspace.tabs.v1";
 type TabWorkspace = TabState & {
@@ -25,12 +26,11 @@ export function TabWorkspaceProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     sessionStorage.setItem(storageKey, JSON.stringify(state));
     const active = state.tabs.find((tab) => tab.key === state.activeKey);
-    if (
-      active &&
-      `${location.pathname}${location.search}` !==
-        `${active.pathname}${active.search}`
-    ) {
-      history.replaceState(null, "", `${active.pathname}${active.search}`);
+    const activeUrl = active
+      ? toWorkspaceUrl(import.meta.env.BASE_URL, active.pathname, active.search)
+      : null;
+    if (activeUrl && `${location.pathname}${location.search}` !== activeUrl) {
+      history.replaceState(null, "", activeUrl);
     }
   }, [state]);
   const value = useMemo(
