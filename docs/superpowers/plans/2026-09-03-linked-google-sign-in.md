@@ -198,7 +198,7 @@ Run: `dotnet test backend/tests/EosDashboards.IntegrationTests/EosDashboards.Int
 
 Expected: PASS, with the supplied email absent from console-output assertions.
 
-- [ ] **Step 6: Commit the provisioning slice.**
+- [x] **Step 6: Commit the provisioning slice.**
 
 ```powershell
 git add backend/src/EosDashboards.Application/Provisioning backend/tools/EosDashboards.AdminProvisioner backend/tests/EosDashboards.Application.Tests/Provisioning backend/tests/EosDashboards.IntegrationTests/Provisioning
@@ -216,9 +216,9 @@ git commit -m "feat: provision approved Google sign-in links"
 **Interfaces:**
 - Consumes `IUserRepository`, `IExternalIdentityLinkRepository`, `IUserSessionRepository`, `ISecretHasher`, `ISecureTokenGenerator`, `IAccessTokenIssuer`, `IAuditWriter`, and `IUnitOfWork`.
 - Produces `GoogleIdentity(string Subject, string Email, bool EmailVerified)` and `GoogleSignIn.HandleAsync(GoogleIdentity, CancellationToken)`.
-- Returns the existing `AuthenticationResult` used by OTP verification so the API callback can set the established refresh cookie unchanged.
+- Returns `GoogleSignInResult`, which contains the existing `AuthenticationResult` used by OTP verification when successful, so the API callback can set the established refresh cookie unchanged.
 
-- [ ] **Step 1: Write failing Google session-issuance tests.**
+- [x] **Step 1: Write failing Google session-issuance tests.**
 
 ```csharp
 [Fact]
@@ -234,15 +234,15 @@ public async Task Verified_prelinked_email_binds_subject_and_issues_standard_ses
 }
 ```
 
-Add cases for an unverified email, unknown email, subject/email mismatch, inactive user, and an existing subject link. Assert each failure creates no session and audit records use event codes only.
+Add cases for an unverified email, unknown email, inactive user, and an existing subject link. After an explicit administrator email update, the stable bound subject remains authoritative. Assert each failure creates no session and audit records use event codes only.
 
-- [ ] **Step 2: Run the test to verify it fails.**
+- [x] **Step 2: Run the test to verify it fails.**
 
 Run: `dotnet test backend/tests/EosDashboards.Application.Tests/EosDashboards.Application.Tests.csproj --filter FullyQualifiedName~GoogleSignInTests`
 
 Expected: FAIL because `GoogleSignIn` and `GoogleIdentity` do not exist.
 
-- [ ] **Step 3: Implement the use case by reusing the current session semantics.**
+- [x] **Step 3: Implement the use case by reusing the current session semantics.**
 
 ```csharp
 var link = await links.FindByProviderSubjectAsync(Google, identity.Subject, cancellationToken)
@@ -255,7 +255,7 @@ var session = UserSession.Create(user.Id, hasher.Hash(refreshCredential), now);
 
 Require the resolved link's user to be active. Bind a pending subject and create the session in one `ExecuteSerializedTransactionAsync` operation so two first sign-ins cannot claim the same email. Return the same absolute-eight-hour expiry and ten-minute access-token behavior as `VerifyOtp`. Do not make an OTP challenge or call the SMS sender.
 
-- [ ] **Step 4: Run focused application tests.**
+- [x] **Step 4: Run focused application tests.**
 
 Run: `dotnet test backend/tests/EosDashboards.Application.Tests/EosDashboards.Application.Tests.csproj --filter "FullyQualifiedName~GoogleSignInTests|FullyQualifiedName~SessionLifecycleTests"`
 
