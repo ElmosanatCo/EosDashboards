@@ -34,7 +34,7 @@ One active user is initially pre-provisioned directly through a controlled deplo
 
 **Status:** Confirmed for phase 1
 
-The user signs in with a pre-provisioned username and password. After successful password verification, every new application session requires a valid SMS OTP sent to the mobile number stored for that user. Sign-in and password-recovery OTP messages are Persian branded messages that identify `داشبورد علم و صنعت` and state their distinct purpose. A signed-in user can change their password by supplying the current password. A user who has forgotten a password can reset it by completing a separate SMS OTP challenge. User and password administration UI remain deferred; the deployment tool manages pre-provisioned accounts and passwords in this slice.
+The user signs in with a pre-provisioned username and password. After successful password verification, every new application session requires a valid SMS OTP sent to the mobile number stored for that user. Sign-in and password-recovery OTP messages are Persian branded messages that identify `داشبورد علم و صنعت` and state their distinct purpose. A signed-in user can change their password by supplying the current password. A user who has forgotten a password can reset it by completing a separate SMS OTP challenge. System Administrators manage application users and administrator password resets through the protected administration workspace; the deployment tool remains responsible for bootstrap provisioning and Google-link management.
 
 ### FR-008 — Pre-linked Google sign-in
 

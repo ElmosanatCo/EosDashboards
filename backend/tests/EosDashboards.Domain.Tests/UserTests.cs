@@ -100,6 +100,72 @@ public sealed class UserTests
     }
 
     [Fact]
+    public void Update_username_is_independent_from_the_password_hash()
+    {
+        // Break caught: requiring an administrator to reset a password merely to correct a username.
+        var user = CreateUser();
+        user.SetLocalCredentials("old.user", "existing-password-hash", Now);
+
+        user.UpdateUsername("new.user", Now.AddMinutes(1));
+
+        Assert.Equal("NEW.USER", user.Username);
+        Assert.Equal("existing-password-hash", user.PasswordHash);
+    }
+
+    [Fact]
+    public void Temporary_local_credentials_require_a_password_change_until_completed()
+    {
+        // Break caught: allowing an administrator-set temporary password to open the workspace unchanged.
+        var user = CreateUser();
+
+        user.SetTemporaryLocalCredentials("  124  ", "temporary-password-hash", Now);
+
+        Assert.Equal("124", user.Username);
+        Assert.True(user.MustChangePassword);
+
+        user.CompleteTemporaryPasswordChange("replacement-password-hash", Now.AddMinutes(1));
+
+        Assert.False(user.MustChangePassword);
+        Assert.Equal("replacement-password-hash", user.PasswordHash);
+    }
+
+    [Fact]
+    public void Replace_roles_removes_omitted_roles_and_rejects_an_empty_assignment_for_an_active_user()
+    {
+        // Break caught: retaining a role after an administrator removes it, or leaving an active account without access.
+        var user = CreateUser();
+        user.AssignRole(7);
+        user.AssignRole(11);
+
+        user.ReplaceRoles([11, 13], Now.AddMinutes(1));
+
+        Assert.Equal([11L, 13L], user.UserRoles.Select(role => role.RoleId).Order());
+        Assert.Throws<ArgumentException>(() => user.ReplaceRoles([], Now.AddMinutes(2)));
+    }
+
+    [Fact]
+    public void Update_organizational_id_replaces_the_personnel_code()
+    {
+        // Break caught: preventing correction of a recorded personnel code.
+        var user = CreateUser();
+
+        user.UpdateOrganizationalId("corrected-personnel-code", Now.AddMinutes(1));
+
+        Assert.Equal("corrected-personnel-code", user.OrganizationalId);
+        Assert.Equal(Now.AddMinutes(1), user.UpdatedAt);
+    }
+
+    [Fact]
+    public void Activate_rejects_a_user_without_any_role()
+    {
+        // Break caught: reactivating an account that cannot access any approved workspace.
+        var user = CreateUser();
+        user.Deactivate(Now);
+
+        Assert.Throws<InvalidOperationException>(() => user.Activate(Now.AddMinutes(1)));
+    }
+
+    [Fact]
     public void Role_create_rejects_missing_stable_code()
     {
         // Break caught: persisting a role that cannot be referenced by a stable authorization code.

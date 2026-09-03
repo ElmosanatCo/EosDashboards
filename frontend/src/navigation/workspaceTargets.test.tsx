@@ -6,7 +6,16 @@ import {
 
 describe("workspace targets", () => {
   it("only exposes targets authorized by the user's stable role codes", () => {
-    expect(authorizedWorkspaceTargets(["SystemAdministrator"])).toEqual([]);
+    expect(
+      authorizedWorkspaceTargets(["SystemAdministrator"]).map(
+        (target) => target.routeId,
+      ),
+    ).toEqual([
+      "system-administration-dashboard",
+      "administration-users",
+      "administration-departments",
+      "administration-audit",
+    ]);
     expect(
       authorizedWorkspaceTargets(["DepartmentManager"]).map(
         (target) => target.title,

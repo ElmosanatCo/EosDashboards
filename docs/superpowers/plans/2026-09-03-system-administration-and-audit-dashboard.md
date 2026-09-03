@@ -53,8 +53,8 @@ React 19, TypeScript, Material UI 9, TanStack Query, Vitest, Playwright.
 - Test: `backend/tests/EosDashboards.Domain.Tests/UserSessionTests.cs`
 
 **Interfaces:**
-- Produces `User.SetTemporaryLocalCredentials`, `User.ChangeProfile`,
-  `User.ReplaceRoles`, `User.Activate`, `User.Deactivate`, and
+- Produces `User.SetTemporaryLocalCredentials`, `User.UpdateProfile`,
+  `User.UpdateOrganizationalId`, `User.ReplaceRoles`, `User.Activate`, `User.Deactivate`, and
   `User.CompleteTemporaryPasswordChange`.
 - Produces `User.RowVersion` and `Department.RowVersion` as concurrency values
   mapped by Task 2; neither property has a public setter.
@@ -236,7 +236,7 @@ React 19, TypeScript, Material UI 9, TanStack Query, Vitest, Playwright.
   `UserCreated`, `UserUpdated`, `UserRolesChanged`, `UserDepartmentChanged`,
   `UserActivated`, `UserDeactivated`, or `UserPasswordReset` audit codes.
 
-- [ ] **Step 1: Write failing Application tests for each sensitive command.**
+- [x] **Step 1: Write failing Application tests for each sensitive command.**
 
   ```csharp
   [Fact]
@@ -258,11 +258,11 @@ React 19, TypeScript, Material UI 9, TanStack Query, Vitest, Playwright.
   }
   ```
 
-- [ ] **Step 2: Run the new Application tests and confirm command types are absent.**
+- [x] **Step 2: Run the new Application tests and confirm command types are absent.**
 
   Run: `dotnet test backend/tests/EosDashboards.Application.Tests/EosDashboards.Application.Tests.csproj -c Release --filter "FullyQualifiedName~ManageUsersTests|FullyQualifiedName~ChangePasswordTests|FullyQualifiedName~VerifyOtpTests"`
 
-- [ ] **Step 3: Implement command handling in one serialized transaction per mutation.**
+- [x] **Step 3: Implement command handling in one serialized transaction per mutation.**
 
   ```csharp
   public Task<ManageUserResult> UpdateAsync(
@@ -282,7 +282,7 @@ React 19, TypeScript, Material UI 9, TanStack Query, Vitest, Playwright.
   regular password change clears that flag only after the current password
   verifies. Preserve the existing post-password-change logout semantics.
 
-- [ ] **Step 4: Project `mustChangePassword` through OTP verification and
+- [x] **Step 4: Project `mustChangePassword` through OTP verification and
   refresh, then rerun the focused tests.**
 
   Expected: PASS; an authenticated temporary-password user can receive a
@@ -312,7 +312,7 @@ React 19, TypeScript, Material UI 9, TanStack Query, Vitest, Playwright.
 - Audit dashboard window is `[clock.Now.AddHours(-24), clock.Now)`; active
   session count uses `RevokedAt == null && CreatedAt <= now && now < ExpiresAt`.
 
-- [ ] **Step 1: Write red tests for hierarchy/deletion and exact dashboard windows.**
+- [x] **Step 1: Write red tests for hierarchy/deletion and exact dashboard windows.**
 
   ```csharp
   [Fact]
@@ -332,11 +332,11 @@ React 19, TypeScript, Material UI 9, TanStack Query, Vitest, Playwright.
   }
   ```
 
-- [ ] **Step 2: Run the focused tests and confirm the operations/query handlers are absent.**
+- [x] **Step 2: Run the focused tests and confirm the operations/query handlers are absent.**
 
   Run: `dotnet test backend/tests/EosDashboards.Application.Tests/EosDashboards.Application.Tests.csproj -c Release --filter "FullyQualifiedName~ManageDepartmentsTests|FullyQualifiedName~AuditDashboardTests"`
 
-- [ ] **Step 3: Implement the exact rules and safe audit query.**
+- [x] **Step 3: Implement the exact rules and safe audit query.**
 
   Reject duplicate names, a child chosen as parent, a parent with children
   becoming a child, and deletion when user/child counts are nonzero. Write
@@ -346,7 +346,7 @@ React 19, TypeScript, Material UI 9, TanStack Query, Vitest, Playwright.
   actor, subject, and success filters. Centralize the finite failed-security
   event-code list rather than using a text match.
 
-- [ ] **Step 4: Run focused Application and SQL tests.**
+- [x] **Step 4: Run focused Application and SQL tests.**
 
   Run: `dotnet test backend/tests/EosDashboards.Application.Tests/EosDashboards.Application.Tests.csproj -c Release --filter "FullyQualifiedName~ManageDepartmentsTests|FullyQualifiedName~AuditDashboardTests"`
 

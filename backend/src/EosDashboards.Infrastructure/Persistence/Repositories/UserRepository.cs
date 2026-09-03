@@ -22,5 +22,15 @@ public sealed class UserRepository(EosDashboardDbContext context) : IUserReposit
             .Include(user => user.UserRoles)
             .SingleOrDefaultAsync(user => user.Id == id, cancellationToken);
 
+    public Task<User?> GetForUpdateAsync(long id, CancellationToken cancellationToken) =>
+        context.Users
+            .Include(user => user.UserRoles)
+            .SingleOrDefaultAsync(user => user.Id == id, cancellationToken);
+
+    public Task<int> CountActiveWithRoleAsync(long roleId, CancellationToken cancellationToken) =>
+        context.Users.CountAsync(
+            user => user.IsActive && user.UserRoles.Any(userRole => userRole.RoleId == roleId),
+            cancellationToken);
+
     public void Add(User user) => context.Users.Add(user);
 }

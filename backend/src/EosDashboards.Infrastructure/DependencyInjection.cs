@@ -1,4 +1,5 @@
 using EosDashboards.Application.Abstractions;
+using EosDashboards.Application.Administration;
 using EosDashboards.Infrastructure.Persistence;
 using EosDashboards.Infrastructure.Persistence.Repositories;
 using EosDashboards.Infrastructure.Security;
@@ -44,6 +45,9 @@ public static class DependencyInjection
         services.AddScoped<IUserPreferenceRepository, UserPreferenceRepository>();
         services.AddScoped<IExternalIdentityLinkRepository, ExternalIdentityLinkRepository>();
         services.AddScoped<IAuditWriter, AuditWriter>();
+        services.AddScoped<ISystemAdministrationMetricsReader, SystemAdministrationMetricsReader>();
+        services.AddScoped<IAuditLogReader, AuditLogReader>();
+        services.AddScoped<IAdministrationLookupReader, AdministrationLookupReader>();
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         return services;
     }

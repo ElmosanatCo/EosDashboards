@@ -17,6 +17,7 @@ type Props = {
   open: boolean;
   busy: boolean;
   error?: string;
+  required?: boolean;
   onClose: () => void;
   onSubmit: (currentPassword: string, newPassword: string) => Promise<void>;
 };
@@ -25,6 +26,7 @@ export function ChangePasswordDialog({
   open,
   busy,
   error,
+  required = false,
   onClose,
   onSubmit,
 }: Props) {
@@ -51,7 +53,7 @@ export function ChangePasswordDialog({
   return (
     <Dialog
       open={open}
-      onClose={busy ? undefined : onClose}
+      onClose={busy || required ? undefined : onClose}
       fullWidth
       maxWidth="xs"
     >
@@ -126,9 +128,11 @@ export function ChangePasswordDialog({
             </Typography>
           ) : null}
           <DialogActions sx={{ px: 0 }}>
-            <Button type="button" disabled={busy} onClick={onClose}>
-              انصراف
-            </Button>
+            {!required ? (
+              <Button type="button" disabled={busy} onClick={onClose}>
+                انصراف
+              </Button>
+            ) : null}
             <Button type="submit" variant="contained" disabled={busy || !valid}>
               ثبت رمز جدید
             </Button>

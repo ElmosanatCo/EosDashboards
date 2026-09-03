@@ -88,10 +88,19 @@ namespace EosDashboards.Infrastructure.Persistence.Migrations
                     b.Property<long?>("ParentDepartmentId")
                         .HasColumnType("bigint");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2(3)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.HasIndex("ParentDepartmentId");
 
@@ -290,6 +299,11 @@ namespace EosDashboards.Infrastructure.Persistence.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
+                    b.Property<bool>("MustChangePassword")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<string>("OrganizationalId")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -303,6 +317,12 @@ namespace EosDashboards.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(2048)
                         .HasColumnType("nvarchar(2048)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2(3)");

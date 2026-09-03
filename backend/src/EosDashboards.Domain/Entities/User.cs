@@ -36,6 +36,8 @@ public sealed class User
 
     public string? PasswordHash { get; private set; }
 
+    public bool MustChangePassword { get; private set; }
+
     public string FirstName { get; private set; }
 
     public string LastName { get; private set; }
@@ -53,6 +55,8 @@ public sealed class User
     public DateTime UpdatedAt { get; private set; }
 
     public DateTime? DeactivatedAt { get; private set; }
+
+    public byte[] RowVersion { get; private set; } = [];
 
     public IReadOnlyCollection<UserRole> UserRoles => _userRoles.AsReadOnly();
 
@@ -114,6 +118,14 @@ public sealed class User
         UpdatedAt = updatedAt;
     }
 
+    public void UpdateOrganizationalId(string organizationalId, DateTime updatedAt)
+    {
+        ValidateRequired(organizationalId, nameof(organizationalId));
+
+        OrganizationalId = organizationalId.Trim();
+        UpdatedAt = updatedAt;
+    }
+
     public void UpdateProfile(
         string accountName,
         string firstName,
@@ -156,6 +168,60 @@ public sealed class User
         UpdatedAt = updatedAt;
     }
 
+    public void UpdateUsername(string username, DateTime updatedAt)
+    {
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            throw new ArgumentException("A username is required.", nameof(username));
+        }
+
+        Username = username.Trim().ToUpperInvariant();
+        UpdatedAt = updatedAt;
+    }
+
+    public void SetTemporaryLocalCredentials(
+        string username,
+        string passwordHash,
+        DateTime updatedAt)
+    {
+        SetLocalCredentials(username, passwordHash, updatedAt);
+        MustChangePassword = true;
+    }
+
+    public void CompleteTemporaryPasswordChange(string passwordHash, DateTime updatedAt)
+    {
+        if (Username is null)
+        {
+            throw new InvalidOperationException("A username is required before changing a temporary password.");
+        }
+
+        SetLocalCredentials(Username, passwordHash, updatedAt);
+        MustChangePassword = false;
+    }
+
+    public void ReplaceRoles(IReadOnlyCollection<long> roleIds, DateTime updatedAt)
+    {
+        ArgumentNullException.ThrowIfNull(roleIds);
+        var distinctRoleIds = roleIds.Distinct().ToArray();
+        if (distinctRoleIds.Any(roleId => roleId <= 0))
+        {
+            throw new ArgumentOutOfRangeException(nameof(roleIds));
+        }
+
+        if (IsActive && distinctRoleIds.Length == 0)
+        {
+            throw new ArgumentException("An active user requires at least one role.", nameof(roleIds));
+        }
+
+        _userRoles.Clear();
+        foreach (var roleId in distinctRoleIds)
+        {
+            _userRoles.Add(new UserRole(Id, roleId));
+        }
+
+        UpdatedAt = updatedAt;
+    }
+
     public void Deactivate(DateTime deactivatedAt)
     {
         if (!IsActive)
@@ -173,6 +239,11 @@ public sealed class User
         if (IsActive)
         {
             return;
+        }
+
+        if (_userRoles.Count == 0)
+        {
+            throw new InvalidOperationException("An active user requires at least one role.");
         }
 
         IsActive = true;

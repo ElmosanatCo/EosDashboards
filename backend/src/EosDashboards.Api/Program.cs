@@ -1,10 +1,12 @@
 using System.Threading.RateLimiting;
 using System.Net;
 using EosDashboards.Api.Auth;
+using EosDashboards.Api.Administration;
 using EosDashboards.Api.Errors;
 using EosDashboards.Api.Preferences;
 using EosDashboards.Api.Security;
 using EosDashboards.Application.Abstractions;
+using EosDashboards.Application.Administration;
 using EosDashboards.Application.Auth;
 using EosDashboards.Application.Preferences;
 using EosDashboards.Infrastructure;
@@ -46,6 +48,10 @@ builder.Services.AddScoped<StartPasswordReset>();
 builder.Services.AddScoped<CompletePasswordReset>();
 builder.Services.AddScoped<ChangePassword>();
 builder.Services.AddScoped<RefreshSession>();
+builder.Services.AddScoped<ManageUsers>();
+builder.Services.AddScoped<ManageDepartments>();
+builder.Services.AddScoped<GetSystemAdministrationDashboard>();
+builder.Services.AddScoped<GetAuditHistory>();
 builder.Services.AddScoped<Logout>();
 builder.Services.AddScoped<GetMyPreferences>();
 builder.Services.AddScoped<UpdateMyPreferences>();
@@ -166,6 +172,7 @@ app.MapGet("/health/ready", async (
 });
 app.MapAuthEndpoints();
 app.MapPreferenceEndpoints();
+app.MapAdministrationEndpoints();
 
 app.Run();
 

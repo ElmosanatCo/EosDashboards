@@ -89,4 +89,15 @@ public sealed class UserSessionTests
 
         Assert.Equal(SessionRevocationReason.PasswordChanged, session.RevocationReason);
     }
+
+    [Fact]
+    public void Administrative_change_is_a_distinct_session_revocation_reason()
+    {
+        // Break caught: losing the security reason when an administrator changes a target account.
+        var session = UserSession.Create(1, "AABB", Now);
+
+        session.Revoke(SessionRevocationReason.AdministrativeChange, Now.AddMinutes(1));
+
+        Assert.Equal(SessionRevocationReason.AdministrativeChange, session.RevocationReason);
+    }
 }

@@ -20,4 +20,20 @@ describe("ChangePasswordDialog", () => {
       "ltr",
     );
   });
+
+  it("cannot be dismissed when a temporary password must be changed", () => {
+    render(
+      <ChangePasswordDialog
+        open
+        required
+        busy={false}
+        onClose={() => undefined}
+        onSubmit={vi.fn(async () => undefined)}
+      />,
+    );
+
+    expect(
+      screen.queryByRole("button", { name: "انصراف" }),
+    ).not.toBeInTheDocument();
+  });
 });

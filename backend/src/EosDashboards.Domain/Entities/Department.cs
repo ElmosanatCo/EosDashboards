@@ -27,6 +27,8 @@ public sealed class Department
 
     public DateTime UpdatedAt { get; private set; }
 
+    public byte[] RowVersion { get; private set; } = [];
+
     public static Department CreateRoot(string name, DateTime createdAt) =>
         new(ValidateName(name), null, createdAt);
 
@@ -39,6 +41,34 @@ public sealed class Department
         }
 
         return new Department(ValidateName(name), parentDepartment, createdAt);
+    }
+
+    public void Rename(string name, DateTime updatedAt)
+    {
+        Name = ValidateName(name);
+        UpdatedAt = updatedAt;
+    }
+
+    public void AssignParent(Department parentDepartment, DateTime updatedAt)
+    {
+        ArgumentNullException.ThrowIfNull(parentDepartment);
+        if (ReferenceEquals(this, parentDepartment) ||
+            parentDepartment.ParentDepartmentId is not null ||
+            parentDepartment.ParentDepartment is not null)
+        {
+            throw new InvalidOperationException("A child department cannot have children.");
+        }
+
+        ParentDepartment = parentDepartment;
+        ParentDepartmentId = null;
+        UpdatedAt = updatedAt;
+    }
+
+    public void MakeIndependent(DateTime updatedAt)
+    {
+        ParentDepartment = null;
+        ParentDepartmentId = null;
+        UpdatedAt = updatedAt;
     }
 
     private static string ValidateName(string name)

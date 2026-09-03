@@ -1,0 +1,137 @@
+import { useQuery } from "@tanstack/react-query";
+import {
+  Box,
+  Button,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Paper,
+  Select,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Typography,
+} from "@mui/material";
+import { useState } from "react";
+import { administrationApi } from "../features/administration/administrationApi";
+import { eventLabel } from "../features/administration/administrationUi";
+import { formatPersianDateTime } from "../lib/date/persianDateTime";
+
+type Range = "LastSevenDays" | "LastThirtyDays";
+export function SystemAuditPage() {
+  const [range, setRange] = useState<Range>("LastSevenDays");
+  const [result, setResult] = useState<"" | "true" | "false">("");
+  const query = new URLSearchParams({ range, pageSize: "50" });
+  if (result) query.set("succeeded", result);
+  const audit = useQuery({
+    queryKey: ["administration", "audit", range, result],
+    queryFn: () => administrationApi.auditLogs(query),
+  });
+  return (
+    <Stack spacing={2.5} sx={{ maxWidth: 1320, mx: "auto" }}>
+      <Box>
+        <Typography component="h1" variant="h5" sx={{ fontWeight: 750 }}>
+          ممیزی سامانه
+        </Typography>
+        <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+          رویدادهای مدیریتی، ورود و امنیت را بررسی کنید.
+        </Typography>
+      </Box>
+      <Paper
+        variant="outlined"
+        sx={{ p: 2, borderTop: 3, borderTopColor: "primary.main" }}
+      >
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={1.5}
+          sx={{ alignItems: { sm: "center" } }}
+        >
+          <FormControl size="small" sx={{ minWidth: 190 }}>
+            <InputLabel id="range-label">بازه زمانی</InputLabel>
+            <Select
+              labelId="range-label"
+              label="بازه زمانی"
+              value={range}
+              onChange={(event) => setRange(event.target.value as Range)}
+            >
+              <MenuItem value="LastSevenDays">هفت روز اخیر</MenuItem>
+              <MenuItem value="LastThirtyDays">سی روز اخیر</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl size="small" sx={{ minWidth: 150 }}>
+            <InputLabel id="result-label">نتیجه</InputLabel>
+            <Select
+              labelId="result-label"
+              label="نتیجه"
+              value={result}
+              onChange={(event) => setResult(event.target.value)}
+            >
+              <MenuItem value="">همه</MenuItem>
+              <MenuItem value="true">موفق</MenuItem>
+              <MenuItem value="false">ناموفق</MenuItem>
+            </Select>
+          </FormControl>
+          <Typography variant="body2" color="text.secondary">
+            {audit.data
+              ? `${audit.data.totalCount.toLocaleString("fa-IR")} رویداد`
+              : ""}
+          </Typography>
+        </Stack>
+      </Paper>
+      <Paper variant="outlined" sx={{ overflowX: "auto" }}>
+        <Table size="small" aria-label="فهرست ممیزی سامانه">
+          <TableHead>
+            <TableRow>
+              <TableCell>رویداد</TableCell>
+              <TableCell>انجام‌دهنده</TableCell>
+              <TableCell>کاربر مؤثر</TableCell>
+              <TableCell>نتیجه</TableCell>
+              <TableCell>تاریخ</TableCell>
+              <TableCell>ساعت</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {audit.data?.items.map((item) => {
+              const occurred = formatPersianDateTime(new Date(item.occurredAt));
+              return (
+                <TableRow key={item.id}>
+                  <TableCell>{eventLabel(item.eventCode)}</TableCell>
+                  <TableCell>{item.actorDisplayName ?? "سامانه"}</TableCell>
+                  <TableCell>{item.subjectDisplayName ?? "—"}</TableCell>
+                  <TableCell
+                    sx={{
+                      color: item.succeeded ? "success.main" : "error.main",
+                    }}
+                  >
+                    {item.succeeded ? "موفق" : "ناموفق"}
+                  </TableCell>
+                  <TableCell>{occurred.date}</TableCell>
+                  <TableCell>{occurred.time}</TableCell>
+                </TableRow>
+              );
+            })}
+            {!audit.isPending && audit.data?.items.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} align="center">
+                  رویدادی در این بازه وجود ندارد.
+                </TableCell>
+              </TableRow>
+            ) : null}
+          </TableBody>
+        </Table>
+      </Paper>
+      {audit.isError ? (
+        <Typography color="error">دریافت رویدادها ممکن نشد.</Typography>
+      ) : null}
+      <Button
+        sx={{ alignSelf: "flex-start" }}
+        onClick={() => void audit.refetch()}
+      >
+        تازه‌سازی
+      </Button>
+    </Stack>
+  );
+}

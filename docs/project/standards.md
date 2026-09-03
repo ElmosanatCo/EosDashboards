@@ -161,7 +161,7 @@ resources/
 - Persist application timestamps as the current local date and time of the application server. Use SQL Server `datetime2(3)` so stored values contain exactly year, month, day, hour, minute, second, and millisecond, with no offset or finer precision.
 - Name persisted-time fields without `Utc` or underscore-based time suffixes: use names such as `CreatedAt`, `UpdatedAt`, `ExpiresAt`, `OccurredAt`, and `RevokedAt`.
 - Application time logic uses the same millisecond-precision local server time directly. Do not persist UTC values and do not convert persisted values to Asia/Tehran time. Protocol-specific transient conversion is permitted only where an external standard, such as JWT numeric-date claims, requires it; it must not alter the persistence model.
-- Display user-facing dates using the Persian calendar and Persian digits based on the applicable local system time, unless a feature explicitly requires another representation.
+- Display user-facing dates using the Persian calendar and Persian digits based on the applicable local system time, unless a feature explicitly requires another representation. When both are shown, render the date and time as separate, clearly labelled visual values rather than one dense combined string.
 - Target WCAG 2.2 level AA.
 - Provide keyboard operation, visible focus, sufficient contrast, semantic labels, usable target sizes, and reduced-motion behavior.
 - Never communicate status or validation through color alone.

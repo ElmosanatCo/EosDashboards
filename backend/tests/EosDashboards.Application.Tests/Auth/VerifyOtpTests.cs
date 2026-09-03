@@ -26,6 +26,7 @@ public sealed class VerifyOtpTests
         Assert.Equal(context.Clock.Now.AddHours(8), result.SessionExpiresAt);
         Assert.Equal(context.Clock.Now.AddMinutes(10), result.AccessToken?.ExpiresAt);
         Assert.Equal(context.User.Id, result.User?.Id);
+        Assert.False(result.User?.MustChangePassword);
         Assert.Equal([31], result.User?.RoleIds);
         Assert.Equal(["SystemAdministrator"], result.User?.RoleCodes);
         Assert.Equal(1, result.User?.Department.Id);
@@ -54,6 +55,18 @@ public sealed class VerifyOtpTests
         Assert.Null(result.RefreshCredential);
         Assert.Equal(1, context.UnitOfWork.SaveCount);
         AuditRecordAssertions.AssertSingle(context.Audit, null, 11, "OtpVerificationFailed", false);
+    }
+
+    [Fact]
+    public async Task Successful_otp_projects_the_temporary_password_requirement()
+    {
+        var context = new VerifyOtpContext();
+        context.User.SetTemporaryLocalCredentials("LOCAL.USER", "temporary-hash", Now);
+
+        var result = await context.UseCase.HandleAsync(context.Command(), CancellationToken.None);
+
+        Assert.Equal(VerifyOtpStatus.Succeeded, result.Status);
+        Assert.True(result.User?.MustChangePassword);
     }
 
     [Fact]
