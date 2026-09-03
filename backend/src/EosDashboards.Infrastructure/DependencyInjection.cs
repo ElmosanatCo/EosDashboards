@@ -47,6 +47,7 @@ public static class DependencyInjection
         services.AddScoped<IAuditWriter, AuditWriter>();
         services.AddScoped<ISystemAdministrationMetricsReader, SystemAdministrationMetricsReader>();
         services.AddScoped<IAuditLogReader, AuditLogReader>();
+        services.AddScoped<IAdministrationLookupReader, AdministrationLookupReader>();
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         return services;
     }

@@ -14,5 +14,5 @@ public sealed record UpdateDepartmentRequest(string Name, long? ParentDepartment
 { public override string ToString() => nameof(UpdateDepartmentRequest); }
 public sealed record DeleteDepartmentRequest(string RowVersion)
 { public override string ToString() => nameof(DeleteDepartmentRequest); }
-public sealed record ManagedUserResponse(long Id, string PersonnelCode, string AccountName, string FirstName, string LastName, string? Username, string MaskedMobile, long DepartmentId, bool IsActive, bool MustChangePassword, long[] RoleIds, string RowVersion);
+public sealed record ManagedUserResponse(long Id, string PersonnelCode, string AccountName, string FirstName, string LastName, string? Username, string MaskedMobile, long DepartmentId, string? DepartmentName, bool IsActive, bool MustChangePassword, long[] RoleIds, string RowVersion);
 public sealed record ManagedDepartmentResponse(long Id, string Name, long? ParentDepartmentId, string RowVersion);

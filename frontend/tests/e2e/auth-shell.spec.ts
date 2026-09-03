@@ -316,6 +316,90 @@ test("a strict-mode bootstrap restores a session with one refresh request", asyn
   expect(refreshRequests).toBe(1);
 });
 
+test("a System Administrator can open the operational dashboard", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/**", async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith("/auth/refresh")) {
+      await route.fulfill({
+        json: {
+          accessToken: "synthetic-access",
+          accessTokenExpiresAt: new Date(Date.now() + 600_000).toISOString(),
+          sessionExpiresAt: new Date(Date.now() + 28_800_000).toISOString(),
+          user: {
+            id: 1,
+            accountName: "TEST\\admin",
+            firstName: "مدیر",
+            lastName: "سامانه",
+            roleIds: [1],
+            roleCodes: ["SystemAdministrator"],
+            mustChangePassword: false,
+            department: { id: 1, name: "نرم افزار" },
+          },
+        },
+      });
+    } else if (path.endsWith("/preferences/")) {
+      await route.fulfill({
+        json: {
+          appearanceMode: "dark",
+          palette: "teal",
+          sidebarCollapsed: false,
+        },
+      });
+    } else if (path.endsWith("/administration/dashboard")) {
+      await route.fulfill({
+        json: {
+          activeUsers: 12,
+          inactiveUsers: 2,
+          successfulSignIns: 18,
+          failedSecurityAttempts: 3,
+          usersWithActiveSessions: 7,
+          latestAuditLogs: [
+            {
+              id: 1,
+              occurredAt: "2026-09-03T10:30:00",
+              eventCode: "UserCreated",
+              succeeded: true,
+              actorUserId: 1,
+              actorDisplayName: "مدیر سامانه",
+              subjectUserId: 2,
+              subjectDisplayName: "کاربر آزمایشی",
+            },
+          ],
+        },
+      });
+    } else if (path.endsWith("/auth/providers")) {
+      await route.fulfill({ json: { google: false } });
+    } else {
+      await route.fulfill({ status: 404 });
+    }
+  });
+
+  await page.goto("/");
+  await expect(page.getByText("فضای کاری مدیریت")).toBeVisible();
+  await page.keyboard.press("Control+k");
+  await page
+    .getByRole("list", { name: "نتیجه‌های جست‌وجوی سراسری" })
+    .getByRole("button", { name: "داشبورد مدیر سامانه" })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "داشبورد مدیر سامانه" }),
+  ).toBeVisible();
+  await expect(page.getByText("کاربران دارای نشست فعال")).toBeVisible();
+  await expect(page.getByText("کاربر ایجاد شد")).toBeVisible();
+  await expect(page.getByLabel("تاریخ سیستم")).toHaveCount(1);
+  await expect(page.getByLabel("ساعت سیستم")).toHaveCount(1);
+  await page.screenshot({
+    path: "test-results/system-administration-dashboard.png",
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator("main")).toHaveJSProperty("scrollWidth", 390);
+  await page.screenshot({
+    path: "test-results/system-administration-dashboard-mobile.png",
+  });
+});
+
 test("linked Google sign-in is initiated through the API endpoint", async ({
   page,
 }) => {

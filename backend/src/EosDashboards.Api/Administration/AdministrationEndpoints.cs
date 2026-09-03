@@ -16,6 +16,10 @@ public static class AdministrationEndpoints
             .RequireAuthorization("SystemAdministrator").AddEndpointFilter<NoStoreEndpointFilter>();
         group.MapGet("/dashboard", GetDashboardAsync);
         group.MapGet("/audit-logs", GetAuditHistoryAsync);
+        group.MapGet("/users", GetUsersAsync);
+        group.MapGet("/users/{userId:long}", GetUserAsync);
+        group.MapGet("/roles", GetRolesAsync);
+        group.MapGet("/departments", GetDepartmentsAsync);
         group.MapPost("/users", CreateUserAsync);
         group.MapPut("/users/{userId:long}", UpdateUserAsync);
         group.MapPut("/users/{userId:long}/active", SetUserActiveAsync);
@@ -35,6 +39,20 @@ public static class AdministrationEndpoints
         var result = await history.HandleAsync(new AuditHistoryQuery(range, from, to, eventCode, actorUserId, subjectUserId, succeeded, pageNumber, pageSize), token);
         return result.IsValid ? Results.Ok(result.Value) : ApiResults.Problem(context, 400, "invalid_audit_query", "The audit filter is invalid.");
     }
+
+    private static async Task<IResult> GetUsersAsync(HttpContext context, IAdministrationLookupReader reader, int pageNumber = 1, int pageSize = 50, CancellationToken token = default)
+    {
+        if (pageNumber < 1 || pageSize is < 1 or > 100) return Invalid(context);
+        var users = await reader.GetUsersAsync(pageNumber, pageSize, token);
+        return Results.Ok(new PagedResult<ManagedUserResponse>(users.Items.Select(User).ToArray(), users.PageNumber, users.PageSize, users.TotalCount));
+    }
+    private static async Task<IResult> GetUserAsync(long userId, IAdministrationLookupReader reader, CancellationToken token)
+    {
+        var user = await reader.GetUserAsync(userId, token);
+        return user is null ? Results.NotFound() : Results.Ok(User(user));
+    }
+    private static async Task<IResult> GetRolesAsync(IAdministrationLookupReader reader, CancellationToken token) => Results.Ok(await reader.GetRolesAsync(token));
+    private static async Task<IResult> GetDepartmentsAsync(IAdministrationLookupReader reader, CancellationToken token) => Results.Ok((await reader.GetDepartmentsAsync(token)).Select(Department));
 
     private static async Task<IResult> CreateUserAsync(HttpContext context, CreateUserRequest request, ManageUsers users, CancellationToken token)
     {
@@ -106,8 +124,10 @@ public static class AdministrationEndpoints
         _ => ApiResults.Problem(context, 400, "department_hierarchy_invalid", "The department hierarchy is invalid."),
     };
 
-    private static ManagedUserResponse User(User user) => new(user.Id, user.OrganizationalId, user.AccountName, user.FirstName, user.LastName, user.Username, user.MaskedMobileNumber, user.DepartmentId, user.IsActive, user.MustChangePassword, user.UserRoles.Select(item => item.RoleId).ToArray(), Convert.ToBase64String(user.RowVersion));
+    private static ManagedUserResponse User(User user) => new(user.Id, user.OrganizationalId, user.AccountName, user.FirstName, user.LastName, user.Username, user.MaskedMobileNumber, user.DepartmentId, null, user.IsActive, user.MustChangePassword, user.UserRoles.Select(item => item.RoleId).ToArray(), Convert.ToBase64String(user.RowVersion));
+    private static ManagedUserResponse User(AdministrationUserListItem user) => new(user.Id, user.PersonnelCode, user.AccountName, user.FirstName, user.LastName, user.Username, user.MaskedMobile, user.DepartmentId, user.DepartmentName, user.IsActive, user.MustChangePassword, user.RoleIds.ToArray(), Convert.ToBase64String(user.RowVersion));
     private static ManagedDepartmentResponse Department(Department department) => new(department.Id, department.Name, department.ParentDepartmentId, Convert.ToBase64String(department.RowVersion));
+    private static ManagedDepartmentResponse Department(DepartmentListItem department) => new(department.Id, department.Name, department.ParentDepartmentId, Convert.ToBase64String(department.RowVersion));
     private static bool TryActor(HttpContext context, out long actor) => SessionAuthorizationHandler.TryReadId(context.User, JwtRegisteredClaimNames.Sub, out actor);
     private static bool TryRowVersion(string value, out byte[] rowVersion) { try { rowVersion = Convert.FromBase64String(value); return rowVersion.Length > 0; } catch (FormatException) { rowVersion = []; return false; } }
     private static IResult Unauthorized(HttpContext context) => ApiResults.Problem(context, 401, "invalid_access_token", "Authentication is required.");

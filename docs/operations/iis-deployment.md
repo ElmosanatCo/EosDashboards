@@ -62,6 +62,9 @@ build configuration. Explicitly pass `--configuration Release` to the EF
 tools: their default Debug output can be stale and omit a newly built Release
 migration. The normal IIS publisher intentionally does not apply migrations,
 so a pending migration must never be deferred until after the API switch.
+The System Administrator release specifically includes
+`20260903173032_AddSystemAdministrationAndAuditDashboard`; verify that this
+migration has been applied after the backup and before switching the API.
 
 The current local installation is described in `docs/project/current-state.md`.
 Both UI loading, a synthetic refreshed UI route, and API liveness/readiness

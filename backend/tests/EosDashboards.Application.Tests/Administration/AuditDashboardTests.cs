@@ -18,8 +18,11 @@ public sealed class AuditDashboardTests
         Assert.Equal(3, dashboard.UsersWithActiveSessions);
         Assert.Equal(4, dashboard.ActiveUsers);
         Assert.Equal(2, dashboard.InactiveUsers);
-        Assert.Equal(context.Clock.Now.AddHours(-24), context.Audits.LastFrom);
-        Assert.Equal(context.Clock.Now, context.Audits.LastTo);
+        Assert.Equal(context.Clock.Now.AddHours(-24), context.Audits.LastMetricsFrom);
+        Assert.Equal(context.Clock.Now, context.Audits.LastMetricsTo);
+        Assert.Equal(context.Clock.Now.AddDays(-7), context.Audits.LastQuery?.From);
+        Assert.Equal(context.Clock.Now, context.Audits.LastQuery?.To);
+        Assert.Equal(10, context.Audits.LastQuery?.PageSize);
     }
 
     [Fact]
@@ -48,7 +51,7 @@ public sealed class AuditDashboardTests
             Audits.ActiveUsers = 4;
             Audits.InactiveUsers = 2;
             Audits.UsersWithActiveSessions = 3;
-            UseCase = new GetSystemAdministrationDashboard(Clock, Audits);
+            UseCase = new GetSystemAdministrationDashboard(Clock, Audits, Audits);
         }
 
         public FakeClock Clock { get; } = new(new DateTime(2026, 9, 3, 10, 0, 0, DateTimeKind.Unspecified));
@@ -66,12 +69,14 @@ internal sealed class TestAuditLogRepository : ISystemAdministrationMetricsReade
     public int UsersWithActiveSessions { get; set; }
     public DateTime LastFrom { get; private set; }
     public DateTime LastTo { get; private set; }
+    public DateTime LastMetricsFrom { get; private set; }
+    public DateTime LastMetricsTo { get; private set; }
     public AuditLogQuery? LastQuery { get; private set; }
 
     public Task<SystemAdministrationMetrics> GetAsync(DateTime from, DateTime to, CancellationToken cancellationToken)
     {
-        LastFrom = from;
-        LastTo = to;
+        LastMetricsFrom = from;
+        LastMetricsTo = to;
         return Task.FromResult(new SystemAdministrationMetrics(
             ActiveUsers, InactiveUsers, SuccessfulSignIns, FailedSecurityAttempts, UsersWithActiveSessions));
     }

@@ -34,8 +34,20 @@ export function AppShell() {
   );
   useEffect(() => {
     const authorizedRouteIds = new Set(targets.map((target) => target.routeId));
+    const hasSystemAdministration = user.roleCodes.includes(
+      "SystemAdministrator",
+    );
     for (const tab of tabs) {
-      if (tab.routeId !== "home" && !authorizedRouteIds.has(tab.routeId)) {
+      const isAdministrationForm = [
+        "administration-user-create",
+        "administration-user-edit",
+        "department-form",
+      ].includes(tab.routeId);
+      if (
+        tab.routeId !== "home" &&
+        !authorizedRouteIds.has(tab.routeId) &&
+        !(hasSystemAdministration && isAdministrationForm)
+      ) {
         dispatch({ type: "close", key: tab.key, confirmed: true });
       }
     }
@@ -108,7 +120,11 @@ export function AppShell() {
             component="main"
             sx={{ flex: 1, overflow: "auto", p: { xs: 2, md: 3 } }}
           >
-            {active.routeId === "home" || targetForRouteId(active.routeId)
+            {active.routeId === "home" ||
+            targetForRouteId(active.routeId) ||
+            active.routeId === "administration-user-create" ||
+            active.routeId === "administration-user-edit" ||
+            active.routeId === "department-form"
               ? renderTab(active)
               : renderTab(tabs[0])}
           </Box>

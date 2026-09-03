@@ -144,7 +144,6 @@ public sealed class ProvisionSystemAdministrator(
                         protectedMobile,
                         maskedMobile,
                         now);
-                    user.Activate(now);
                     user.AssignDepartment(softwareDepartment.Id, now);
                 }
 
@@ -175,6 +174,7 @@ public sealed class ProvisionSystemAdministrator(
 
                 user!.AssignRole(systemAdministratorRole!.Id);
                 user.AssignRole(departmentManagerRole!.Id);
+                user.Activate(now);
                 await auditWriter.WriteAsync(
                     new AuditRecord(
                         null,

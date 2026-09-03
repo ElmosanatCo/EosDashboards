@@ -1,12 +1,18 @@
 import ApartmentOutlinedIcon from "@mui/icons-material/ApartmentOutlined";
 import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
 import SpaceDashboardOutlinedIcon from "@mui/icons-material/SpaceDashboardOutlined";
+import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
+import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
 import type { SvgIconComponent } from "@mui/icons-material";
 import type { ReactNode } from "react";
 import type { TabDescriptor } from "./tabTypes";
 import { ChiefExecutiveDashboardPage } from "../pages/ChiefExecutiveDashboardPage";
 import { DepartmentDashboardPage } from "../pages/DepartmentDashboardPage";
 import { HumanResourcesDashboardPage } from "../pages/HumanResourcesDashboardPage";
+import { SystemAdministrationDashboardPage } from "../pages/SystemAdministrationDashboardPage";
+import { SystemAuditPage } from "../pages/SystemAuditPage";
+import { UserManagementPage } from "../pages/UserManagementPage";
+import { DepartmentManagementPage } from "../pages/DepartmentManagementPage";
 
 export type WorkspaceTarget = {
   routeId: string;
@@ -19,6 +25,42 @@ export type WorkspaceTarget = {
 };
 
 export const workspaceTargets: readonly WorkspaceTarget[] = [
+  {
+    routeId: "system-administration-dashboard",
+    pathname: "/system-administration-dashboard",
+    title: "داشبورد مدیر سامانه",
+    keywords: ["مدیر سامانه", "مدیریت سامانه", "امنیت"],
+    requiredRoleCodes: ["SystemAdministrator"],
+    Icon: AdminPanelSettingsOutlinedIcon,
+    render: () => <SystemAdministrationDashboardPage />,
+  },
+  {
+    routeId: "administration-users",
+    pathname: "/users",
+    title: "مدیریت کاربران",
+    keywords: ["کاربر", "حساب", "نقش"],
+    requiredRoleCodes: ["SystemAdministrator"],
+    Icon: GroupsOutlinedIcon,
+    render: () => <UserManagementPage />,
+  },
+  {
+    routeId: "administration-departments",
+    pathname: "/departments",
+    title: "مدیریت واحدها",
+    keywords: ["واحد", "سازمان", "بخش"],
+    requiredRoleCodes: ["SystemAdministrator"],
+    Icon: ApartmentOutlinedIcon,
+    render: () => <DepartmentManagementPage />,
+  },
+  {
+    routeId: "administration-audit",
+    pathname: "/system-audit",
+    title: "ممیزی سامانه",
+    keywords: ["ممیزی", "لاگ", "رویداد", "ورود"],
+    requiredRoleCodes: ["SystemAdministrator"],
+    Icon: HistoryOutlinedIcon,
+    render: () => <SystemAuditPage />,
+  },
   {
     routeId: "department-dashboard",
     pathname: "/department-dashboard",
