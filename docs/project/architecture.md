@@ -1,6 +1,6 @@
 # Architecture
 
-**Last updated:** 2026-09-02
+**Last updated:** 2026-09-03
 
 ## Accepted baseline
 
@@ -49,7 +49,7 @@ The API project carries `Microsoft.EntityFrameworkCore.Design` as private design
 
 Phase 1 uses local credentials for active pre-provisioned database users. A username is unique and a password is stored only as a standard salted password hash. Every new application session requires successful username/password verification followed by a six-digit SMS OTP. Passwords are 8 to 128 characters long with no character-class composition rule. The OTP is valid for five minutes, permits five verification attempts, and has a 60-second resend cooldown.
 
-After OTP verification, the application creates an eight-hour session. JWT access tokens normally expire ten minutes after issuance and are held in browser memory. Refresh remains available at every instant strictly before the absolute session expiry; the final access token is shortened to end at that expiry and never outlives the session. Tokens are renewed through a hashed, revocable refresh credential carried only by a Secure, HttpOnly cookie. Logout or session expiry revokes access and returns to the single-button sign-in screen. No local password exists.
+After OTP verification, the application creates an eight-hour session. JWT access tokens normally expire ten minutes after issuance and are held in browser memory. Refresh remains available at every instant strictly before the absolute session expiry; the final access token is shortened to end at that expiry and never outlives the session. Tokens are renewed through a hashed, revocable refresh credential carried only by a Secure, HttpOnly cookie. Logout or session expiry revokes access and returns to the local sign-in form. Plaintext local passwords are never stored.
 
 The first user is created or updated before application startup with an idempotent deployment-only administrator provisioning tool and receives the System Administrator role. Personal values, usernames, passwords, and database credentials enter through secure runtime input and never enter source control. A signed-in user changes a password by verifying the current password; password recovery completes a purpose-isolated SMS OTP challenge. Password changes and resets revoke that user's active sessions.
 
@@ -61,7 +61,7 @@ Windows/AD, LDAP, and other organizational identity-provider access are deferred
 
 - React UI and ASP.NET Core API are separate IIS sites/applications and separate application pools.
 - The SQL Server database and IIS targets currently available on the developer's machine are development-only targets for local integration and hosting. They are not production infrastructure.
-- The completed initial vertical slice will be published to those local development IIS targets after its API and frontend integration is verified. The API uses anonymous IIS access at its transport boundary; application authentication is enforced by its credential, OTP, JWT, refresh-cookie, and authorization controls.
+- The initial vertical slice is published to those local development IIS targets. The UI and API readiness endpoints return HTTPS HTTP 200. The API uses anonymous IIS access at its transport boundary; application authentication is enforced by its credential, OTP, JWT, refresh-cookie, and authorization controls. End-to-end live sign-in remains blocked by the configured external SMS endpoint timing out.
 - Production deployment will occur later on separate company servers using separately approved hostnames, certificates, identities, configuration, secrets, and operational controls.
 - Only approved UI origins are allowed by API CORS policy.
 - HTTPS is mandatory and HSTS is enabled in production.

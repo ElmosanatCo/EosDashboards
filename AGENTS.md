@@ -45,7 +45,7 @@ Before finishing a task, update the appropriate canonical document when a durabl
 - Integrate facts into the current source of truth; do not append raw chat logs.
 - Mark unapproved ideas as proposed or unresolved.
 - Add a decision record only for consequential choices whose rationale must remain auditable.
-- Never store secrets, credentials, personal data, or production connection details.
+- Never store personal data or production connection details. Under decision 0006, the user explicitly permits local development SQL credentials, SMS endpoint settings, and API security keys in the tracked API development configuration of this private repository; do not print those values in output or documentation.
 - Keep `current-state.md` short and replace stale operational details.
 - Version documentation with the code it describes.
 

@@ -13,7 +13,7 @@ This is the canonical implementation standard for EosDashboards. Feature specifi
 - Maintain analysis, requirements, design, architecture, operations, and decision documentation with the code.
 - Keep concise technical sources of truth in plain English and formal printable documents in Persian.
 - Update affected documents whenever a durable requirement, decision, rule, state, or next step changes.
-- Do not store raw chat transcripts, secrets, credentials, personal data, or production connection details.
+- Do not store raw chat transcripts, personal data, or production connection details. Decision 0006 permits local development SQL credentials, SMS endpoint settings, and API security keys in the tracked API development configuration of this private repository; documentation and tool output must still omit their values.
 - Use decision records for consequential choices and retain rationale, status, and supersession history.
 - Before every local merge or push, update and verify `AGENTS.md` and the affected canonical documents.
 - Every successful local merge must be verified and immediately pushed to the destination branch. A failed push means integration is incomplete.
@@ -82,7 +82,7 @@ This is the canonical implementation standard for EosDashboards. Feature specifi
 - Enforce authorization on the server using roles and policies, least privilege, and deny-by-default behavior.
 - Never rely on hidden UI elements as authorization.
 - Rate-limit sign-in and other sensitive endpoints.
-- Keep secrets outside source control and protect them per environment.
+- Keep production secrets outside source control and protect them per environment. By explicit user approval, the private repository may track local development SQL credentials, SMS endpoint settings, and API security keys in the API development configuration; never expose those values through logs, errors, documentation, or test output.
 - Audit authentication, permission, administration, and sensitive export events without recording credentials, tokens, or sensitive payloads.
 - Address material dependency or security findings before merge, or record an explicitly approved exception.
 

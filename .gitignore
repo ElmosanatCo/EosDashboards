@@ -4,6 +4,7 @@
 # .NET
 **/bin/
 **/obj/
+backend/artifacts/api-local-credential/
 *.user
 *.suo
 

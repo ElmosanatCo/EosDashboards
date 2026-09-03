@@ -1,6 +1,6 @@
 # Roadmap
 
-**Last updated:** 2026-09-02
+**Last updated:** 2026-09-03
 
 ## Phase 1 — Project memory
 
@@ -18,11 +18,11 @@ Project-wide foundation standards are complete. Dashboard-specific discovery rem
 
 ## Phase 3 — Architecture and foundation
 
-**Status:** Core implementation verified; local operator deployment pending
+**Status:** Core implementation and local IIS deployment complete; SMS connectivity blocked
 
 Scaffold the separate backend and frontend foundations; add database migrations and administrator provisioning; implement local username/password sign-in, SMS OTP, password recovery/change, session management, the RTL themed tabbed SPA shell, branding, status bar, and automated verification.
 
-The code, isolated database verification, browser flow, and separate IIS-ready artifacts are complete. Final local installation is pending the missing approved logo, exact IIS targets/elevated access, local secrets, administrator input, and explicit approval for one real SMS receipt test.
+The code, isolated database verification, mocked browser flow, approved branding, separate IIS deployment, database migration, and initial administrator provisioning are complete. UI and API readiness pass locally. A user-authorized live sign-in reached the API and validated the provisioned account, but the configured external SMS endpoint timed out; end-to-end OTP, refresh, and logout smoke verification remains blocked until that private endpoint or its connectivity is corrected.
 
 ## Phase 4 — First vertical dashboard slice
 

@@ -55,9 +55,7 @@ test("local credential OTP opens the authenticated shell and logout returns to s
   await page
     .getByRole("textbox", { name: "رمز عبور" })
     .fill("synthetic password");
-  await page
-    .getByRole("button", { name: "ورود و دریافت کد تأیید" })
-    .click();
+  await page.getByRole("button", { name: "ورود و دریافت کد تأیید" }).click();
   await page.getByLabel("کد شش‌رقمی").fill("۱۲۳۴۵۶");
   await page.getByRole("button", { name: "تأیید کد" }).click();
   await expect(page.getByText("داشبوردها به‌زودی اضافه می‌شوند")).toBeVisible();
