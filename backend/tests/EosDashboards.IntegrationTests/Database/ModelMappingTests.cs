@@ -83,6 +83,7 @@ public sealed class ModelMappingTests
         AssertCompositeUniqueIndex<ExternalIdentityLink>(
             nameof(ExternalIdentityLink.Provider),
             nameof(ExternalIdentityLink.NormalizedEmail));
+        AssertUniqueIndex<Department>(nameof(Department.Name));
     }
 
     [Fact]
@@ -137,6 +138,23 @@ public sealed class ModelMappingTests
 
         Assert.NotNull(rowVersion);
         Assert.True(rowVersion.IsShadowProperty());
+        Assert.True(rowVersion.IsConcurrencyToken);
+        Assert.Equal(typeof(byte[]), rowVersion.ClrType);
+        Assert.False(rowVersion.IsNullable);
+        Assert.Equal("rowversion", rowVersion.GetColumnType());
+        Assert.Equal(ValueGenerated.OnAddOrUpdate, rowVersion.ValueGenerated);
+    }
+
+    [Theory]
+    [InlineData(typeof(User))]
+    [InlineData(typeof(Department))]
+    public void Mutable_administration_state_uses_a_public_rowversion(Type entityType)
+    {
+        // Break caught: silently overwriting a concurrent user or department change.
+        var rowVersion = RequiredEntity(entityType).FindProperty("RowVersion");
+
+        Assert.NotNull(rowVersion);
+        Assert.False(rowVersion.IsShadowProperty());
         Assert.True(rowVersion.IsConcurrencyToken);
         Assert.Equal(typeof(byte[]), rowVersion.ClrType);
         Assert.False(rowVersion.IsNullable);

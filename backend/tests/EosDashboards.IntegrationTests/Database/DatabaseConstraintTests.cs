@@ -35,6 +35,43 @@ public sealed class DatabaseConstraintTests(SqlServerDatabaseFixture database)
     }
 
     [Fact]
+    public async Task Departments_RejectDuplicateNames()
+    {
+        // Break caught: making a user department selection ambiguous through duplicate names.
+        await using var context = database.CreateDbContext();
+        var name = $"واحد آزمایشی {Guid.NewGuid():N}";
+        context.Departments.Add(Department.CreateRoot(name, TestNow));
+        context.Departments.Add(Department.CreateRoot(name, TestNow));
+
+        await Assert.ThrowsAnyAsync<DbUpdateException>(
+            () => context.SaveChangesAsync(CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Users_RejectStaleConcurrentProfileUpdates()
+    {
+        // Break caught: allowing one administrator to overwrite another administrator's user edit.
+        long userId;
+        await using (var seedContext = database.CreateDbContext())
+        {
+            var user = await AddUserAsync(seedContext);
+            userId = user.Id;
+        }
+
+        await using var firstContext = database.CreateDbContext();
+        await using var staleContext = database.CreateDbContext();
+        var first = await firstContext.Users.SingleAsync(user => user.Id == userId, CancellationToken.None);
+        var stale = await staleContext.Users.SingleAsync(user => user.Id == userId, CancellationToken.None);
+
+        first.UpdateOrganizationalId($"first-{Guid.NewGuid():N}", TestNow.AddMinutes(1));
+        await firstContext.SaveChangesAsync(CancellationToken.None);
+        stale.UpdateOrganizationalId($"stale-{Guid.NewGuid():N}", TestNow.AddMinutes(2));
+
+        await Assert.ThrowsAsync<DbUpdateConcurrencyException>(
+            () => staleContext.SaveChangesAsync(CancellationToken.None));
+    }
+
+    [Fact]
     public async Task ExternalIdentityLinks_RejectDuplicateGoogleEmailOrSubject()
     {
         await using var context = database.CreateDbContext();

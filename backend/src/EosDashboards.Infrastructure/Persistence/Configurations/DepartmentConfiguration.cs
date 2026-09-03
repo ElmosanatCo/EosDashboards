@@ -15,10 +15,12 @@ internal sealed class DepartmentConfiguration : IEntityTypeConfiguration<Departm
         builder.Property(department => department.ParentDepartmentId).HasColumnType("bigint");
         builder.Property(department => department.CreatedAt).HasColumnType("datetime2(3)");
         builder.Property(department => department.UpdatedAt).HasColumnType("datetime2(3)");
+        builder.Property(department => department.RowVersion).IsRequired().IsRowVersion().HasColumnType("rowversion");
         builder.HasOne(department => department.ParentDepartment)
             .WithMany()
             .HasForeignKey(department => department.ParentDepartmentId)
             .OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(department => department.ParentDepartmentId);
+        builder.HasIndex(department => department.Name).IsUnique();
     }
 }
