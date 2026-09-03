@@ -1,6 +1,6 @@
 # Role-based dashboard shell and department foundation design
 
-**Status:** Approved design awaiting implementation-plan review
+**Status:** Approved design; implementation plan prepared
 
 **Date:** 2026-09-03
 
