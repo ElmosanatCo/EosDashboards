@@ -13,6 +13,7 @@ This is the canonical implementation standard for EosDashboards. Feature specifi
 - Maintain analysis, requirements, design, architecture, operations, and decision documentation with the code.
 - Keep concise technical sources of truth in plain English and formal printable documents in Persian.
 - Update affected documents whenever a durable requirement, decision, rule, state, or next step changes.
+- Record every durable user agreement, accepted decision, material blocker, and confirmed resolution in the appropriate canonical source before ending the task. Resolutions must capture the symptom, root cause, durable remedy, and safe verification evidence needed to avoid repeated investigation; retain a decision record when its rationale must remain auditable.
 - Do not store raw chat transcripts, personal data, or production connection details. Decision 0006 permits local development SQL credentials, SMS endpoint settings, and API security keys in the tracked API development configuration of this private repository; documentation and tool output must still omit their values.
 - Use decision records for consequential choices and retain rationale, status, and supersession history.
 - Before every local merge or push, update and verify `AGENTS.md` and the affected canonical documents.
