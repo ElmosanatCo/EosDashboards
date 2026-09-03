@@ -72,6 +72,13 @@ access changes. Request-originated entries show a direct IP and coarse device
 kind, never a raw user-agent. The dashboard's user-presence metric is active
 sessions, not live browser presence.
 
+Audit filtering is user-facing: events are selected by their Persian labels,
+and the actor and affected subject are selected from the managed-user list by
+name and personnel code while the API receives their internal IDs. The audit
+page keeps its title, filters, and refresh action fixed; only the audit-history
+table scrolls when the result set is long. Date-selection controls use the
+Persian calendar and keep time in a separate field.
+
 User and department create/edit operations open as responsive dialogs above
 their management page rather than as extra workspace tabs. The form surface
 fills the dialog content width so desktop layouts do not introduce an
