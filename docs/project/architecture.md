@@ -112,6 +112,10 @@ The frontend is an RTL-first React SPA. Internal workspace tabs are route-aware 
   remain honest no-data dashboards. The approved System Administrator slice
   adds its operational dashboard, users, departments, and audit targets;
   client filtering is not API authorization.
+- Manager-facing primary panels share the `eos-accent-card` treatment: a thin
+  top accent line transitions to gold on hover. Administration create/edit
+  forms are rendered inside source-page dialogs and set their form surface to
+  the dialog's full content width at every supported breakpoint.
 
 The supplied EOS logo and company name `علم و صنعت` appear on sign-in and in the shell. The fixed status bar displays build-derived version, live local-system time, and Persian-calendar date.
 

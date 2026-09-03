@@ -72,6 +72,11 @@ access changes. Request-originated entries show a direct IP and coarse device
 kind, never a raw user-agent. The dashboard's user-presence metric is active
 sessions, not live browser presence.
 
+User and department create/edit operations open as responsive dialogs above
+their management page rather than as extra workspace tabs. The form surface
+fills the dialog content width so desktop layouts do not introduce an
+unintentional side gutter; entered values remain visible when a save fails.
+
 ### FR-006 — Tabbed SPA workspace
 
 **Status:** Confirmed

@@ -79,6 +79,7 @@ export function SystemAdministrationDashboardPage() {
           <Paper
             key={key}
             variant="outlined"
+            className="eos-accent-card"
             sx={{ p: 2, borderTop: 3, borderTopColor: "primary.main" }}
           >
             <Stack
@@ -98,6 +99,7 @@ export function SystemAdministrationDashboardPage() {
       </Box>
       <Paper
         variant="outlined"
+        className="eos-accent-card"
         sx={{
           borderTop: 3,
           borderTopColor: "primary.main",
@@ -207,6 +209,7 @@ function Message({ title }: { title: string }) {
   return (
     <Paper
       variant="outlined"
+      className="eos-accent-card"
       sx={{
         maxWidth: 640,
         mx: "auto",
