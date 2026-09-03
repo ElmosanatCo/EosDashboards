@@ -70,6 +70,11 @@ public sealed class ExternalIdentityLink
         LinkedAtUtc = linkedAtUtc.ToUniversalTime();
     }
 
+    public void UpdateApprovedEmail(string email)
+    {
+        NormalizedEmail = NormalizeEmail(email);
+    }
+
     public static string NormalizeEmail(string value)
     {
         if (string.IsNullOrWhiteSpace(value))

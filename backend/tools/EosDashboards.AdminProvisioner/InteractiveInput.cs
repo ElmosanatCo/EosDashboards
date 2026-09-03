@@ -35,6 +35,8 @@ public sealed class InteractiveInput(
         var lastName = console.ReadLine();
         console.Write("شماره همراه (مخفی): ");
         var mobile = console.ReadSecret();
+        console.Write("رایانامهٔ حساب گوگل (اختیاری و مخفی): ");
+        var googleEmail = console.ReadSecret();
         console.WriteLine(string.Empty);
 
         if (organizationalId is null ||
@@ -43,7 +45,8 @@ public sealed class InteractiveInput(
             password is null ||
             firstName is null ||
             lastName is null ||
-            mobile is null)
+            mobile is null ||
+            googleEmail is null)
         {
             return Cancel();
         }
@@ -77,7 +80,8 @@ public sealed class InteractiveInput(
             password,
             firstName,
             lastName,
-            normalizedMobile);
+            normalizedMobile,
+            googleEmail);
     }
 
     private ProvisionSystemAdministratorCommand? Cancel()

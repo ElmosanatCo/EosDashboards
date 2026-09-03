@@ -111,6 +111,51 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
     }
 
     [Fact]
+    public async Task ProvisioningPersistsOnePendingGoogleLinkWithoutAuditingTheEmail()
+    {
+        await ResetProvisioningStateAsync();
+        try
+        {
+            using var keyRing = TemporaryKeyRing.Create();
+            var mobileProtector = new DataProtectionMobileProtector(
+                DataProtectionProvider.Create(keyRing.Path));
+            await ProvisionOnceAsync(
+                new ProvisionSystemAdministratorCommand(
+                    "org-synthetic-google-integration",
+                    "domain\\synthetic.google.integration",
+                    "local.google.integration",
+                    "synthetic password",
+                    "Synthetic",
+                    "Google",
+                    "09120006789",
+                    "person.synthetic@example.test"),
+                mobileProtector);
+
+            await using var verificationContext = database.CreateDbContext();
+            var link = Assert.Single(await verificationContext.ExternalIdentityLinks
+                .AsNoTracking()
+                .Where(item => item.NormalizedEmail == "PERSON.SYNTHETIC@EXAMPLE.TEST")
+                .ToListAsync());
+            Assert.Equal(EosDashboards.Domain.Enums.ExternalIdentityProvider.Google, link.Provider);
+            Assert.Null(link.ProviderSubject);
+            Assert.Null(link.LinkedAtUtc);
+
+            var auditText = string.Join(
+                Environment.NewLine,
+                await verificationContext.AuditLogs
+                    .AsNoTracking()
+                    .Where(item => item.SubjectUserId == link.UserId)
+                    .Select(item => item.SafeMetadata)
+                    .ToListAsync());
+            Assert.DoesNotContain("person.synthetic@example.test", auditText, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            await ResetProvisioningStateAsync();
+        }
+    }
+
+    [Fact]
     public async Task AuditFailureRollsBackGeneratedUserAndAnyStagedAudit()
     {
         using var keyRing = TemporaryKeyRing.Create();
@@ -127,6 +172,7 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
                 mobileProtector,
                 new LocalPasswordHasher(),
                 auditWriter,
+                new ExternalIdentityLinkRepository(context),
             new EfUnitOfWork(context));
 
         await Assert.ThrowsAsync<InvalidOperationException>(
@@ -182,6 +228,7 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
                 mobileProtector,
                 new LocalPasswordHasher(),
                 new AuditWriter(context, new FixedClock(TestNow)),
+                new ExternalIdentityLinkRepository(context),
                 new EfUnitOfWork(context));
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(
@@ -358,16 +405,43 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
                 confirmation,
             ],
             "synthetic password",
-            "09120006789");
+            "09120006789",
+            "");
         var input = new InteractiveInput(console, new MaskOnlyMobileProtector());
 
         var command = input.Read();
 
         Assert.NotNull(command);
         Assert.Equal("09120006789", command!.Mobile);
-        Assert.Equal(2, console.SecretReadCount);
+        Assert.Equal(string.Empty, command.GoogleEmail);
+        Assert.Equal(3, console.SecretReadCount);
         Assert.Contains("*******6789", console.Transcript, StringComparison.Ordinal);
         Assert.DoesNotContain("09120006789", console.Transcript, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void InteractiveInputReadsAnOptionalGoogleEmailWithoutEchoingIt()
+    {
+        var console = new RecordingConsole(
+            [
+                "org-synthetic-google-console",
+                "domain\\synthetic.google.console",
+                "local.google.console",
+                "Synthetic",
+                "Google",
+                "yes",
+            ],
+            "synthetic password",
+            "09120006789",
+            "person.synthetic@example.test");
+        var input = new InteractiveInput(console, new MaskOnlyMobileProtector());
+
+        var command = input.Read();
+
+        Assert.NotNull(command);
+        Assert.Equal("person.synthetic@example.test", command!.GoogleEmail);
+        Assert.Equal(3, console.SecretReadCount);
+        Assert.DoesNotContain("person.synthetic@example.test", console.Transcript, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -385,7 +459,8 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
                 "yes",
             ],
             "synthetic password",
-            "09120006789");
+            "09120006789",
+            "");
         var input = new InteractiveInput(console, new MaskOnlyMobileProtector());
 
         var command = input.Read();
@@ -412,7 +487,8 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
                 confirmation,
             ],
             "synthetic password",
-            "09120006789");
+            "09120006789",
+            "");
         var input = new InteractiveInput(console, new MaskOnlyMobileProtector());
 
         var command = input.Read();
@@ -475,6 +551,7 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
             mobileProtector,
             new LocalPasswordHasher(),
             new AuditWriter(context, new FixedClock(TestNow)),
+            new ExternalIdentityLinkRepository(context),
             new EfUnitOfWork(context));
         return await sut.HandleAsync(command, CancellationToken.None);
     }
@@ -493,6 +570,7 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
             mobileProtector,
             new LocalPasswordHasher(),
             new AuditWriter(context, new FixedClock(TestNow)),
+            new ExternalIdentityLinkRepository(context),
             new EfUnitOfWork(context));
         return await sut.HandleAsync(command, CancellationToken.None);
     }
@@ -503,6 +581,16 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
         await context.AuditLogs
             .Where(item => item.EventCode == "SystemAdministratorProvisioned")
             .ExecuteDeleteAsync();
+        var syntheticUserIds = await context.Users
+            .Where(item => item.OrganizationalId.StartsWith("ORG-SYNTHETIC-"))
+            .Select(item => item.Id)
+            .ToArrayAsync();
+        if (syntheticUserIds.Length > 0)
+        {
+            await context.ExternalIdentityLinks
+                .Where(item => syntheticUserIds.Contains(item.UserId))
+                .ExecuteDeleteAsync();
+        }
         var roleIds = await context.Roles
             .Where(item => item.Code.ToUpper() == "SYSTEMADMINISTRATOR")
             .Select(item => item.Id)

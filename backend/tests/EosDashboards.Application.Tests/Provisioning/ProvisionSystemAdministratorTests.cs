@@ -2,6 +2,7 @@ using System.Reflection;
 using EosDashboards.Application.Abstractions;
 using EosDashboards.Application.Provisioning;
 using EosDashboards.Domain.Entities;
+using EosDashboards.Domain.Enums;
 
 namespace EosDashboards.Application.Tests.Provisioning;
 
@@ -62,6 +63,7 @@ public sealed class ProvisionSystemAdministratorTests
         Assert.Equal("*******6789", secondResult.MaskedMobile);
         Assert.Equal(2, dependencies.UnitOfWork.TransactionCount);
         Assert.Equal([2, 1], dependencies.UnitOfWork.SaveCountsByTransaction);
+        Assert.Empty(dependencies.ExternalIdentityLinks.Items);
 
         Assert.Collection(
             dependencies.Audits.Records,
@@ -131,6 +133,50 @@ public sealed class ProvisionSystemAdministratorTests
         Assert.Null(user.DeactivatedAtUtc);
         Assert.Single(user.UserRoles);
         Assert.Equal([1], dependencies.UnitOfWork.SaveCountsByTransaction);
+    }
+
+    [Fact]
+    public async Task RepeatedProvisioningUpdatesThePendingGoogleEmailForTheSystemAdministrator()
+    {
+        var dependencies = new ProvisioningDependencies();
+        var sut = dependencies.CreateSut();
+
+        await sut.HandleAsync(
+            new ProvisionSystemAdministratorCommand(
+                "org-synthetic-google",
+                "domain\\synthetic.google",
+                "local.google",
+                "synthetic password",
+                "Synthetic",
+                "Google",
+                "09120006789",
+                "  first.synthetic@example.test  "),
+            CancellationToken.None);
+        var firstLink = Assert.Single(dependencies.ExternalIdentityLinks.Items);
+        firstLink.BindSubject("synthetic-google-subject", TestNow.AddMinutes(1));
+        await sut.HandleAsync(
+            new ProvisionSystemAdministratorCommand(
+                "org-synthetic-google",
+                "domain\\synthetic.google",
+                "local.google",
+                "synthetic password",
+                "Synthetic",
+                "Google",
+                "09120006789",
+                "second.synthetic@example.test"),
+            CancellationToken.None);
+
+        var link = Assert.Single(dependencies.ExternalIdentityLinks.Items);
+        var user = Assert.Single(dependencies.Users.Items);
+        Assert.Equal(user.Id, link.UserId);
+        Assert.Equal(ExternalIdentityProvider.Google, link.Provider);
+        Assert.Equal("SECOND.SYNTHETIC@EXAMPLE.TEST", link.NormalizedEmail);
+        Assert.Equal("synthetic-google-subject", link.ProviderSubject);
+        Assert.Equal(TestNow.AddMinutes(1), link.LinkedAtUtc);
+        Assert.DoesNotContain(
+            "second.synthetic@example.test",
+            string.Join(Environment.NewLine, dependencies.Audits.Records),
+            StringComparison.OrdinalIgnoreCase);
     }
 
     [Theory]
@@ -253,11 +299,13 @@ public sealed class ProvisionSystemAdministratorTests
 
         public TestAuditWriter Audits { get; } = new();
 
+        public TestExternalIdentityLinkRepository ExternalIdentityLinks { get; } = new();
+
         public TestUnitOfWork UnitOfWork { get; }
 
         public ProvisioningDependencies()
         {
-            UnitOfWork = new TestUnitOfWork(Users, Roles);
+            UnitOfWork = new TestUnitOfWork(Users, Roles, ExternalIdentityLinks);
         }
 
         public ProvisionSystemAdministrator CreateSut() => new(
@@ -268,6 +316,7 @@ public sealed class ProvisionSystemAdministratorTests
             MobileProtector,
             PasswordHasher,
             Audits,
+            ExternalIdentityLinks,
             UnitOfWork);
     }
 
@@ -358,12 +407,53 @@ public sealed class ProvisionSystemAdministratorTests
         }
     }
 
+    private sealed class TestExternalIdentityLinkRepository : IExternalIdentityLinkRepository
+    {
+        public List<ExternalIdentityLink> Items { get; } = [];
+
+        public Task<ExternalIdentityLink?> FindByProviderSubjectAsync(
+            ExternalIdentityProvider provider,
+            string providerSubject,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult(Items.SingleOrDefault(item =>
+                item.Provider == provider && item.ProviderSubject == providerSubject));
+        }
+
+        public Task<ExternalIdentityLink?> FindPendingByProviderEmailAsync(
+            ExternalIdentityProvider provider,
+            string normalizedEmail,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult(Items.SingleOrDefault(item =>
+                item.Provider == provider &&
+                item.ProviderSubject is null &&
+                item.NormalizedEmail == normalizedEmail));
+        }
+
+        public Task<ExternalIdentityLink?> FindByUserIdAndProviderAsync(
+            long userId,
+            ExternalIdentityProvider provider,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult(Items.SingleOrDefault(item =>
+                item.UserId == userId && item.Provider == provider));
+        }
+
+        public void Add(ExternalIdentityLink link) => Items.Add(link);
+    }
+
     private sealed class TestUnitOfWork(
         TestUserRepository users,
-        TestRoleRepository roles) : IUnitOfWork
+        TestRoleRepository roles,
+        TestExternalIdentityLinkRepository externalIdentityLinks) : IUnitOfWork
     {
         private long _nextUserId = 101;
         private long _nextRoleId = 201;
+        private long _nextExternalIdentityLinkId = 301;
 
         public int SaveCount { get; private set; }
 
@@ -382,6 +472,11 @@ public sealed class ProvisionSystemAdministratorTests
             foreach (var user in users.Items.Where(item => item.Id == 0))
             {
                 SetId(user, _nextUserId++);
+            }
+
+            foreach (var externalIdentityLink in externalIdentityLinks.Items.Where(item => item.Id == 0))
+            {
+                SetId(externalIdentityLink, _nextExternalIdentityLinkId++);
             }
 
             SaveCount++;

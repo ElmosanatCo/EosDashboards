@@ -25,5 +25,13 @@ public sealed class ExternalIdentityLinkRepository(EosDashboardDbContext context
                     link.ProviderSubject == null,
             cancellationToken);
 
+    public Task<ExternalIdentityLink?> FindByUserIdAndProviderAsync(
+        long userId,
+        ExternalIdentityProvider provider,
+        CancellationToken cancellationToken) =>
+        context.Set<ExternalIdentityLink>().SingleOrDefaultAsync(
+            link => link.UserId == userId && link.Provider == provider,
+            cancellationToken);
+
     public void Add(ExternalIdentityLink link) => context.Add(link);
 }

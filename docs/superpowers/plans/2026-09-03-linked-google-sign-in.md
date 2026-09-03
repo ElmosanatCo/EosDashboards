@@ -127,7 +127,7 @@ Run: `dotnet test backend/tests/EosDashboards.IntegrationTests/EosDashboards.Int
 
 Expected: PASS, including duplicate email/subject rejection and pending-email/subject lookup coverage.
 
-- [ ] **Step 6: Commit the independently testable persistence slice.**
+- [x] **Step 6: Commit the independently testable persistence slice.**
 
 ```powershell
 git add backend/src/EosDashboards.Domain backend/src/EosDashboards.Application/Abstractions backend/src/EosDashboards.Infrastructure backend/tests/EosDashboards.Domain.Tests backend/tests/EosDashboards.IntegrationTests
@@ -148,7 +148,7 @@ git commit -m "feat: persist linked external identities"
 - Extends `ProvisionSystemAdministratorCommand` with `string? GoogleEmail`.
 - Produces one pending `Google` identity link for the provisioned administrator when a Google email is supplied.
 
-- [ ] **Step 1: Write failing provisioning tests.**
+- [x] **Step 1: Write failing provisioning tests.**
 
 ```csharp
 [Fact]
@@ -165,13 +165,13 @@ public async Task Provisioning_creates_or_updates_a_pending_google_email_link()
 
 Also assert that a command without `GoogleEmail` leaves links untouched and that the interactive console uses `ReadSecret()` for the email and never writes it or an email-shaped confirmation string.
 
-- [ ] **Step 2: Run the focused provisioning tests to verify they fail.**
+- [x] **Step 2: Run the focused provisioning tests to verify they fail.**
 
 Run: `dotnet test backend/tests/EosDashboards.Application.Tests/EosDashboards.Application.Tests.csproj --filter FullyQualifiedName~ProvisionSystemAdministratorTests`
 
 Expected: FAIL because the command has no Google email field and the provisioner has no link behavior.
 
-- [ ] **Step 3: Extend the application command and idempotent transaction.**
+- [x] **Step 3: Extend the application command and idempotent transaction.**
 
 ```csharp
 public sealed record ProvisionSystemAdministratorCommand(
@@ -179,9 +179,9 @@ public sealed record ProvisionSystemAdministratorCommand(
     string FirstName, string LastName, string Mobile, string? GoogleEmail);
 ```
 
-Inside the existing serialized transaction, normalize a nonblank Google email and add or update only that administrator's pending Google link. Preserve an already bound identical link; reject attempts to overwrite a bound different Google subject through email provisioning. Keep the existing provisioning audit value-free.
+Inside the existing serialized transaction, normalize a nonblank Google email and add or update only that administrator's Google link. Updating its approved email never changes an already bound provider subject. Keep the existing provisioning audit value-free.
 
-- [ ] **Step 4: Extend interactive input using the existing hidden-entry path.**
+- [x] **Step 4: Extend interactive input using the existing hidden-entry path.**
 
 ```csharp
 console.Write("ایمیل Google برای اتصال ورود (مخفی، اختیاری): ");
@@ -190,7 +190,7 @@ var googleEmail = console.ReadSecret();
 
 Accept an empty hidden value as no update. Do not print the input, masked email, or a derived email. The confirmation copy states only that the Google sign-in link will be updated.
 
-- [ ] **Step 5: Run focused tests and verify UTF-8/non-disclosure behavior.**
+- [x] **Step 5: Run focused tests and verify UTF-8/non-disclosure behavior.**
 
 Run: `dotnet test backend/tests/EosDashboards.Application.Tests/EosDashboards.Application.Tests.csproj --filter FullyQualifiedName~ProvisionSystemAdministratorTests`
 

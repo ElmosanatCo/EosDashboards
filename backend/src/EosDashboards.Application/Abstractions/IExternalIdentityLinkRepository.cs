@@ -15,5 +15,10 @@ public interface IExternalIdentityLinkRepository
         string normalizedEmail,
         CancellationToken cancellationToken);
 
+    Task<ExternalIdentityLink?> FindByUserIdAndProviderAsync(
+        long userId,
+        ExternalIdentityProvider provider,
+        CancellationToken cancellationToken);
+
     void Add(ExternalIdentityLink link);
 }

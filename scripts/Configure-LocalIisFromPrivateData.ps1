@@ -362,6 +362,7 @@ try {
                     $privateConfiguration.AdministratorValues[2],
                     $privateConfiguration.AdministratorValues[3],
                     $privateConfiguration.AdministratorValues[4],
+                    '',
                     'yes'
                 )
                 $provisionerOutput = $provisionerResult.Output

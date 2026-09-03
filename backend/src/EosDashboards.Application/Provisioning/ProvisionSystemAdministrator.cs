@@ -1,6 +1,7 @@
 using EosDashboards.Application.Abstractions;
 using EosDashboards.Application.Auth;
 using EosDashboards.Domain.Entities;
+using EosDashboards.Domain.Enums;
 
 namespace EosDashboards.Application.Provisioning;
 
@@ -11,7 +12,8 @@ public sealed record ProvisionSystemAdministratorCommand(
     string Password,
     string FirstName,
     string LastName,
-    string Mobile)
+    string Mobile,
+    string? GoogleEmail = null)
 {
     public override string ToString() => nameof(ProvisionSystemAdministratorCommand);
 }
@@ -30,6 +32,7 @@ public sealed class ProvisionSystemAdministrator(
     IMobileProtector mobileProtector,
     IPasswordHasher passwordHasher,
     IAuditWriter auditWriter,
+    IExternalIdentityLinkRepository externalIdentityLinks,
     IUnitOfWork unitOfWork)
 {
     private const string SystemAdministratorRoleCode = "SystemAdministrator";
@@ -57,6 +60,7 @@ public sealed class ProvisionSystemAdministrator(
         var firstName = NormalizeName(command.FirstName, nameof(command.FirstName));
         var lastName = NormalizeName(command.LastName, nameof(command.LastName));
         var normalizedMobile = NormalizeMobile(command.Mobile);
+        var normalizedGoogleEmail = NormalizeOptionalGoogleEmail(command.GoogleEmail);
         var protectedMobile = mobileProtector.Protect(normalizedMobile);
         var maskedMobile = mobileProtector.Mask(normalizedMobile);
         var now = clock.UtcNow;
@@ -132,6 +136,26 @@ public sealed class ProvisionSystemAdministrator(
                     user.Activate(now);
                 }
 
+                if (normalizedGoogleEmail is not null)
+                {
+                    var existingGoogleLink = await externalIdentityLinks.FindByUserIdAndProviderAsync(
+                        user!.Id,
+                        ExternalIdentityProvider.Google,
+                        transactionCancellationToken);
+                    if (existingGoogleLink is null)
+                    {
+                        externalIdentityLinks.Add(ExternalIdentityLink.CreatePending(
+                            user.Id,
+                            ExternalIdentityProvider.Google,
+                            normalizedGoogleEmail,
+                            now));
+                    }
+                    else
+                    {
+                        existingGoogleLink.UpdateApprovedEmail(normalizedGoogleEmail);
+                    }
+                }
+
                 user!.SetLocalCredentials(
                     normalizedUsername,
                     passwordHasher.Hash(command.Password),
@@ -191,4 +215,7 @@ public sealed class ProvisionSystemAdministrator(
 
         return normalized;
     }
+
+    private static string? NormalizeOptionalGoogleEmail(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : ExternalIdentityLink.NormalizeEmail(value);
 }

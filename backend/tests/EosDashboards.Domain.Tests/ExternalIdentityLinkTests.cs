@@ -40,4 +40,21 @@ public sealed class ExternalIdentityLinkTests
             email,
             Now));
     }
+
+    [Fact]
+    public void Updating_approved_email_preserves_the_bound_provider_subject()
+    {
+        var link = ExternalIdentityLink.CreatePending(
+            91,
+            ExternalIdentityProvider.Google,
+            "first.synthetic@example.test",
+            Now);
+        link.BindSubject("google-subject-synthetic", Now.AddMinutes(2));
+
+        link.UpdateApprovedEmail("  second.synthetic@example.test  ");
+
+        Assert.Equal("SECOND.SYNTHETIC@EXAMPLE.TEST", link.NormalizedEmail);
+        Assert.Equal("google-subject-synthetic", link.ProviderSubject);
+        Assert.Equal(Now.AddMinutes(2), link.LinkedAtUtc);
+    }
 }
