@@ -58,20 +58,19 @@ Initial authentication and application-shell implementation.
   settings. The final user-authorized Google sign-in smoke flow remains
   pending.
 - The elevated normal local publisher completed successfully on 2026-09-03,
-  switching both IIS applications to release `20260903-150910`. The HTTPS UI,
-  provider discovery, and logout were observed successfully. Direct access from the IIS application-pool context to
-  Google's public signing-key endpoint returned HTTP 403 while the configured
-  local proxy succeeded. A server-only, validated optional Google OIDC
-  backchannel-proxy setting is staged for publication so signature validation
-  remains intact. The first successful authorization attempt then identified
-  that the temporary OIDC nonce and correlation cookies need `SameSite=None`
-  for the cross-site callback; the standards-compliant cookie correction is
-  also staged for publication. A successful Google callback then exposed a UI
-  routing defect: the fixed home tab rewrote the deployed application path to
-  the IIS site root, so refresh served the default IIS page. The home-tab path
-  correction is staged with a focused regression test and IIS UI build. The
-  final user-authorized sign-in, refresh, and logout smoke flow remains pending
-  that paired publication.
+  switching both IIS applications to release `20260903-151238`. Direct access
+  from the IIS application-pool context to Google's public signing-key endpoint
+  returned HTTP 403 while the configured local proxy succeeded, so the approved
+  server-only OIDC backchannel proxy is now used without weakening signature
+  validation. The temporary OIDC nonce and correlation cookies use
+  `SameSite=None` for the standard cross-site callback. A focused UI correction
+  keeps the fixed home workspace tab at `/EosDashboards/`, rather than writing
+  the IIS site root into browser history.
+- Final user-authorized HTTPS smoke verification completed on 2026-09-03:
+  pre-linked Google sign-in reached the dashboard without local password or
+  OTP, refresh retained the session and the `/EosDashboards/` path, and logout
+  returned to the sign-in surface. No account data, token, cookie, code, or
+  secret was retained in project documentation or source code.
 - Final pre-publication verification passed on 2026-09-03: 195 backend tests
   (including 113 SQL-backed integration tests against the guarded test
   catalog), 12 frontend tests, TypeScript checking, the production frontend
@@ -96,16 +95,12 @@ Initial authentication and application-shell implementation.
 
 ## Next agreed step
 
-Publish the staged API backchannel-proxy, OIDC temporary-cookie, and UI
-home-path corrections, then complete one user-authorized IIS HTTPS Google
-sign-in, refresh, and logout smoke flow. Do not deploy to company production
-servers in this slice.
+Review and integrate the verified linked-Google-sign-in worktree when the user
+requests it. Do not deploy to company production servers in this slice.
 
 ## Blockers
 
 - The configured local SMS service endpoint timed out during one authorized live sign-in attempt. Login cannot complete until its endpoint, network reachability, or SOAP service contract is corrected. Do not repeat live OTP sends until that is resolved.
-- IIS publication needs an elevated local PowerShell session. The current agent
-  session is not elevated, so it cannot switch the two local IIS applications.
 
 ## Immediate unresolved questions
 

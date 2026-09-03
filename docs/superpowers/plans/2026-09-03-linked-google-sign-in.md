@@ -527,30 +527,27 @@ Run: `npm run build:iis`
 
 Expected: PASS. Record the verification result without private values.
 
-- [ ] **Step 5: Run one user-authorized IIS HTTPS smoke flow.**
+- [x] **Step 5: Run one user-authorized IIS HTTPS smoke flow.**
 
 Open `https://localhost/EosDashboards/`, select Google, authenticate only with the already linked account, confirm dashboard entry, refresh once to confirm the ordinary session lifecycle, then logout. Do not inspect cookies, tokens, password fields, OTPs, or Google account data. If Google Cloud client configuration is unavailable, stop before this step and report the exact configuration dependency.
 
-The 2026-09-03 attempt reached the configured API but stopped before Google
-authorization because direct access to Google's public signing-key endpoint
-returned HTTP 403. A validated server-only OIDC backchannel-proxy setting is
-staged for publication because the approved local proxy can reach that
-endpoint. The first authorization attempt also identified a missing cross-site
-`SameSite=None` setting on the temporary OIDC cookies; that correction is
-staged alongside the proxy. A successful callback then identified that the
-fixed home workspace tab rewrote the deployed `/EosDashboards/` path to the
-IIS site root, breaking refresh; its tested UI correction is also staged. Do
-not bypass signature validation; publish the paired corrections and retry this
-step.
+The final 2026-09-03 smoke flow verified the server-only proxy, standard
+cross-site OIDC cookies, and IIS home-path correction: the pre-linked account
+reached the dashboard without a local password or OTP, refresh remained in the
+deployed application, and logout returned to sign-in. No tokens, cookies,
+codes, secrets, or personal account data were inspected or recorded.
 
-- [ ] **Step 6: Commit documentation and integration state.**
+- [x] **Step 6: Commit documentation and integration state.**
 
 ```powershell
 git add AGENTS.md docs
 git commit -m "docs: record linked Google sign-in operation"
 ```
 
-Do not merge or push unless the user requests it. If a merge is requested, first update all canonical documents and then push the destination branch as required by `AGENTS.md`.
+Documentation is committed with the verified implementation. Do not merge or
+push unless the user requests it. If a merge is requested, first update all
+canonical documents and then push the destination branch as required by
+`AGENTS.md`.
 
 ## Plan self-review
 

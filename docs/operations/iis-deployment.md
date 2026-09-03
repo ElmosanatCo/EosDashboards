@@ -59,12 +59,11 @@ IIS custom 404 execution for SPA fallback instead of a Rewrite rule.
 
 Stop or drain the target application pool, switch the site path to the inspected versioned directory, start it, then check `/health/live`, `/health/ready`, UI loading, one login, refresh, and logout. On failure, switch the path back to the previous version and preserve logs plus trace IDs.
 
-The UI release `20260902-202534` and paired API release `20260902-202354`
-were installed on 2026-09-02. Both UI loading and API liveness/readiness
-returned HTTPS HTTP 200 using the local Windows identity. The API has Windows
-Authentication enabled and anonymous access disabled. Its required runtime
-configuration remains outside the artifact; do not record those values in this
-repository or its published artifact.
+The UI and paired API release `20260903-151238` were installed on 2026-09-03.
+Both UI loading and API liveness/readiness returned HTTPS HTTP 200. The API has
+Anonymous Authentication enabled and Windows Authentication disabled. Its
+required runtime configuration remains server-side; do not record values in
+documentation or frontend artifacts.
 
 ## Legacy private-data helper
 
