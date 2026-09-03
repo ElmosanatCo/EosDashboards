@@ -53,8 +53,8 @@ React 19, TypeScript, Material UI 9, TanStack Query, Vitest, Playwright.
 - Test: `backend/tests/EosDashboards.Domain.Tests/UserSessionTests.cs`
 
 **Interfaces:**
-- Produces `User.SetTemporaryLocalCredentials`, `User.ChangeProfile`,
-  `User.ReplaceRoles`, `User.Activate`, `User.Deactivate`, and
+- Produces `User.SetTemporaryLocalCredentials`, `User.UpdateProfile`,
+  `User.UpdateOrganizationalId`, `User.ReplaceRoles`, `User.Activate`, `User.Deactivate`, and
   `User.CompleteTemporaryPasswordChange`.
 - Produces `User.RowVersion` and `Department.RowVersion` as concurrency values
   mapped by Task 2; neither property has a public setter.

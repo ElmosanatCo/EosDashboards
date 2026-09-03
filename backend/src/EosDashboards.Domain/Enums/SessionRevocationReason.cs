@@ -6,4 +6,5 @@ public enum SessionRevocationReason
     Administrator,
     SecurityEvent,
     PasswordChanged,
+    AdministrativeChange,
 }
