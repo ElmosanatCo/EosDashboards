@@ -406,9 +406,9 @@ git commit -m "feat: add secure Google authorization flow"
 **Interfaces:**
 - Consumes `GET /api/v1/auth/providers` returning `SignInProviders { google: boolean }`.
 - `GoogleSignInButton` receives `available: boolean`, `busy: boolean`, and `onStart: () => void`.
-- `onStart` navigates with `window.location.assign("/EosDashboardsApi/api/v1/auth/google/start")`; it never calls a JSON API with a credential.
+- `onStart` navigates with the server-owned API base plus `/api/v1/auth/google/start`; it never calls a JSON API with a credential.
 
-- [ ] **Step 1: Write failing component tests for capability-driven rendering.**
+- [x] **Step 1: Write failing component tests for capability-driven rendering.**
 
 ```tsx
 it("offers Google only when the API reports it enabled", () => {
@@ -426,7 +426,7 @@ Run: `npm test -- --run src/features/auth/GoogleSignInButton.test.tsx src/featur
 
 Expected: FAIL because the Google component and provider capability state do not exist.
 
-- [ ] **Step 3: Implement provider discovery and safe callback feedback.**
+- [x] **Step 3: Implement provider discovery and safe callback feedback.**
 
 ```ts
 getSignInProviders: () => apiFetch<SignInProviders>("/api/v1/auth/providers", {}, false),
@@ -437,7 +437,7 @@ startGoogleSignIn: () => window.location.assign(
 
 Fetch providers once while unauthenticated; a discovery failure hides the Google action and does not block local sign-in. On page load, translate only the generic `authError=google` callback marker into the approved Persian error copy, then remove it with `history.replaceState` so it is not retained in the address bar or history.
 
-- [ ] **Step 4: Compose the polished action in the existing sign-in surface.**
+- [x] **Step 4: Compose the polished action in the existing sign-in surface.**
 
 ```tsx
 {googleAvailable ? (
@@ -450,7 +450,7 @@ Fetch providers once while unauthenticated; a discovery failure hides the Google
 
 Use the MUI Google icon, full-width button, deliberate hover/focus states, and existing responsive spacing. Keep form autofill, forgot-password padding, RTL direction, dark image readability, and all six palette contrast behavior intact.
 
-- [ ] **Step 5: Add mocked browser coverage.**
+- [x] **Step 5: Add mocked browser coverage.**
 
 ```ts
 await page.route("**/api/v1/auth/providers", route =>

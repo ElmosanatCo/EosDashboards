@@ -1,9 +1,11 @@
 import { apiFetch, readCookie } from "../../lib/api/apiClient";
-import type { AuthResponse, Challenge } from "./authTypes";
+import type { AuthResponse, Challenge, SignInProviders } from "./authTypes";
 
 const csrfHeaders = () => ({ "X-CSRF-TOKEN": readCookie("Eos.Antiforgery") });
 
 export const authApi = {
+  getSignInProviders: () =>
+    apiFetch<SignInProviders>("/api/v1/auth/providers", { method: "GET" }, false),
   startSignIn: (username: string, password: string) =>
     apiFetch<Challenge>(
       "/api/v1/auth/sign-in/challenges",

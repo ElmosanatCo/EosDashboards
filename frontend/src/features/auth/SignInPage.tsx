@@ -15,6 +15,7 @@ import type { Challenge } from "./authTypes";
 import { CredentialForm } from "./CredentialForm";
 import { OtpForm } from "./OtpForm";
 import { PasswordRecoveryForm } from "./PasswordRecoveryForm";
+import { GoogleSignInButton } from "./GoogleSignInButton";
 
 const eosLogoUrl = `${import.meta.env.BASE_URL}generated-assets/brand/eos.svg`;
 
@@ -27,11 +28,13 @@ type Props = {
   busy: boolean;
   error?: string;
   notice?: string;
+  googleAvailable: boolean;
   onStartSignIn: (username: string, password: string) => Promise<void>;
   onVerifyOtp: (code: string) => Promise<void>;
   onStartPasswordReset: (username: string) => Promise<void>;
   onCompletePasswordReset: (code: string, newPassword: string) => Promise<void>;
   onBack: () => void;
+  onStartGoogleSignIn: () => void;
 };
 
 export function SignInPage({
@@ -40,11 +43,13 @@ export function SignInPage({
   busy,
   error,
   notice,
+  googleAvailable,
   onStartSignIn,
   onVerifyOtp,
   onStartPasswordReset,
   onCompletePasswordReset,
   onBack,
+  onStartGoogleSignIn,
 }: Props) {
   const loginTheme = useMemo(() => createAppTheme("light"), []);
   const [recoveryOpen, setRecoveryOpen] = useState(mode === "passwordReset");
@@ -235,7 +240,12 @@ export function SignInPage({
               ) : (
                 <>
                   <CredentialForm busy={busy} onSubmit={onStartSignIn} />
-                  <Divider />
+                  {googleAvailable ? <Divider>یا</Divider> : null}
+                  <GoogleSignInButton
+                    available={googleAvailable}
+                    busy={busy}
+                    onStart={onStartGoogleSignIn}
+                  />
                   <Button
                     type="button"
                     variant="text"

@@ -19,3 +19,7 @@ export type AuthResponse = {
   sessionExpiresAtUtc: string;
   user: AuthenticatedUser;
 };
+
+export type SignInProviders = {
+  google: boolean;
+};

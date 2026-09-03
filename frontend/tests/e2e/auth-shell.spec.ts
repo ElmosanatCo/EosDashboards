@@ -66,3 +66,41 @@ test("local credential OTP opens the authenticated shell and logout returns to s
     page.getByRole("button", { name: "ورود و دریافت کد تأیید" }),
   ).toBeVisible();
 });
+
+test("linked Google action redirects only through the API start endpoint", async ({ page }) => {
+  await page.route("**/api/v1/**", async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith("/auth/refresh")) {
+      await route.fulfill({ status: 401, contentType: "application/json", body: "{}" });
+    } else if (path.endsWith("/auth/providers")) {
+      await route.fulfill({ json: { google: true } });
+    } else if (path.endsWith("/auth/google/start")) {
+      await route.fulfill({ status: 200, contentType: "text/plain", body: "redirect started" });
+    } else {
+      await route.fulfill({ status: 404 });
+    }
+  });
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "ورود با Google" }).click();
+
+  await expect(page).toHaveURL(/\/api\/v1\/auth\/google\/start$/);
+});
+
+test("Google callback error is shown generically and removed from the address", async ({ page }) => {
+  await page.route("**/api/v1/**", async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith("/auth/refresh")) {
+      await route.fulfill({ status: 401, contentType: "application/json", body: "{}" });
+    } else if (path.endsWith("/auth/providers")) {
+      await route.fulfill({ json: { google: false } });
+    } else {
+      await route.fulfill({ status: 404 });
+    }
+  });
+
+  await page.goto("/?authError=google");
+
+  await expect(page.getByText("ورود با Google انجام نشد. دوباره تلاش کنید یا با رمز عبور وارد شوید.")).toBeVisible();
+  await expect(page).toHaveURL(/\/$/);
+});

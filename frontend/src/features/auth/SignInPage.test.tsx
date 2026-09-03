@@ -13,11 +13,13 @@ describe("SignInPage", () => {
         mode="signIn"
         challenge={null}
         busy={false}
+        googleAvailable={false}
         onStartSignIn={onStartSignIn}
         onVerifyOtp={vi.fn(async () => undefined)}
         onStartPasswordReset={vi.fn(async () => undefined)}
         onCompletePasswordReset={vi.fn(async () => undefined)}
         onBack={vi.fn()}
+        onStartGoogleSignIn={vi.fn()}
       />,
     );
 
@@ -37,11 +39,13 @@ describe("SignInPage", () => {
         mode="signIn"
         challenge={null}
         busy={false}
+        googleAvailable={false}
         onStartSignIn={vi.fn(async () => undefined)}
         onVerifyOtp={vi.fn(async () => undefined)}
         onStartPasswordReset={vi.fn(async () => undefined)}
         onCompletePasswordReset={vi.fn(async () => undefined)}
         onBack={vi.fn()}
+        onStartGoogleSignIn={vi.fn()}
       />,
     );
 
