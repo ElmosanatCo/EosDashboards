@@ -69,8 +69,12 @@ Initial authentication and application-shell implementation.
 - A local IIS publication helper now copies already-built API/UI artifacts to
   new versioned directories, switches the two IIS applications, and verifies
   readiness. Normal publication reuses existing IIS runtime configuration and
-  does not require a private-data file; the legacy private-data helper remains
-  only for recovery and initial provisioning.
+  does not require a private-data file or a `pwsh.exe` installation; the
+  legacy private-data helper, and its UTF-8 PowerShell prerequisite, are used
+  only for recovery and initial provisioning. A 2026-09-03 regression test
+  verifies that the normal publisher reaches its administrator check when the
+  legacy runtime path is unavailable, and that its status stage is initialized
+  before any failure can be reported.
 - The local IIS UI was rebuilt with its `/EosDashboards/` asset base and `/EosDashboardsApi` API base, correcting the prior blank page and same-origin API routing failure. The user confirmed on 2026-09-03 that live username/password sign-in was tested successfully against the provisioned account. The subsequent configured SMS call timed out, so the resulting OTP was marked send-failed; no credential, code, phone number, or endpoint is recorded here.
 
 ## Next agreed step

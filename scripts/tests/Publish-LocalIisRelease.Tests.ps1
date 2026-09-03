@@ -7,6 +7,7 @@ Describe 'Publish-LocalIisRelease' {
 
         $output = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $scriptPath `
             -PrivateDataFile '' `
+            -Utf8PowerShell 'Z:\missing\pwsh.exe' `
             -StatusFile $statusFile 2>&1 | Out-String
 
         $output | Should Not Match 'Cannot bind argument'

@@ -16,6 +16,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+$deploymentStage = 'startup'
 
 $scriptRoot = $PSScriptRoot
 if ([string]::IsNullOrWhiteSpace($scriptRoot)) {
@@ -34,14 +35,6 @@ if ([string]::IsNullOrWhiteSpace($UiArtifact)) {
     $UiArtifact = Join-Path $scriptRoot '..\frontend\dist'
 }
 
-if ([string]::IsNullOrWhiteSpace($Utf8PowerShell)) {
-    $Utf8PowerShell = (Get-Command 'pwsh.exe' -ErrorAction Stop).Source
-}
-
-if (-not (Test-Path -LiteralPath $Utf8PowerShell -PathType Leaf)) {
-    throw 'The UTF-8 capable PowerShell executable was not found.'
-}
-
 $siteName = 'Default Web Site'
 $apiPath = '/EosDashboardsApi'
 $uiPath = '/EosDashboards'
@@ -49,8 +42,6 @@ $apiPool = 'EosDashboardsApiPool'
 $uiPool = 'EosDashboardsUiPool'
 $apiReleaseRoot = 'C:\inetpub\wwwroot\EosDashboards\Api\releases'
 $uiReleaseRoot = 'C:\inetpub\wwwroot\EosDashboards\Ui\releases'
-$deploymentStage = 'startup'
-
 function Set-DeploymentStatus {
     param([string]$Status)
 
@@ -162,6 +153,14 @@ foreach ($release in @(
 
 $deploymentStage = 'configure-api'
 if (-not [string]::IsNullOrWhiteSpace($PrivateDataFile)) {
+    if ([string]::IsNullOrWhiteSpace($Utf8PowerShell)) {
+        $Utf8PowerShell = (Get-Command 'pwsh.exe' -ErrorAction Stop).Source
+    }
+
+    if (-not (Test-Path -LiteralPath $Utf8PowerShell -PathType Leaf)) {
+        throw 'The UTF-8 capable PowerShell executable was not found.'
+    }
+
     & $Utf8PowerShell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $scriptRoot 'Configure-LocalIisFromPrivateData.ps1') `
         -PrivateDataFile $PrivateDataFile `
         -ProvisionAdministratorFromPrivateData
