@@ -37,6 +37,7 @@ function Set-DeploymentStatus {
 
 trap {
     Set-DeploymentStatus "$deploymentStage|failed"
+    [Console]::Error.WriteLine("Local IIS configuration failed during $deploymentStage.")
     exit 1
 }
 

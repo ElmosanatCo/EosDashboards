@@ -5,11 +5,21 @@ const csrfHeaders = () => ({ "X-CSRF-TOKEN": readCookie("Eos.Antiforgery") });
 
 export const authApi = {
   getSignInProviders: () =>
-    apiFetch<SignInProviders>("/api/v1/auth/providers", { method: "GET" }, false),
+    apiFetch<SignInProviders>(
+      "/api/v1/auth/providers",
+      { method: "GET" },
+      false,
+    ),
   startSignIn: (username: string, password: string) =>
     apiFetch<Challenge>(
       "/api/v1/auth/sign-in/challenges",
       { method: "POST", body: JSON.stringify({ username, password }) },
+      false,
+    ),
+  resendSignInOtp: (challengeToken: string) =>
+    apiFetch<Challenge>(
+      `/api/v1/auth/sign-in/challenges/${encodeURIComponent(challengeToken)}/resend`,
+      { method: "POST" },
       false,
     ),
   verifyOtp: (challengeToken: string, code: string) =>
@@ -22,6 +32,12 @@ export const authApi = {
     apiFetch<Challenge>(
       "/api/v1/auth/password-reset/challenges",
       { method: "POST", body: JSON.stringify({ username }) },
+      false,
+    ),
+  resendPasswordResetOtp: (challengeToken: string) =>
+    apiFetch<Challenge>(
+      `/api/v1/auth/password-reset/challenges/${encodeURIComponent(challengeToken)}/resend`,
+      { method: "POST" },
       false,
     ),
   completePasswordReset: (

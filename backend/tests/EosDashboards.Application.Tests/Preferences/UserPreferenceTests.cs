@@ -15,7 +15,7 @@ public sealed class UserPreferenceTests
         var update = new UpdateMyPreferences(
             new Clock(), new Correlation(), repository, audit, new UnitOfWork());
 
-        Assert.Equal(new UserPreferenceDto("system", "navyTeal", false),
+        Assert.Equal(new UserPreferenceDto("system", "amber", false),
             await read.HandleAsync(7, CancellationToken.None));
         var saved = await update.HandleAsync(
             7,
@@ -39,6 +39,21 @@ public sealed class UserPreferenceTests
             new UpdateMyPreferencesCommand("automatic", "navyTeal", false),
             CancellationToken.None));
         Assert.Empty(repository.Items);
+    }
+
+    [Fact]
+    public async Task Update_accepts_the_forest_green_palette()
+    {
+        var repository = new PreferenceRepository();
+        var useCase = new UpdateMyPreferences(
+            new Clock(), new Correlation(), repository, new AuditWriter(), new UnitOfWork());
+
+        var saved = await useCase.HandleAsync(
+            7,
+            new UpdateMyPreferencesCommand("dark", "forestGreen", false),
+            CancellationToken.None);
+
+        Assert.Equal("forestGreen", saved.Palette);
     }
 
     private sealed class PreferenceRepository : IUserPreferenceRepository

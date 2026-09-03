@@ -28,6 +28,10 @@ try {
   await stat(logoSource);
   await mkdir(resolve(destination, "brand"), { recursive: true });
   await cp(logoSource, resolve(destination, "brand", "eos.svg"));
+  await cp(
+    resolve(repositoryRoot, "resources", "branding", "auth-background.jpg"),
+    resolve(destination, "brand", "auth-background.jpg"),
+  );
 } catch (error) {
   if (error?.code !== "ENOENT") throw error;
 }

@@ -9,9 +9,7 @@ describe("GoogleSignInButton", () => {
   it("starts the redirect through an accessible, full-width action", async () => {
     const user = userEvent.setup();
     const onStart = vi.fn();
-    render(
-      <GoogleSignInButton available busy={false} onStart={onStart} />,
-    );
+    render(<GoogleSignInButton available busy={false} onStart={onStart} />);
 
     await user.click(screen.getByRole("button", { name: "ورود با Google" }));
 
@@ -19,7 +17,9 @@ describe("GoogleSignInButton", () => {
   });
 
   it("does not render when Google sign-in is unavailable", () => {
-    render(<GoogleSignInButton available={false} busy={false} onStart={vi.fn()} />);
+    render(
+      <GoogleSignInButton available={false} busy={false} onStart={vi.fn()} />,
+    );
 
     expect(screen.queryByRole("button", { name: "ورود با Google" })).toBeNull();
   });

@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   homeTab,
   initialTabState,
-  resolveTabPathname,
   restoreTabs,
   tabReducer,
 } from "./tabReducer";
@@ -17,12 +16,6 @@ const report = {
 };
 
 describe("tabReducer", () => {
-  it("keeps the fixed home tab inside the deployed application base path", () => {
-    expect(resolveTabPathname(homeTab, "/EosDashboards/")).toBe(
-      "/EosDashboards/",
-    );
-  });
-
   it("deduplicates, keeps home fixed, and falls back after close", () => {
     const opened = tabReducer(
       tabReducer(initialTabState, { type: "open", tab: report }),

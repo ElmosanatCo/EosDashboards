@@ -63,7 +63,7 @@ The first user is created or updated before application startup with an idempote
 
 The company SMS service is integrated through an Infrastructure adapter for the `SendSmsMessage` SOAP operation. The endpoint and timeouts are typed configuration values; automated tests use a fake sender and never contact the real service. A send timeout is not automatically retried because the service does not provide an idempotency contract.
 
-Windows/AD, LDAP, and other organizational identity-provider access are deferred until IT discovery. Any future directory integration is server-side, protected by TLS with certificate validation, and never exposed directly to browsers or the internet.
+Organizational directory and federation-provider access is deferred until IT discovery. Any future directory integration is server-side, protected by TLS with certificate validation, and never exposed directly to browsers or the internet.
 
 ## Hosting topology
 

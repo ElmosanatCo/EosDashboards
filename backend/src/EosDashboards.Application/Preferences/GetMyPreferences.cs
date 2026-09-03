@@ -5,7 +5,7 @@ namespace EosDashboards.Application.Preferences;
 public sealed class GetMyPreferences(IUserPreferenceRepository preferences)
 {
     public const string DefaultAppearanceMode = "system";
-    public const string DefaultPalette = "navyTeal";
+    public const string DefaultPalette = UserPreferencePalettes.Amber;
 
     public async Task<UserPreferenceDto> HandleAsync(long userId, CancellationToken cancellationToken)
     {

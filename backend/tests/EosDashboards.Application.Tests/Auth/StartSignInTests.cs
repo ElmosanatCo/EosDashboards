@@ -23,7 +23,9 @@ public sealed class StartSignInTests
         Assert.Equal(Now.AddSeconds(60), result.ResendAvailableAtUtc);
         var message = Assert.Single(context.Sms.Messages);
         Assert.Equal("synthetic-normalized-mobile", message.Mobile);
-        Assert.Contains(context.Tokens.SixDigitCode, message.Text, StringComparison.Ordinal);
+        Assert.Equal(
+            $"داشبورد علم و صنعت، کد تأیید شما: {context.Tokens.SixDigitCode}",
+            message.Text);
         var challenge = Assert.Single(context.OtpChallenges.Challenges);
         Assert.Equal("A1B2", challenge.CodeHash);
         Assert.Equal(OtpChallengeStatus.Sent, challenge.Status);
@@ -119,6 +121,26 @@ public sealed class StartSignInTests
         Assert.Equal(OtpChallengeStatus.Superseded, priorChallenge.Status);
         Assert.Equal(2, context.OtpChallenges.Challenges.Count);
         Assert.Single(context.Sms.Messages);
+    }
+
+    [Fact]
+    public async Task Resend_after_sixty_seconds_supersedes_the_prior_challenge_and_sends_a_replacement()
+    {
+        // Break caught: requiring the browser to retain a plaintext password before it can request a replacement OTP.
+        var context = new StartSignInContext();
+        var priorChallenge = context.AddExistingChallenge(Now);
+        context.Clock.UtcNow = Now.AddSeconds(60);
+
+        var result = await context.UseCase.ResendAsync(
+            new ResendOtpCommand(priorChallenge.PublicToken, "network-bucket"),
+            CancellationToken.None);
+
+        Assert.Equal(StartSignInStatus.Succeeded, result.Status);
+        Assert.Equal("challenge-token", result.ChallengeToken);
+        Assert.Equal(OtpChallengeStatus.Superseded, priorChallenge.Status);
+        Assert.Equal(2, context.OtpChallenges.Challenges.Count);
+        Assert.Single(context.Sms.Messages);
+        AuditRecordAssertions.AssertSingle(context.Audit, null, 11, "OtpResent", true);
     }
 
     private sealed class StartSignInContext

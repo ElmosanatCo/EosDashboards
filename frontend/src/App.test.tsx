@@ -4,7 +4,7 @@ import App from "./App";
 import { AppProviders } from "./app/providers/AppProviders";
 
 describe("application", () => {
-  it("keeps local sign-in available while checking the existing session", () => {
+  it("shows a branded loading state while checking the existing session", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(
@@ -20,7 +20,9 @@ describe("application", () => {
         <App />
       </AppProviders>,
     );
-    expect(screen.getByRole("heading", { name: "ورود به سامانه" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "ورود و دریافت کد تأیید" })).toBeDisabled();
+    expect(
+      screen.getByRole("progressbar", { name: "در حال آماده‌سازی سامانه" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("داشبوردهای علم و صنعت")).toBeInTheDocument();
   });
 });

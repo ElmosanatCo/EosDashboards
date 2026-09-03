@@ -25,7 +25,7 @@ The approved approach combines:
 
 The lightweight layered model preserves the user's requested API -> business -> data separation while preventing database models from leaking through REST contracts. Infrastructure isolation also creates a safe boundary for future AD, LDAP, or other integrations.
 
-The identity design begins with the known internal environment and a single organizational sign-in action. It avoids inventing an internet directory topology before IT confirms whether LDAP is distinct from AD and whether Entra ID, AD FS, or another supported broker exists.
+The identity design begins with pre-provisioned local credentials and mandatory SMS OTP. It avoids inventing an internet or organizational-directory topology before IT confirms a supported broker and operating model.
 
 The UI direction establishes a consistent shell and design language before individual forms and dashboards are created. Charting remains deferred so the first dashboard's actual comparison, trend, hierarchy, and volume needs drive that choice.
 

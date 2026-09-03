@@ -21,16 +21,7 @@ For every added asset, record its source, owner, license, version or acquisition
   SHA-256: `4E3FA217D38FDAFC1FEA4414CEB58CA5E662CF0AB5FA735A8C8C20E8B42CAD92`.
 - EOS logo: user-provided approved SVG, acquired 2026-09-02, SHA-256
   `4CDAFBE41DF7653BBEC3CC9D201D3DC974306BC2CC2B1A02424E3E03F770FC6F`.
-  Use only for EosDashboards branding; do not recolor or substitute it.
-- Login layout reference: user-provided image, acquired 2026-09-03, stored as
-  `images/references/login-layout-reference.jpg`. It is a visual reference for
-  a restrained split login surface and compact provider actions only; it is not
-  an approved product asset. Owner and redistribution license are unverified,
-  so do not publish or reuse it in the product without confirmation. SHA-256:
-  `1FCA9D451F3E38BC11804BB06CE1132E4EF3255A66243A6E6F5F82A4E8B984C6`.
-- Dashboard toolbar reference: user-provided image, acquired 2026-09-03,
-  stored as `images/references/dashboard-toolbar-reference.png`. It is a visual
-  reference for the hierarchy and geometry of dashboard toolbar controls only;
-  it is not an approved product asset. Owner and redistribution license are
-  unverified, so do not publish or reuse it in the product without confirmation.
-  SHA-256: `B7FFFA05A346543F23BB0F9F76940A703EEF8F716018BCD947EC59C967A6E097`.
+  Use only for EosDashboards branding, including the browser favicon; do not recolor or substitute it.
+- Login geometric mesh: user-provided image, acquired 2026-09-03 and stored as
+  `branding/auth-background.jpg`. It is used only behind the sign-in brand
+  panel with a dark readability overlay; do not use it as workspace content.

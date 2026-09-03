@@ -1,5 +1,6 @@
 import { ArrowBack, Visibility, VisibilityOff } from "@mui/icons-material";
 import {
+  Box,
   Button,
   IconButton,
   InputAdornment,
@@ -13,9 +14,11 @@ type Props = {
   purpose: "signIn" | "passwordReset";
   maskedMobile?: string;
   expiresAtUtc: string;
+  resendAvailableAtUtc: string;
   busy: boolean;
   error?: string;
   onSubmit: (code: string, newPassword?: string) => Promise<void>;
+  onResend: () => Promise<void>;
   onBack: () => void;
 };
 
@@ -23,26 +26,28 @@ export function OtpForm({
   purpose,
   maskedMobile,
   expiresAtUtc,
+  resendAvailableAtUtc,
   busy,
   error,
   onSubmit,
+  onResend,
   onBack,
 }: Props) {
   const [code, setCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [secondsLeft, setSecondsLeft] = useState(() =>
-    secondsUntil(expiresAtUtc),
-  );
+  const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
-    const timer = window.setInterval(
-      () => setSecondsLeft(secondsUntil(expiresAtUtc)),
-      1_000,
-    );
+    setNow(Date.now());
+    const timer = window.setInterval(() => setNow(Date.now()), 1_000);
     return () => window.clearInterval(timer);
-  }, [expiresAtUtc]);
+  }, [expiresAtUtc, resendAvailableAtUtc]);
+
+  const secondsLeft = secondsUntil(expiresAtUtc, now);
+  const resendSecondsLeft = secondsUntil(resendAvailableAtUtc, now);
+  const codeExpired = secondsLeft === 0;
 
   return (
     <Stack
@@ -60,22 +65,44 @@ export function OtpForm({
       }}
     >
       <Typography color="text.secondary" variant="body2">
-        {purpose === "signIn"
-          ? `کد ارسال‌شده به ${maskedMobile} را وارد کنید.`
-          : "کد بازیابی و رمز عبور جدید را وارد کنید."}
+        {purpose === "signIn" ? (
+          <>
+            کد ارسال‌شده به{" "}
+            <Box
+              component="bdi"
+              data-testid="masked-mobile"
+              dir="ltr"
+              sx={{
+                display: "inline-block",
+                fontVariantNumeric: "tabular-nums",
+              }}
+            >
+              {maskedMobile}
+            </Box>{" "}
+            را وارد کنید.
+          </>
+        ) : (
+          "کد بازیابی و رمز عبور جدید را وارد کنید."
+        )}
       </Typography>
       <TextField
         autoFocus
         label="کد شش‌رقمی"
         value={code}
-        disabled={busy || secondsLeft === 0}
+        disabled={busy || codeExpired}
         error={Boolean(error)}
-        helperText={error ?? `${toPersianDigits(secondsLeft)} ثانیه باقی مانده`}
+        helperText={
+          error ??
+          (codeExpired
+            ? "زمان اعتبار کد تمام شده است."
+            : "کد تا ۵ دقیقه معتبر است.")
+        }
         slotProps={{
           htmlInput: {
             inputMode: "numeric",
             autoComplete: "one-time-code",
             maxLength: 6,
+            dir: "ltr",
           },
         }}
         onChange={(event) =>
@@ -98,6 +125,7 @@ export function OtpForm({
                 : undefined
             }
             slotProps={{
+              htmlInput: { dir: "ltr" },
               input: {
                 endAdornment: (
                   <InputAdornment position="end">
@@ -115,6 +143,7 @@ export function OtpForm({
               },
             }}
             onChange={(event) => setNewPassword(event.target.value)}
+            sx={{ "& input": { textAlign: "left" } }}
           />
           <TextField
             autoComplete="new-password"
@@ -129,6 +158,8 @@ export function OtpForm({
                 : undefined
             }
             onChange={(event) => setConfirmPassword(event.target.value)}
+            slotProps={{ htmlInput: { dir: "ltr" } }}
+            sx={{ "& input": { textAlign: "left" } }}
           />
         </>
       ) : null}
@@ -137,12 +168,23 @@ export function OtpForm({
         variant="contained"
         disabled={
           busy ||
+          codeExpired ||
           code.length !== 6 ||
           (purpose === "passwordReset" &&
             (newPassword.length < 8 || newPassword !== confirmPassword))
         }
       >
         {purpose === "signIn" ? "تأیید کد" : "ثبت رمز جدید"}
+      </Button>
+      <Button
+        type="button"
+        variant="text"
+        onClick={() => void onResend()}
+        disabled={busy || codeExpired || resendSecondsLeft > 0}
+      >
+        {resendSecondsLeft > 0
+          ? `ارسال مجدد کد تا ${toPersianDigits(resendSecondsLeft)} ثانیه دیگر`
+          : "ارسال مجدد کد"}
       </Button>
       <Button
         startIcon={<ArrowBack />}
@@ -156,11 +198,8 @@ export function OtpForm({
   );
 }
 
-function secondsUntil(value: string) {
-  return Math.max(
-    0,
-    Math.ceil((new Date(value).getTime() - Date.now()) / 1_000),
-  );
+function secondsUntil(value: string, now = Date.now()) {
+  return Math.max(0, Math.ceil((new Date(value).getTime() - now) / 1_000));
 }
 
 function normalizeDigits(value: string) {

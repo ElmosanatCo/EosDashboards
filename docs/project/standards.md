@@ -102,8 +102,8 @@ This is the canonical implementation standard for EosDashboards. Feature specifi
 - Store OTPs only as keyed hashes and mobile numbers in protected encrypted form; mask mobile numbers in UI and logs.
 - An eight-hour application session uses ten-minute access tokens and a revocable refresh credential. Logout or expiry requires a new OTP.
 - Any future LDAP interaction is server-side, uses TLS, validates certificates, and follows current directory hardening requirements.
-- Never expose AD or LDAP directly to a browser or the internet.
-- Windows/AD, LDAP, Entra ID, AD FS, and any future stronger-factor design remain deferred pending IT discovery.
+- Never expose a directory service directly to a browser or the internet.
+- Directory, federation, and any future stronger-factor design remain deferred pending IT discovery.
 - SMS OTP must remain replaceable behind an Application port and Infrastructure adapter; it is not treated as the sole permanent high-assurance option.
 
 ## 9. UI, RTL, and design system
@@ -113,9 +113,9 @@ This is the canonical implementation standard for EosDashboards. Feature specifi
 - Use one coherent design system for spacing, typography, elevation, shape, color, focus, motion, forms, feedback, and charts.
 - Adopt a balanced corporate visual direction: medium density, professional modern appearance, controlled color, and brief functional motion.
 - Treat visual quality, order, and harmony as core acceptance criteria. Before implementing a UI change, define its hierarchy, spacing, typography, color, responsive behavior, states, and RTL implications; review the rendered result and refine it until it is professionally cohesive. Do not assemble interfaces from disconnected defaults, rushed layouts, or placeholder visual decisions.
-- Use navy/teal as the default palette.
+- Use amber as the default palette, with forest green, navy, turquoise, plum, and burgundy as the other approved selectable palettes.
 - Support light, dark, and system appearance modes independently from selectable color palettes.
-- Persist appearance per user in the database and cache it locally to avoid a theme flash.
+- Persist appearance per user in the database and cache the last applied appearance and palette locally so the sign-in page renders with the last selected theme without a flash.
 - Keep the top header and bottom status bar fixed. Only central content scrolls.
 - Provide a persistent collapsible hamburger side menu and remember its supported user preference.
 - Present opened SPA pages as closable internal workspace tabs. Keep home fixed, focus existing logical tabs, protect dirty pages, synchronize the active route, restore tab descriptors after refresh, and clear them on logout.

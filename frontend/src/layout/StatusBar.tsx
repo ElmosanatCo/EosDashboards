@@ -2,6 +2,8 @@ import { Box, Typography } from "@mui/material";
 import { memo, useEffect, useState } from "react";
 import { formatPersianDateTime } from "../lib/date/persianDateTime";
 
+export const statusBarHeight = 38;
+
 const Clock = memo(function Clock() {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
@@ -21,6 +23,8 @@ export function StatusBar() {
     <Box
       component="footer"
       sx={{
+        minHeight: statusBarHeight,
+        boxSizing: "border-box",
         px: 2,
         py: 0.75,
         borderTop: 1,

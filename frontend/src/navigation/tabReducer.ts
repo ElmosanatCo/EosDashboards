@@ -14,10 +14,6 @@ export const initialTabState: TabState = {
   activeKey: homeTab.key,
 };
 
-export function resolveTabPathname(tab: TabDescriptor, applicationBasePath: string) {
-  return tab.key === homeTab.key ? applicationBasePath : tab.pathname;
-}
-
 export type TabAction =
   | { type: "open"; tab: TabDescriptor }
   | { type: "activate"; key: string }

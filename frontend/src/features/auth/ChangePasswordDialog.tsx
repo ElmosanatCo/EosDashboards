@@ -77,7 +77,11 @@ export function ChangePasswordDialog({
             label="رمز فعلی"
             type={inputType}
             value={currentPassword}
-            slotProps={{ input: { endAdornment: visibility } }}
+            slotProps={{
+              htmlInput: { dir: "ltr" },
+              input: { endAdornment: visibility },
+            }}
+            sx={{ "& input": { textAlign: "left" } }}
             onChange={(event) => setCurrentPassword(event.target.value)}
           />
           <TextField
@@ -92,7 +96,11 @@ export function ChangePasswordDialog({
                 ? "رمز عبور باید حداقل ۸ کاراکتر باشد."
                 : undefined
             }
-            slotProps={{ input: { endAdornment: visibility } }}
+            slotProps={{
+              htmlInput: { dir: "ltr" },
+              input: { endAdornment: visibility },
+            }}
+            sx={{ "& input": { textAlign: "left" } }}
             onChange={(event) => setNewPassword(event.target.value)}
           />
           <TextField
@@ -109,6 +117,8 @@ export function ChangePasswordDialog({
                 : undefined
             }
             onChange={(event) => setConfirmation(event.target.value)}
+            slotProps={{ htmlInput: { dir: "ltr" } }}
+            sx={{ "& input": { textAlign: "left" } }}
           />
           {error ? (
             <Typography color="error" variant="body2">

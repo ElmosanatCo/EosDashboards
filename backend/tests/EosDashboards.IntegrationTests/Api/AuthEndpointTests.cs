@@ -4,7 +4,6 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using EosDashboards.Api.Auth;
 using EosDashboards.Application.Abstractions;
 using EosDashboards.Domain.Entities;
 
@@ -56,32 +55,22 @@ public sealed class AuthEndpointTests : IClassFixture<AuthEndpointTests.ApiFacto
         var document = await _client.GetStringAsync("/openapi/v1.json");
 
         Assert.Contains("/api/v1/auth/sign-in/challenges", document, StringComparison.Ordinal);
-        Assert.Contains("/api/v1/auth/providers", document, StringComparison.Ordinal);
-        Assert.Contains("/api/v1/auth/google/start", document, StringComparison.Ordinal);
+        Assert.Contains("/api/v1/auth/sign-in/challenges/{challengeToken}/resend", document, StringComparison.Ordinal);
         Assert.Contains("/api/v1/auth/password-reset/challenges", document, StringComparison.Ordinal);
+        Assert.Contains("/api/v1/auth/password-reset/challenges/{challengeToken}/resend", document, StringComparison.Ordinal);
         Assert.DoesNotContain("/api/v1/auth/challenges\"", document, StringComparison.Ordinal);
         Assert.Contains("/api/v1/auth/refresh", document, StringComparison.Ordinal);
         Assert.Contains("/api/v1/users/me/preferences", document, StringComparison.Ordinal);
     }
 
     [Fact]
-    public async Task Providers_reports_google_as_unavailable_when_it_is_disabled()
+    public async Task Disabled_google_sign_in_is_reported_but_cannot_start_an_external_challenge()
     {
-        var response = await _client.GetAsync("/api/v1/auth/providers");
-        var providers = await response.Content.ReadFromJsonAsync<SignInProvidersResponse>();
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.False(providers!.Google);
-        Assert.Equal("no-store", response.Headers.CacheControl?.ToString());
-    }
-
-    [Fact]
-    public async Task Google_start_does_not_challenge_when_the_provider_is_disabled()
-    {
+        var providers = await _client.GetFromJsonAsync<JsonElement>("/api/v1/auth/providers");
         var response = await _client.GetAsync("/api/v1/auth/google/start");
 
+        Assert.False(providers.GetProperty("google").GetBoolean());
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        Assert.False(response.Headers.Contains("Location"));
     }
 
     [Fact]

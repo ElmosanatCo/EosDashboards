@@ -34,7 +34,7 @@ One active user is pre-provisioned directly through a controlled deployment tool
 
 **Status:** Confirmed for phase 1
 
-The user signs in with a pre-provisioned username and password. After successful password verification, every new application session requires a valid SMS OTP sent to the mobile number stored for that user. A signed-in user can change their password by supplying the current password. A user who has forgotten a password can reset it by completing a separate SMS OTP challenge. User and password administration UI remain deferred; the deployment tool manages pre-provisioned accounts and passwords in this slice.
+The user signs in with a pre-provisioned username and password. After successful password verification, every new application session requires a valid SMS OTP sent to the mobile number stored for that user. Sign-in and password-recovery OTP messages are Persian branded messages that identify `داشبورد علم و صنعت` and state their distinct purpose. A signed-in user can change their password by supplying the current password. A user who has forgotten a password can reset it by completing a separate SMS OTP challenge. User and password administration UI remain deferred; the deployment tool manages pre-provisioned accounts and passwords in this slice.
 
 ### FR-008 — Pre-linked Google sign-in
 
@@ -95,7 +95,7 @@ The initial product language is Persian and the interface is RTL-first. The loca
 
 **Status:** Confirmed
 
-The application provides light, dark, and system appearance modes plus selectable color palettes. The default palette is navy/teal. The application shell has a fixed header, fixed status bar, collapsible persistent side menu, and a scrollable central content area.
+The application provides light, dark, and system appearance modes plus six selectable color palettes: forest green, navy, turquoise, plum, amber, and burgundy. Amber is the default; its dark variant uses a deep, restrained brown. The last applied appearance and palette are cached locally and rendered from the first sign-in-page paint, then synchronized with the authenticated user's server preference. The application shell has a fixed header, fixed status bar, a persistent desktop side menu, a temporary overlay side menu on phones, and a scrollable central content area.
 
 ### TC-007 — Typography and component foundation
 
