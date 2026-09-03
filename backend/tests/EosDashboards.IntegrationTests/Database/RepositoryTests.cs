@@ -193,6 +193,33 @@ public sealed class RepositoryTests(SqlServerDatabaseFixture database)
         Assert.Equal("synthetic", metadata.RootElement.GetProperty("reason").GetString());
     }
 
+    [Fact]
+    public async Task AuditWriter_persists_request_ip_and_coarse_device_kind()
+    {
+        await using var context = database.CreateDbContext();
+        var writer = new AuditWriter(context, new FixedClock(TestNow));
+        var unitOfWork = new EfUnitOfWork(context);
+        var record = new AuditRecord(
+            null,
+            null,
+            "administration.test",
+            true,
+            "request-attribution-test",
+            null,
+            "192.0.2.31",
+            "Mobile");
+
+        await writer.WriteAsync(record, CancellationToken.None);
+        await unitOfWork.SaveChangesAsync(CancellationToken.None);
+        context.ChangeTracker.Clear();
+
+        var audit = await context.Set<AuditLog>()
+            .AsNoTracking()
+            .SingleAsync(item => item.TraceId == "request-attribution-test", CancellationToken.None);
+        Assert.Equal("192.0.2.31", audit.ClientIpAddress);
+        Assert.Equal("Mobile", audit.ClientDeviceKind);
+    }
+
     private static User CreateUser(string suffix) => User.Create(
         $"org-{suffix}",
         $"account-{suffix}",

@@ -22,7 +22,8 @@ public sealed class AuditLogReader(EosDashboardDbContext context) : IAuditLogRea
                            orderby audit.OccurredAt descending, audit.Id descending
                            select new AuditLogListItem(audit.Id, audit.OccurredAt, audit.EventCode, audit.Succeeded,
                                audit.ActorUserId, actor == null ? null : actor.FirstName + " " + actor.LastName,
-                               audit.SubjectUserId, subject == null ? null : subject.FirstName + " " + subject.LastName))
+                               audit.SubjectUserId, subject == null ? null : subject.FirstName + " " + subject.LastName,
+                               audit.ClientIpAddress, audit.ClientDeviceKind))
             .Skip((query.PageNumber - 1) * query.PageSize)
             .Take(query.PageSize)
             .ToArrayAsync(cancellationToken);

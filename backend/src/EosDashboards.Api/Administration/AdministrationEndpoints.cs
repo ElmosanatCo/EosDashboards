@@ -37,7 +37,7 @@ public static class AdministrationEndpoints
     private static async Task<IResult> GetAuditHistoryAsync(HttpContext context, GetAuditHistory history, AuditHistoryRange range = AuditHistoryRange.LastSevenDays, DateTime? from = null, DateTime? to = null, string? eventCode = null, long? actorUserId = null, long? subjectUserId = null, bool? succeeded = null, int pageNumber = 1, int pageSize = 50, CancellationToken token = default)
     {
         var result = await history.HandleAsync(new AuditHistoryQuery(range, from, to, eventCode, actorUserId, subjectUserId, succeeded, pageNumber, pageSize), token);
-        return result.IsValid ? Results.Ok(result.Value) : ApiResults.Problem(context, 400, "invalid_audit_query", "The audit filter is invalid.");
+        return result.IsValid ? Results.Ok(new PagedResult<AuditLogResponse>(result.Value!.Items.Select(Audit).ToArray(), result.Value.PageNumber, result.Value.PageSize, result.Value.TotalCount)) : ApiResults.Problem(context, 400, "invalid_audit_query", "The audit filter is invalid.");
     }
 
     private static async Task<IResult> GetUsersAsync(HttpContext context, IAdministrationLookupReader reader, int pageNumber = 1, int pageSize = 50, CancellationToken token = default)
@@ -128,6 +128,7 @@ public static class AdministrationEndpoints
     private static ManagedUserResponse User(AdministrationUserListItem user) => new(user.Id, user.PersonnelCode, user.AccountName, user.FirstName, user.LastName, user.Username, user.MaskedMobile, user.DepartmentId, user.DepartmentName, user.IsActive, user.MustChangePassword, user.RoleIds.ToArray(), Convert.ToBase64String(user.RowVersion));
     private static ManagedDepartmentResponse Department(Department department) => new(department.Id, department.Name, department.ParentDepartmentId, Convert.ToBase64String(department.RowVersion));
     private static ManagedDepartmentResponse Department(DepartmentListItem department) => new(department.Id, department.Name, department.ParentDepartmentId, Convert.ToBase64String(department.RowVersion));
+    private static AuditLogResponse Audit(AuditLogListItem audit) => new(audit.Id, audit.OccurredAt, audit.EventCode, audit.Succeeded, audit.ActorUserId, audit.ActorDisplayName, audit.SubjectUserId, audit.SubjectDisplayName, audit.ClientIpAddress, audit.ClientDeviceKind);
     private static bool TryActor(HttpContext context, out long actor) => SessionAuthorizationHandler.TryReadId(context.User, JwtRegisteredClaimNames.Sub, out actor);
     private static bool TryRowVersion(string value, out byte[] rowVersion) { try { rowVersion = Convert.FromBase64String(value); return rowVersion.Length > 0; } catch (FormatException) { rowVersion = []; return false; } }
     private static IResult Unauthorized(HttpContext context) => ApiResults.Problem(context, 401, "invalid_access_token", "Authentication is required.");

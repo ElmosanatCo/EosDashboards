@@ -2,11 +2,13 @@ import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import LockResetOutlinedIcon from "@mui/icons-material/LockResetOutlined";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import {
   Box,
   Button,
   Chip,
   CircularProgress,
+  Dialog,
   IconButton,
   Paper,
   Stack,
@@ -24,8 +26,7 @@ import {
   type ManagedUser,
 } from "../features/administration/administrationApi";
 import { problemMessage } from "../features/administration/administrationUi";
-import { createTabKey } from "../navigation/routeRegistry";
-import { useTabWorkspace } from "../navigation/TabWorkspaceProvider";
+import { UserFormPage } from "./UserFormPage";
 
 export function UserManagementPage() {
   const users = useQuery({
@@ -33,7 +34,7 @@ export function UserManagementPage() {
     queryFn: () => administrationApi.users(),
   });
   const queryClient = useQueryClient();
-  const { dispatch } = useTabWorkspace();
+  const [selectedUserId, setSelectedUserId] = useState<number | null>();
   const changeStatus = useMutation({
     mutationFn: (user: ManagedUser) =>
       administrationApi.setUserActive(user.id, !user.isActive, user.rowVersion),
@@ -42,22 +43,7 @@ export function UserManagementPage() {
         queryKey: ["administration", "users"],
       }),
   });
-  const openForm = (id?: number) =>
-    dispatch({
-      type: "open",
-      tab: {
-        key: createTabKey(
-          id ? "administration-user-edit" : "administration-user-create",
-          { id: id?.toString() ?? "new" },
-        ),
-        routeId: id ? "administration-user-edit" : "administration-user-create",
-        pathname: "/users/form",
-        search: "",
-        title: id ? "ویرایش کاربر" : "تعریف کاربر",
-        closable: true,
-        state: { id: id ?? null },
-      },
-    });
+  const openForm = (id?: number) => setSelectedUserId(id ?? null);
   return (
     <Stack spacing={2.5} sx={{ maxWidth: 1320, mx: "auto" }}>
       <Stack
@@ -170,6 +156,20 @@ export function UserManagementPage() {
           {problemMessage(changeStatus.error)}
         </Typography>
       ) : null}
+      <Dialog
+        open={selectedUserId !== undefined}
+        onClose={() => setSelectedUserId(undefined)}
+        fullWidth
+        maxWidth="md"
+      >
+        {selectedUserId !== undefined ? (
+          <UserFormPage
+            userId={selectedUserId ?? undefined}
+            onClose={() => setSelectedUserId(undefined)}
+            onSaved={() => setSelectedUserId(undefined)}
+          />
+        ) : null}
+      </Dialog>
     </Stack>
   );
 }

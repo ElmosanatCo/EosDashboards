@@ -10,7 +10,9 @@ public sealed record AuditLogListItem(
     long? ActorUserId,
     string? ActorDisplayName,
     long? SubjectUserId,
-    string? SubjectDisplayName);
+    string? SubjectDisplayName,
+    string? ClientIpAddress,
+    string? ClientDeviceKind);
 
 public sealed record AuditLogQuery(
     DateTime From,

@@ -19,8 +19,12 @@ import { useTabWorkspace } from "../navigation/TabWorkspaceProvider";
 
 export function DepartmentFormPage({
   departmentId,
+  onClose,
+  onSaved,
 }: {
   departmentId?: number;
+  onClose?: () => void;
+  onSaved?: () => void;
 }) {
   const departments = useQuery({
     queryKey: ["administration", "departments"],
@@ -60,7 +64,8 @@ export function DepartmentFormPage({
       void client.invalidateQueries({
         queryKey: ["administration", "departments"],
       });
-      dispatch({ type: "markDirty", key: activeKey, dirty: false });
+      if (onSaved) onSaved();
+      else dispatch({ type: "markDirty", key: activeKey, dirty: false });
     },
   });
   if (departments.isPending)
@@ -143,6 +148,7 @@ export function DepartmentFormPage({
           <Button
             type="button"
             onClick={() =>
+              onClose?.() ??
               dispatch({ type: "close", key: activeKey, confirmed: true })
             }
           >

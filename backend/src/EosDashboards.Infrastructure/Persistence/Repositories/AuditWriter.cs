@@ -4,7 +4,10 @@ using EosDashboards.Domain.Entities;
 
 namespace EosDashboards.Infrastructure.Persistence.Repositories;
 
-public sealed class AuditWriter(EosDashboardDbContext context, IClock clock) : IAuditWriter
+public sealed class AuditWriter(
+    EosDashboardDbContext context,
+    IClock clock,
+    ICorrelationContext? correlationContext = null) : IAuditWriter
 {
     public Task WriteAsync(AuditRecord record, CancellationToken cancellationToken)
     {
@@ -20,7 +23,9 @@ public sealed class AuditWriter(EosDashboardDbContext context, IClock clock) : I
             clock.Now,
             record.Succeeded,
             record.TraceId,
-            safeMetadata));
+            safeMetadata,
+            record.ClientIpAddress ?? correlationContext?.ClientIpAddress,
+            record.ClientDeviceKind ?? correlationContext?.ClientDeviceKind));
 
         return Task.CompletedTask;
     }

@@ -7,6 +7,7 @@ import {
   Box,
   Button,
   CircularProgress,
+  Dialog,
   IconButton,
   Paper,
   Stack,
@@ -18,8 +19,8 @@ import {
   type ManagedDepartment,
 } from "../features/administration/administrationApi";
 import { problemMessage } from "../features/administration/administrationUi";
-import { createTabKey } from "../navigation/routeRegistry";
-import { useTabWorkspace } from "../navigation/TabWorkspaceProvider";
+import { useState } from "react";
+import { DepartmentFormPage } from "./DepartmentFormPage";
 
 export function DepartmentManagementPage() {
   const departments = useQuery({
@@ -27,7 +28,9 @@ export function DepartmentManagementPage() {
     queryFn: administrationApi.departments,
   });
   const queryClient = useQueryClient();
-  const { dispatch } = useTabWorkspace();
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState<
+    number | null
+  >();
   const remove = useMutation({
     mutationFn: (item: ManagedDepartment) =>
       administrationApi.deleteDepartment(item.id, item.rowVersion),
@@ -36,19 +39,7 @@ export function DepartmentManagementPage() {
         queryKey: ["administration", "departments"],
       }),
   });
-  const openForm = (id?: number) =>
-    dispatch({
-      type: "open",
-      tab: {
-        key: createTabKey("department-form", { id: id?.toString() ?? "new" }),
-        routeId: "department-form",
-        pathname: "/departments/form",
-        search: "",
-        title: id ? "ویرایش واحد" : "تعریف واحد",
-        closable: true,
-        state: { id: id ?? null },
-      },
-    });
+  const openForm = (id?: number) => setSelectedDepartmentId(id ?? null);
   const roots =
     departments.data?.filter((item) => item.parentDepartmentId === null) ?? [];
   const childrenOf = (id: number) =>
@@ -110,6 +101,20 @@ export function DepartmentManagementPage() {
       {remove.isError ? (
         <Typography color="error">{problemMessage(remove.error)}</Typography>
       ) : null}
+      <Dialog
+        open={selectedDepartmentId !== undefined}
+        onClose={() => setSelectedDepartmentId(undefined)}
+        fullWidth
+        maxWidth="sm"
+      >
+        {selectedDepartmentId !== undefined ? (
+          <DepartmentFormPage
+            departmentId={selectedDepartmentId ?? undefined}
+            onClose={() => setSelectedDepartmentId(undefined)}
+            onSaved={() => setSelectedDepartmentId(undefined)}
+          />
+        ) : null}
+      </Dialog>
     </Stack>
   );
 }
