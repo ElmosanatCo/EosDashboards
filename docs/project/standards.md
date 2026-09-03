@@ -97,7 +97,7 @@ This is the canonical implementation standard for EosDashboards. Feature specifi
 - Every new phase-1 application session requires SMS OTP after successful password verification.
 - Passwords are stored only as standard salted hashes. They are 8 to 128 characters long and have no character-class composition rule. Plaintext passwords never enter logs, audit records, error responses, source control, or tracked settings.
 - Signed-in password change requires the current password. Password recovery requires a purpose-isolated SMS OTP and never creates an authenticated session. Password change or reset revokes all active sessions for that user.
-- User and password administration UI are deferred. The controlled deployment tool is the sole account/password-management mechanism for this slice.
+- System-administrator user/access management is approved product scope but is not implemented in the current authentication slice. Until its separately approved implementation is released, the controlled deployment tool remains the sole account/password-management mechanism.
 - OTPs are six digits, valid for five minutes, limited to five verification attempts, and subject to a 60-second resend cooldown and endpoint rate limits.
 - Store OTPs only as keyed hashes and mobile numbers in protected encrypted form; mask mobile numbers in UI and logs.
 - An eight-hour application session uses ten-minute access tokens and a revocable refresh credential. Logout or expiry requires a new OTP.

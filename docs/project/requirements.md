@@ -26,9 +26,9 @@ The CEO can monitor valuable company-wide information to support management deci
 
 ### FR-004 — Initial system administrator
 
-**Status:** Confirmed for the initial slice
+**Status:** Confirmed
 
-One active user is pre-provisioned directly through a controlled deployment tool and assigned the System Administrator role with full application access. User and role administration screens are deferred.
+One active user is initially pre-provisioned directly through a controlled deployment tool and assigned the System Administrator role with full application access. The System Administrator must manage user accounts and their access assignments through the application. This does not permit self-registration or change the approved local-credential/SMS-OTP sign-in flow.
 
 ### FR-005 — Local credential sign-in with SMS OTP
 
@@ -46,6 +46,15 @@ first verified Google sign-in binds the immutable provider subject. It creates
 the normal application session without a local password or SMS OTP. Google
 does not self-register users, roles, permissions, or links, and the local
 credential route remains available.
+
+### FR-009 — Company department hierarchy
+
+**Status:** Confirmed
+
+The System Administrator must define company departments. A department may be
+independent or an immediate child of one other department. The hierarchy has a
+maximum of two levels: a parent department and its direct children; a third
+level is not permitted.
 
 ### FR-006 — Tabbed SPA workspace
 
@@ -188,7 +197,9 @@ The logical development database name is `EosDashboard`.
 ## Unresolved requirements
 
 - Dashboard catalogue, metrics, filters, and drill-down behavior.
-- Department roles, authorization boundaries, and dashboard visibility beyond the initial System Administrator.
+- The initial roles and policies, and whether access assignments are limited to roles or include granular permissions.
+- Exact user-account lifecycle operations, including activation, deactivation, password administration, and identity-link management.
+- Department metadata, manager assignment, deletion, and re-parenting rules.
 - Data sources, ownership, refresh frequency, and historical retention.
 - Exact performance service levels, availability targets, retention periods, approved organizational browser versions, and recovery objectives.
 - Exporting, printing, alerts, subscriptions, and administration capabilities.

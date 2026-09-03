@@ -10,10 +10,10 @@ EosDashboards is a company web application that will provide multiple dashboards
 
 - Department managers, who receive dashboards appropriate to the valuable data and responsibilities available in their departments.
 - The CEO, who monitors valuable company-wide information to support management decisions.
-- A system administrator, initially represented by one pre-provisioned account with full application access.
+- A system administrator, initially represented by one pre-provisioned account with full application access, who manages user accounts, access assignments, and company departments.
 - An HR Manager, whose detailed authorization assignment remains subject to dashboard discovery.
 
-Specific department roles, permissions, dashboard assignments, audiences, metrics, workflows, and data sources remain unresolved. The approved role-content defaults define the intended manager-facing interface direction; they do not themselves authorize access or select dashboard data.
+Company departments may be independent or form a two-level hierarchy of parent departments and direct children. Specific department roles, permissions, dashboard assignments, audiences, metrics, workflows, and data sources remain unresolved. The approved role-content defaults define the intended manager-facing interface direction; they do not themselves authorize access or select dashboard data.
 
 ## Expected outcome
 
@@ -31,4 +31,4 @@ The dashboards, metrics, source systems, update frequency, and success measures 
 
 ## Scope boundary
 
-The first release starts with pre-provisioned local username/password sign-in plus mandatory SMS OTP. User/role administration UI, internet-facing or organizational-directory authentication, dashboard-specific reporting and alerting, data-entry workflows, and source-system integrations require later discovery and approval.
+The first release starts with pre-provisioned local username/password sign-in plus mandatory SMS OTP. System-administrator user/access and department-hierarchy management are approved product scope but require a separate implementation design. Internet-facing or organizational-directory authentication, dashboard-specific reporting and alerting, data-entry workflows, and source-system integrations require later discovery and approval.

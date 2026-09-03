@@ -16,3 +16,4 @@ Do not rewrite an accepted record to hide history. Add a new record that superse
 - `0006-local-development-configuration.md`
 - `0007-linked-google-sign-in.md`
 - `0008-manager-facing-workforce-operations-ui.md`
+- `0009-administration-and-department-hierarchy.md`
