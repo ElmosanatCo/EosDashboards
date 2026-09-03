@@ -19,6 +19,7 @@ At the start of every new chat, automatically recall the project's prior agreeme
 - Database: SQL Server.
 - Frontend: React.js.
 - UI foundation: Material UI, Persian RTL, and the locally hosted Vazirmatn font.
+- UI quality is a primary acceptance criterion: every interface change must be intentional, visually coherent, professionally finished, and reviewed as rendered UI; never assemble screens as disconnected default components or rushed placeholder layouts.
 - Frontend behavior: React SPA with closable internal workspace tabs; the home tab is fixed.
 - Hosting: the React UI and ASP.NET Core API are separate IIS sites/applications with separate application pools.
 - Architecture: lightweight clean layering; API -> Application -> Domain, with Infrastructure as the only database and external-system access layer.

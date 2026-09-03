@@ -111,6 +111,7 @@ This is the canonical implementation standard for EosDashboards. Feature specifi
 - Design Persian RTL first while preserving an internationalization foundation for future English LTR.
 - Use one coherent design system for spacing, typography, elevation, shape, color, focus, motion, forms, feedback, and charts.
 - Adopt a balanced corporate visual direction: medium density, professional modern appearance, controlled color, and brief functional motion.
+- Treat visual quality, order, and harmony as core acceptance criteria. Before implementing a UI change, define its hierarchy, spacing, typography, color, responsive behavior, states, and RTL implications; review the rendered result and refine it until it is professionally cohesive. Do not assemble interfaces from disconnected defaults, rushed layouts, or placeholder visual decisions.
 - Use navy/teal as the default palette.
 - Support light, dark, and system appearance modes independently from selectable color palettes.
 - Persist appearance per user in the database and cache it locally to avoid a theme flash.
