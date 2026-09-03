@@ -498,7 +498,7 @@ git commit -m "feat: offer linked Google sign-in"
 - [x] **Step 1: Write focused operations/documentation acceptance checks.**
 
 ```powershell
-rg -n -S "nasimbaledi|ClientSecret.*[A-Za-z0-9]{16,}|GoogleAuthentication.*secret" docs scripts backend/tests
+rg -n -S "ClientSecret.*[A-Za-z0-9]{16,}|GoogleAuthentication.*secret" docs scripts backend/tests
 ```
 
 Expected: no personal email, client secret, token, or copied configuration value. Add an operations checklist test/inspection that requires the exact localhost callback URI and never instructs an HTTP Vite smoke test.
@@ -507,9 +507,9 @@ Expected: no personal email, client secret, token, or copied configuration value
 
 Document: create a Google consent screen; create a Web OAuth client; add exactly `https://localhost/EosDashboardsApi/api/v1/auth/google/callback`; place ClientId/ClientSecret/RedirectUri in server-side API/IIS settings; provision the approved email through the hidden-entry tool; publish; then use only the IIS HTTPS UI for the authorized manual smoke check. Do not include actual values or screenshots containing them.
 
-- [ ] **Step 3: Apply the database migration and configure the local server only after user-authorized Google Cloud setup.**
+- [x] **Step 3: Apply the database migration and configure the local server only after user-authorized Google Cloud setup.**
 
-Run the reviewed EF migration and the normal elevated local publisher. Do not invoke the deprecated private-data helper for normal publication. The user-authorized Google Cloud client and server-only configuration are ready; publication and real authorization remain pending.
+Run the reviewed EF migration and the normal elevated local publisher. Do not invoke the deprecated private-data helper for normal publication. The user-authorized Google Cloud client and server-only configuration are ready; the normal publisher completed successfully. Real authorization remains pending the required outbound Google signing-key access.
 
 - [x] **Step 4: Run final automated verification.**
 
@@ -530,6 +530,12 @@ Expected: PASS. Record the verification result without private values.
 - [ ] **Step 5: Run one user-authorized IIS HTTPS smoke flow.**
 
 Open `https://localhost/EosDashboards/`, select Google, authenticate only with the already linked account, confirm dashboard entry, refresh once to confirm the ordinary session lifecycle, then logout. Do not inspect cookies, tokens, password fields, OTPs, or Google account data. If Google Cloud client configuration is unavailable, stop before this step and report the exact configuration dependency.
+
+The 2026-09-03 attempt reached the configured API but stopped before Google
+authorization because the local network returned HTTP 403 for Google's public
+signing-key endpoint. Do not bypass signature validation; allow the IIS API
+application-pool identity to reach the required Google OpenID endpoints, then
+retry this step.
 
 - [ ] **Step 6: Commit documentation and integration state.**
 

@@ -55,7 +55,18 @@ Initial authentication and application-shell implementation.
   test user, and only the standard OpenID, email, and profile scopes are
   configured. Its Client ID and Client Secret are held only in the private
   server-side API configuration and are absent from documentation and frontend
-  settings. Publication and a user-authorized HTTPS smoke flow remain pending.
+  settings. The final user-authorized Google sign-in smoke flow remains
+  pending.
+- The elevated normal local publisher completed successfully on 2026-09-03,
+  switching both IIS applications to release `20260903-145626`. The HTTPS UI,
+  existing-session refresh, provider discovery, and logout were observed
+  successfully. Google sign-in cannot complete yet because the local machine
+  receives HTTP 403 from Google's public signing-key endpoint
+  `https://www.googleapis.com/oauth2/v3/certs`; the API correctly refuses to
+  weaken token signature validation. The IIS application-pool identity needs
+  permitted outbound TLS access to Google's OpenID metadata, signing-key, and
+  token services before the final user-authorized sign-in smoke flow can be
+  retried.
 - Final pre-publication verification passed on 2026-09-03: 195 backend tests
   (including 113 SQL-backed integration tests against the guarded test
   catalog), 12 frontend tests, TypeScript checking, the production frontend
@@ -80,15 +91,19 @@ Initial authentication and application-shell implementation.
 
 ## Next agreed step
 
-Run the elevated normal local publisher without a private-data file, then
-complete one user-authorized IIS HTTPS Google sign-in, refresh, and logout
-smoke flow. Do not deploy to company production servers in this slice.
+Permit the IIS API application-pool identity to reach Google's required
+OpenID endpoints, then complete one user-authorized IIS HTTPS Google sign-in,
+refresh, and logout smoke flow. Do not deploy to company production servers in
+this slice.
 
 ## Blockers
 
 - The configured local SMS service endpoint timed out during one authorized live sign-in attempt. Login cannot complete until its endpoint, network reachability, or SOAP service contract is corrected. Do not repeat live OTP sends until that is resolved.
 - IIS publication needs an elevated local PowerShell session. The current agent
   session is not elevated, so it cannot switch the two local IIS applications.
+- The local network currently returns HTTP 403 for Google's public signing-key
+  endpoint. Google sign-in cannot safely start until that outbound access is
+  allowed for the IIS API application-pool identity.
 
 ## Immediate unresolved questions
 

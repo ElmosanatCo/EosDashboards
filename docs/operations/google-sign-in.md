@@ -10,6 +10,12 @@ does not authorize production setup or user self-registration.
 - The local UI and API are available through IIS HTTPS, not the Vite HTTP
   preview.
 - The operator can administer the chosen Google Cloud project.
+- The IIS API application-pool identity has outbound TLS access to Google's
+  OpenID metadata, public signing-key, authorization, and token endpoints.
+  In particular, it must be able to read
+  `https://accounts.google.com/.well-known/openid-configuration` and
+  `https://www.googleapis.com/oauth2/v3/certs`. Do not bypass signing-key
+  validation when network policy blocks either endpoint.
 
 ## Create the Google client
 
@@ -43,8 +49,9 @@ RedirectUri = https://localhost/EosDashboardsApi/api/v1/auth/google/callback
 
 The settings may be held in the private repository's API configuration or its
 local IIS application configuration under decision 0006. They must be
-available to the API process after publication. The shipped default is disabled
-and intentionally contains no client values.
+available to the API process after publication. The local development release
+uses its approved server-only values; no client value is present in frontend
+settings.
 
 ## Publish and smoke-check
 
@@ -69,7 +76,10 @@ configuration error.
   character-for-character against the callback shown above.
 - **Google button absent:** `Enabled` is false, a required setting is blank, or
   the API did not start with its intended configuration.
+- **Google action returns immediately to local sign-in:** confirm that the IIS
+  API application-pool identity can retrieve the public signing-key endpoint
+  above. A 403 or other outbound-network failure must be corrected in network
+  policy; never accept Google tokens without signature validation.
 - **Returned to local sign-in with a generic error:** the account was
   cancelled, not Google-verified, not pre-linked, inactive, or the callback
   could not be validated. Do not reveal which case applies to a user.
-
