@@ -239,6 +239,54 @@ test("a strict-mode bootstrap restores a session with one refresh request", asyn
   expect(refreshRequests).toBe(1);
 });
 
+test("linked Google sign-in is initiated through the API endpoint", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/**", async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith("/auth/refresh")) {
+      await route.fulfill({ status: 401, body: JSON.stringify({}) });
+    } else if (path.endsWith("/auth/providers")) {
+      await route.fulfill({ json: { google: true } });
+    } else {
+      await route.fulfill({ status: 404 });
+    }
+  });
+
+  await page.goto("/");
+  const startRequest = page.waitForRequest(/\/api\/v1\/auth\/google\/start$/);
+  await page.getByRole("button", { name: "ورود با Google" }).click();
+
+  expect((await startRequest).method()).toBe("GET");
+});
+
+test("a Google callback failure keeps local credential sign-in available", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/**", async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith("/auth/refresh")) {
+      await route.fulfill({ status: 401, body: JSON.stringify({}) });
+    } else if (path.endsWith("/auth/providers")) {
+      await route.fulfill({ json: { google: false } });
+    } else {
+      await route.fulfill({ status: 404 });
+    }
+  });
+
+  await page.goto("/?authError=google");
+
+  await expect(
+    page.getByText(
+      "ورود با Google انجام نشد. دوباره تلاش کنید یا با رمز عبور وارد شوید.",
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "ورود و دریافت کد تأیید" }),
+  ).toBeVisible();
+  await expect(page).toHaveURL(/\/$/);
+});
+
 test("OTP offers a one-click resend after its 60-second cooldown", async ({
   page,
 }) => {

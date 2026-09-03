@@ -121,6 +121,24 @@ public sealed record AuthenticationResult(
     public override string ToString() => nameof(AuthenticationResult);
 }
 
+public sealed record GoogleIdentity(string Subject, string Email, bool EmailVerified)
+{
+    public override string ToString() => nameof(GoogleIdentity);
+}
+
+public enum GoogleSignInStatus
+{
+    Succeeded,
+    Denied,
+}
+
+public sealed record GoogleSignInResult(
+    GoogleSignInStatus Status,
+    AuthenticationResult? Authentication)
+{
+    public override string ToString() => nameof(GoogleSignInResult);
+}
+
 public enum RefreshSessionStatus
 {
     Succeeded,

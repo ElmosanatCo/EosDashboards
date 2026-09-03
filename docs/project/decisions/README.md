@@ -14,3 +14,4 @@ Do not rewrite an accepted record to hide history. Add a new record that superse
 - `0004-initial-authentication-and-shell.md`
 - `0005-local-credential-authentication.md`
 - `0006-local-development-configuration.md`
+- `0007-linked-google-sign-in.md`

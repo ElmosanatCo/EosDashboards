@@ -29,7 +29,7 @@ public sealed class ModelMappingTests
             .ToArray();
 
         Assert.Equal(
-            ["AuditLogs", "OtpChallenges", "Roles", "UserPreferences", "UserRoles", "UserSessions", "Users"],
+            ["AuditLogs", "ExternalIdentityLinks", "OtpChallenges", "Roles", "UserPreferences", "UserRoles", "UserSessions", "Users"],
             tableNames);
     }
 
@@ -44,6 +44,7 @@ public sealed class ModelMappingTests
             typeof(UserSession),
             typeof(UserPreference),
             typeof(AuditLog),
+            typeof(ExternalIdentityLink),
         };
 
         foreach (var principalType in principalTypes)
@@ -78,6 +79,9 @@ public sealed class ModelMappingTests
         AssertUniqueIndex<UserSession>(nameof(UserSession.RefreshCredentialHash));
         AssertUniqueIndex<UserPreference>(nameof(UserPreference.UserId));
         AssertUniqueIndex<User>(nameof(User.Username));
+        AssertCompositeUniqueIndex<ExternalIdentityLink>(
+            nameof(ExternalIdentityLink.Provider),
+            nameof(ExternalIdentityLink.NormalizedEmail));
     }
 
     [Fact]
@@ -98,6 +102,22 @@ public sealed class ModelMappingTests
     }
 
     [Fact]
+    public void External_identity_links_keep_the_approved_email_and_subject_bounds()
+    {
+        var provider = RequiredProperty<ExternalIdentityLink>(nameof(ExternalIdentityLink.Provider));
+        var email = RequiredProperty<ExternalIdentityLink>(nameof(ExternalIdentityLink.NormalizedEmail));
+        var subject = RequiredProperty<ExternalIdentityLink>(nameof(ExternalIdentityLink.ProviderSubject));
+
+        Assert.False(provider.IsNullable);
+        Assert.Equal(typeof(ExternalIdentityProvider), provider.ClrType);
+        Assert.Equal(32, provider.GetMaxLength());
+        Assert.False(email.IsNullable);
+        Assert.Equal(320, email.GetMaxLength());
+        Assert.True(subject.IsNullable);
+        Assert.Equal(255, subject.GetMaxLength());
+    }
+
+    [Fact]
     public void SensitiveAndTextColumns_HaveExplicitSafeBounds()
     {
         Assert.InRange(RequiredProperty<User>(nameof(User.ProtectedMobileNumber)).GetMaxLength()!.Value, 1, 2048);
@@ -109,6 +129,7 @@ public sealed class ModelMappingTests
     [Theory]
     [InlineData(typeof(OtpChallenge))]
     [InlineData(typeof(UserSession))]
+    [InlineData(typeof(ExternalIdentityLink))]
     public void ConcurrentAuthenticationState_UsesShadowRowVersion(Type entityType)
     {
         var rowVersion = RequiredEntity(entityType).FindProperty("RowVersion");
@@ -134,6 +155,9 @@ public sealed class ModelMappingTests
         Assert.All(
             RequiredEntity(typeof(AuditLog)).GetForeignKeys(),
             foreignKey => Assert.Equal(DeleteBehavior.Restrict, foreignKey.DeleteBehavior));
+        Assert.All(
+            RequiredEntity(typeof(ExternalIdentityLink)).GetForeignKeys(),
+            foreignKey => Assert.Equal(DeleteBehavior.Restrict, foreignKey.DeleteBehavior));
     }
 
     private void AssertUniqueIndex<TEntity>(string propertyName)
@@ -143,6 +167,15 @@ public sealed class ModelMappingTests
             entity.GetIndexes(),
             index => index.IsUnique &&
                      index.Properties.Select(property => property.Name).SequenceEqual([propertyName]));
+    }
+
+    private void AssertCompositeUniqueIndex<TEntity>(params string[] propertyNames)
+    {
+        var entity = RequiredEntity(typeof(TEntity));
+        Assert.Contains(
+            entity.GetIndexes(),
+            index => index.IsUnique &&
+                     index.Properties.Select(property => property.Name).SequenceEqual(propertyNames));
     }
 
     private IProperty RequiredProperty<TEntity>(string propertyName) =>

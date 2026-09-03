@@ -64,6 +64,16 @@ public sealed class AuthEndpointTests : IClassFixture<AuthEndpointTests.ApiFacto
     }
 
     [Fact]
+    public async Task Disabled_google_sign_in_is_reported_but_cannot_start_an_external_challenge()
+    {
+        var providers = await _client.GetFromJsonAsync<JsonElement>("/api/v1/auth/providers");
+        var response = await _client.GetAsync("/api/v1/auth/google/start");
+
+        Assert.False(providers.GetProperty("google").GetBoolean());
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Anonymous_password_reset_start_returns_a_generic_response()
     {
         var response = await _client.PostAsJsonAsync(
@@ -95,6 +105,7 @@ public sealed class AuthEndpointTests : IClassFixture<AuthEndpointTests.ApiFacto
             builder.UseSetting("AuthSecurity:KeyRingPath", _keyRingPath);
             builder.UseSetting("Sms:Endpoint", "https://sms.test.invalid/soap");
             builder.UseSetting("Sms:Timeout", "00:00:01");
+            builder.UseSetting("GoogleAuthentication:Enabled", "false");
             builder.ConfigureServices(services =>
             {
                 services.AddScoped<IUserRepository, MissingUserRepository>();

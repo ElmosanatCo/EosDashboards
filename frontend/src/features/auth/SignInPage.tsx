@@ -11,6 +11,7 @@ import {
 import { useEffect, useState } from "react";
 import type { Challenge } from "./authTypes";
 import { CredentialForm } from "./CredentialForm";
+import { GoogleSignInButton } from "./GoogleSignInButton";
 import { OtpForm } from "./OtpForm";
 import { PasswordRecoveryForm } from "./PasswordRecoveryForm";
 
@@ -26,12 +27,14 @@ type Props = {
   busy: boolean;
   error?: string;
   notice?: string;
+  googleAvailable: boolean;
   onStartSignIn: (username: string, password: string) => Promise<void>;
   onVerifyOtp: (code: string) => Promise<void>;
   onStartPasswordReset: (username: string) => Promise<void>;
   onCompletePasswordReset: (code: string, newPassword: string) => Promise<void>;
   onResendOtp: () => Promise<void>;
   onBack: () => void;
+  onStartGoogleSignIn: () => void;
 };
 
 export function SignInPage({
@@ -40,12 +43,14 @@ export function SignInPage({
   busy,
   error,
   notice,
+  googleAvailable,
   onStartSignIn,
   onVerifyOtp,
   onStartPasswordReset,
   onCompletePasswordReset,
   onResendOtp,
   onBack,
+  onStartGoogleSignIn,
 }: Props) {
   const [recoveryOpen, setRecoveryOpen] = useState(mode === "passwordReset");
   useEffect(() => {
@@ -207,6 +212,12 @@ export function SignInPage({
             ) : (
               <>
                 <CredentialForm busy={busy} onSubmit={onStartSignIn} />
+                {googleAvailable ? <Divider>یا</Divider> : null}
+                <GoogleSignInButton
+                  available={googleAvailable}
+                  busy={busy}
+                  onStart={onStartGoogleSignIn}
+                />
                 <Divider />
                 <Button
                   type="button"

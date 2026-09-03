@@ -17,6 +17,8 @@ public sealed class EosDashboardDbContext(DbContextOptions<EosDashboardDbContext
 
     public DbSet<UserPreference> UserPreferences => Set<UserPreference>();
 
+    public DbSet<ExternalIdentityLink> ExternalIdentityLinks => Set<ExternalIdentityLink>();
+
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

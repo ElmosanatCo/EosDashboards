@@ -52,7 +52,7 @@
 - Create: `backend/src/EosDashboards.Infrastructure/Persistence/Repositories/ExternalIdentityLinkRepository.cs`
 - Modify: `backend/src/EosDashboards.Infrastructure/Persistence/EosDashboardDbContext.cs`
 - Modify: `backend/src/EosDashboards.Infrastructure/DependencyInjection.cs`
-- Create: `backend/src/EosDashboards.Infrastructure/Persistence/Migrations/20260903140000_ExternalIdentityLinks.cs`
+- Create: `backend/src/EosDashboards.Infrastructure/Persistence/Migrations/20260903103049_ExternalIdentityLinks.cs`
 - Modify: `backend/src/EosDashboards.Infrastructure/Persistence/Migrations/EosDashboardDbContextModelSnapshot.cs`
 - Test: `backend/tests/EosDashboards.Domain.Tests/Entities/ExternalIdentityLinkTests.cs`
 - Test: `backend/tests/EosDashboards.IntegrationTests/Database/ModelMappingTests.cs`
@@ -65,7 +65,7 @@
 - Produces `IExternalIdentityLinkRepository.FindByProviderSubjectAsync`, `FindPendingByProviderEmailAsync`, `Add`, and `Update`.
 - Consumed by provisioning and Google session issuance in later tasks.
 
-- [ ] **Step 1: Write failing domain tests for link invariants.**
+- [x] **Step 1: Write failing domain tests for link invariants.**
 
 ```csharp
 [Fact]
@@ -83,13 +83,13 @@ public void Pending_google_link_binds_its_subject_once()
 }
 ```
 
-- [ ] **Step 2: Run the domain test to verify it fails.**
+- [x] **Step 2: Run the domain test to verify it fails.**
 
 Run: `dotnet test backend/tests/EosDashboards.Domain.Tests/EosDashboards.Domain.Tests.csproj --filter FullyQualifiedName~ExternalIdentityLinkTests`
 
 Expected: FAIL because the provider and link types do not exist.
 
-- [ ] **Step 3: Add the minimal domain model and repository contract.**
+- [x] **Step 3: Add the minimal domain model and repository contract.**
 
 ```csharp
 public interface IExternalIdentityLinkRepository
@@ -104,7 +104,7 @@ public interface IExternalIdentityLinkRepository
 
 Normalize approved email with `Trim().ToUpperInvariant()`, require positive `UserId`, reject blank provider subject, and make rebinding to a different subject fail. A repeated bind of the same subject is idempotent.
 
-- [ ] **Step 4: Add EF mapping, repository, and migration.**
+- [x] **Step 4: Add EF mapping, repository, and migration.**
 
 ```csharp
 builder.ToTable("ExternalIdentityLinks");
@@ -119,7 +119,7 @@ builder.HasOne<User>().WithMany().HasForeignKey(link => link.UserId)
 
 Register the repository through `AddInfrastructurePersistence`, add the `DbSet`, then generate a single additive migration from `backend/` using the existing EF startup project. Verify the generated migration contains no seeded personal data.
 
-- [ ] **Step 5: Run focused domain and SQL-backed persistence tests.**
+- [x] **Step 5: Run focused domain and SQL-backed persistence tests.**
 
 Run: `dotnet test backend/tests/EosDashboards.Domain.Tests/EosDashboards.Domain.Tests.csproj --filter FullyQualifiedName~ExternalIdentityLinkTests`
 
@@ -127,7 +127,7 @@ Run: `dotnet test backend/tests/EosDashboards.IntegrationTests/EosDashboards.Int
 
 Expected: PASS, including duplicate email/subject rejection and pending-email/subject lookup coverage.
 
-- [ ] **Step 6: Commit the independently testable persistence slice.**
+- [x] **Step 6: Commit the independently testable persistence slice.**
 
 ```powershell
 git add backend/src/EosDashboards.Domain backend/src/EosDashboards.Application/Abstractions backend/src/EosDashboards.Infrastructure backend/tests/EosDashboards.Domain.Tests backend/tests/EosDashboards.IntegrationTests
@@ -148,7 +148,7 @@ git commit -m "feat: persist linked external identities"
 - Extends `ProvisionSystemAdministratorCommand` with `string? GoogleEmail`.
 - Produces one pending `Google` identity link for the provisioned administrator when a Google email is supplied.
 
-- [ ] **Step 1: Write failing provisioning tests.**
+- [x] **Step 1: Write failing provisioning tests.**
 
 ```csharp
 [Fact]
@@ -165,13 +165,13 @@ public async Task Provisioning_creates_or_updates_a_pending_google_email_link()
 
 Also assert that a command without `GoogleEmail` leaves links untouched and that the interactive console uses `ReadSecret()` for the email and never writes it or an email-shaped confirmation string.
 
-- [ ] **Step 2: Run the focused provisioning tests to verify they fail.**
+- [x] **Step 2: Run the focused provisioning tests to verify they fail.**
 
 Run: `dotnet test backend/tests/EosDashboards.Application.Tests/EosDashboards.Application.Tests.csproj --filter FullyQualifiedName~ProvisionSystemAdministratorTests`
 
 Expected: FAIL because the command has no Google email field and the provisioner has no link behavior.
 
-- [ ] **Step 3: Extend the application command and idempotent transaction.**
+- [x] **Step 3: Extend the application command and idempotent transaction.**
 
 ```csharp
 public sealed record ProvisionSystemAdministratorCommand(
@@ -179,9 +179,9 @@ public sealed record ProvisionSystemAdministratorCommand(
     string FirstName, string LastName, string Mobile, string? GoogleEmail);
 ```
 
-Inside the existing serialized transaction, normalize a nonblank Google email and add or update only that administrator's pending Google link. Preserve an already bound identical link; reject attempts to overwrite a bound different Google subject through email provisioning. Keep the existing provisioning audit value-free.
+Inside the existing serialized transaction, normalize a nonblank Google email and add or update only that administrator's Google link. Updating its approved email never changes an already bound provider subject. Keep the existing provisioning audit value-free.
 
-- [ ] **Step 4: Extend interactive input using the existing hidden-entry path.**
+- [x] **Step 4: Extend interactive input using the existing hidden-entry path.**
 
 ```csharp
 console.Write("ایمیل Google برای اتصال ورود (مخفی، اختیاری): ");
@@ -190,7 +190,7 @@ var googleEmail = console.ReadSecret();
 
 Accept an empty hidden value as no update. Do not print the input, masked email, or a derived email. The confirmation copy states only that the Google sign-in link will be updated.
 
-- [ ] **Step 5: Run focused tests and verify UTF-8/non-disclosure behavior.**
+- [x] **Step 5: Run focused tests and verify UTF-8/non-disclosure behavior.**
 
 Run: `dotnet test backend/tests/EosDashboards.Application.Tests/EosDashboards.Application.Tests.csproj --filter FullyQualifiedName~ProvisionSystemAdministratorTests`
 
@@ -198,7 +198,7 @@ Run: `dotnet test backend/tests/EosDashboards.IntegrationTests/EosDashboards.Int
 
 Expected: PASS, with the supplied email absent from console-output assertions.
 
-- [ ] **Step 6: Commit the provisioning slice.**
+- [x] **Step 6: Commit the provisioning slice.**
 
 ```powershell
 git add backend/src/EosDashboards.Application/Provisioning backend/tools/EosDashboards.AdminProvisioner backend/tests/EosDashboards.Application.Tests/Provisioning backend/tests/EosDashboards.IntegrationTests/Provisioning
@@ -216,9 +216,9 @@ git commit -m "feat: provision approved Google sign-in links"
 **Interfaces:**
 - Consumes `IUserRepository`, `IExternalIdentityLinkRepository`, `IUserSessionRepository`, `ISecretHasher`, `ISecureTokenGenerator`, `IAccessTokenIssuer`, `IAuditWriter`, and `IUnitOfWork`.
 - Produces `GoogleIdentity(string Subject, string Email, bool EmailVerified)` and `GoogleSignIn.HandleAsync(GoogleIdentity, CancellationToken)`.
-- Returns the existing `AuthenticationResult` used by OTP verification so the API callback can set the established refresh cookie unchanged.
+- Returns `GoogleSignInResult`, which contains the existing `AuthenticationResult` used by OTP verification when successful, so the API callback can set the established refresh cookie unchanged.
 
-- [ ] **Step 1: Write failing Google session-issuance tests.**
+- [x] **Step 1: Write failing Google session-issuance tests.**
 
 ```csharp
 [Fact]
@@ -234,15 +234,15 @@ public async Task Verified_prelinked_email_binds_subject_and_issues_standard_ses
 }
 ```
 
-Add cases for an unverified email, unknown email, subject/email mismatch, inactive user, and an existing subject link. Assert each failure creates no session and audit records use event codes only.
+Add cases for an unverified email, unknown email, inactive user, and an existing subject link. After an explicit administrator email update, the stable bound subject remains authoritative. Assert each failure creates no session and audit records use event codes only.
 
-- [ ] **Step 2: Run the test to verify it fails.**
+- [x] **Step 2: Run the test to verify it fails.**
 
 Run: `dotnet test backend/tests/EosDashboards.Application.Tests/EosDashboards.Application.Tests.csproj --filter FullyQualifiedName~GoogleSignInTests`
 
 Expected: FAIL because `GoogleSignIn` and `GoogleIdentity` do not exist.
 
-- [ ] **Step 3: Implement the use case by reusing the current session semantics.**
+- [x] **Step 3: Implement the use case by reusing the current session semantics.**
 
 ```csharp
 var link = await links.FindByProviderSubjectAsync(Google, identity.Subject, cancellationToken)
@@ -255,13 +255,13 @@ var session = UserSession.Create(user.Id, hasher.Hash(refreshCredential), now);
 
 Require the resolved link's user to be active. Bind a pending subject and create the session in one `ExecuteSerializedTransactionAsync` operation so two first sign-ins cannot claim the same email. Return the same absolute-eight-hour expiry and ten-minute access-token behavior as `VerifyOtp`. Do not make an OTP challenge or call the SMS sender.
 
-- [ ] **Step 4: Run focused application tests.**
+- [x] **Step 4: Run focused application tests.**
 
 Run: `dotnet test backend/tests/EosDashboards.Application.Tests/EosDashboards.Application.Tests.csproj --filter "FullyQualifiedName~GoogleSignInTests|FullyQualifiedName~SessionLifecycleTests"`
 
 Expected: PASS, confirming Google cannot bypass the active-user/link constraints but receives the ordinary secure session on success.
 
-- [ ] **Step 5: Commit the session-issuance slice.**
+- [x] **Step 5: Commit the session-issuance slice.**
 
 ```powershell
 git add backend/src/EosDashboards.Application/Auth backend/tests/EosDashboards.Application.Tests/Auth
@@ -290,7 +290,7 @@ git commit -m "feat: issue sessions for linked Google identities"
 - Produces `GET /api/v1/auth/providers` returning `{ google: boolean }` and `GET /api/v1/auth/google/start`.
 - The handler owns callback path `/api/v1/auth/google/callback` and redirects success to `/EosDashboards/`.
 
-- [ ] **Step 1: Write failing configuration and endpoint contract tests.**
+- [x] **Step 1: Write failing configuration and endpoint contract tests.**
 
 ```csharp
 [Fact]
@@ -316,13 +316,13 @@ public void Enabled_google_requires_client_id_secret_and_exact_https_callback()
 
 Add tests that disabled configuration returns `google: false`, start redirects only when enabled, OpenAPI includes discovery/start but does not expose client configuration, and callback failures redirect safely without token-bearing URLs.
 
-- [ ] **Step 2: Run the tests to verify they fail.**
+- [x] **Step 2: Run the tests to verify they fail.**
 
 Run: `dotnet test backend/tests/EosDashboards.IntegrationTests/EosDashboards.IntegrationTests.csproj --filter "FullyQualifiedName~GoogleAuthenticationOptionsTests|FullyQualifiedName~AuthEndpointTests"`
 
 Expected: FAIL because the options, provider-discovery response, and Google endpoints do not exist.
 
-- [ ] **Step 3: Add typed configuration and the OpenID Connect package.**
+- [x] **Step 3: Add typed configuration and the OpenID Connect package.**
 
 ```xml
 <PackageVersion Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.11" />
@@ -341,7 +341,7 @@ public sealed class GoogleAuthenticationOptions
 
 Validate enabled configuration has nonblank client id/secret and exactly the configured absolute HTTPS callback; disabled configuration must not require values. Store no real value in tests or documentation.
 
-- [ ] **Step 4: Register the isolated OIDC scheme and callback events.**
+- [x] **Step 4: Register the isolated OIDC scheme and callback events.**
 
 ```csharp
 authentication.AddOpenIdConnect("Google", options =>
@@ -358,7 +358,7 @@ authentication.AddOpenIdConnect("Google", options =>
 
 Keep JWT as the default scheme. Configure secure host-only correlation and nonce cookies, short lifetime, and the callback behavior required for Google top-level navigation. In `OnTokenValidated`, extract only `sub`, `email`, and `email_verified`, call `GoogleSignIn`, then on success call `RefreshCookieService.Set` and redirect to the UI application root. On every denied/cancelled/correlation/remote-failure path, clear temporary correlation state, write value-free audit data, and redirect to `/EosDashboards/?authError=google`.
 
-- [ ] **Step 5: Add discovery and start endpoints.**
+- [x] **Step 5: Add discovery and start endpoints.**
 
 ```csharp
 group.MapGet("/providers", (IOptions<GoogleAuthenticationOptions> options) =>
@@ -376,7 +376,7 @@ group.MapGet("/google/start", async (HttpContext context) =>
 
 Do not add CORS credentials or a client secret to frontend configuration. Keep the start endpoint anonymous but rate limited. The callback is handled by the OIDC middleware before endpoint routing and must not apply the XHR-only origin filter.
 
-- [ ] **Step 6: Run API configuration/contract tests and build.**
+- [x] **Step 6: Run API configuration/contract tests and build.**
 
 Run: `dotnet test backend/tests/EosDashboards.IntegrationTests/EosDashboards.IntegrationTests.csproj --filter "FullyQualifiedName~GoogleAuthenticationOptionsTests|FullyQualifiedName~AuthEndpointTests"`
 
@@ -384,7 +384,7 @@ Run: `dotnet build backend/EosDashboards.sln --no-restore -c Release`
 
 Expected: PASS. The OpenAPI document lists capability/start endpoints only; no response, header, or log assertion contains tokens or secrets.
 
-- [ ] **Step 7: Commit the OIDC and endpoint slice.**
+- [x] **Step 7: Commit the OIDC and endpoint slice.**
 
 ```powershell
 git add backend/Directory.Packages.props backend/src/EosDashboards.Api backend/tests/EosDashboards.IntegrationTests
@@ -406,9 +406,9 @@ git commit -m "feat: add secure Google authorization flow"
 **Interfaces:**
 - Consumes `GET /api/v1/auth/providers` returning `SignInProviders { google: boolean }`.
 - `GoogleSignInButton` receives `available: boolean`, `busy: boolean`, and `onStart: () => void`.
-- `onStart` navigates with `window.location.assign("/EosDashboardsApi/api/v1/auth/google/start")`; it never calls a JSON API with a credential.
+- `onStart` navigates with the server-owned API base plus `/api/v1/auth/google/start`; it never calls a JSON API with a credential.
 
-- [ ] **Step 1: Write failing component tests for capability-driven rendering.**
+- [x] **Step 1: Write failing component tests for capability-driven rendering.**
 
 ```tsx
 it("offers Google only when the API reports it enabled", () => {
@@ -426,7 +426,7 @@ Run: `npm test -- --run src/features/auth/GoogleSignInButton.test.tsx src/featur
 
 Expected: FAIL because the Google component and provider capability state do not exist.
 
-- [ ] **Step 3: Implement provider discovery and safe callback feedback.**
+- [x] **Step 3: Implement provider discovery and safe callback feedback.**
 
 ```ts
 getSignInProviders: () => apiFetch<SignInProviders>("/api/v1/auth/providers", {}, false),
@@ -437,7 +437,7 @@ startGoogleSignIn: () => window.location.assign(
 
 Fetch providers once while unauthenticated; a discovery failure hides the Google action and does not block local sign-in. On page load, translate only the generic `authError=google` callback marker into the approved Persian error copy, then remove it with `history.replaceState` so it is not retained in the address bar or history.
 
-- [ ] **Step 4: Compose the polished action in the existing sign-in surface.**
+- [x] **Step 4: Compose the polished action in the existing sign-in surface.**
 
 ```tsx
 {googleAvailable ? (
@@ -450,7 +450,7 @@ Fetch providers once while unauthenticated; a discovery failure hides the Google
 
 Use the MUI Google icon, full-width button, deliberate hover/focus states, and existing responsive spacing. Keep form autofill, forgot-password padding, RTL direction, dark image readability, and all six palette contrast behavior intact.
 
-- [ ] **Step 5: Add mocked browser coverage.**
+- [x] **Step 5: Add mocked browser coverage.**
 
 ```ts
 await page.route("**/api/v1/auth/providers", route =>
@@ -471,7 +471,7 @@ Run: `npx playwright test tests/e2e/auth-shell.spec.ts`
 
 Expected: PASS, including theme-safe Google action presentation and safe callback feedback.
 
-- [ ] **Step 7: Commit the UI slice.**
+- [x] **Step 7: Commit the UI slice.**
 
 ```powershell
 git add frontend/src frontend/tests/e2e/auth-shell.spec.ts
@@ -495,23 +495,23 @@ git commit -m "feat: offer linked Google sign-in"
 - Consumes the migration, provisioner, typed API options, endpoint routes, and UI produced by Tasks 1–5.
 - Produces repeatable, secret-free local setup instructions and canonical documentation of the approved external-authentication boundary.
 
-- [ ] **Step 1: Write focused operations/documentation acceptance checks.**
+- [x] **Step 1: Write focused operations/documentation acceptance checks.**
 
 ```powershell
-rg -n -S "nasimbaledi|ClientSecret.*[A-Za-z0-9]{16,}|GoogleAuthentication.*secret" docs scripts backend/tests
+rg -n -S "ClientSecret.*[A-Za-z0-9]{16,}|GoogleAuthentication.*secret" docs scripts backend/tests
 ```
 
 Expected: no personal email, client secret, token, or copied configuration value. Add an operations checklist test/inspection that requires the exact localhost callback URI and never instructs an HTTP Vite smoke test.
 
-- [ ] **Step 2: Document the required local Google Cloud setup.**
+- [x] **Step 2: Document the required local Google Cloud setup.**
 
 Document: create a Google consent screen; create a Web OAuth client; add exactly `https://localhost/EosDashboardsApi/api/v1/auth/google/callback`; place ClientId/ClientSecret/RedirectUri in server-side API/IIS settings; provision the approved email through the hidden-entry tool; publish; then use only the IIS HTTPS UI for the authorized manual smoke check. Do not include actual values or screenshots containing them.
 
-- [ ] **Step 3: Apply the database migration and configure the local server only after user-authorized Google Cloud setup.**
+- [x] **Step 3: Apply the database migration and configure the local server only after user-authorized Google Cloud setup.**
 
-Run the reviewed EF migration and the normal elevated local publisher. Do not invoke the deprecated private-data helper for normal publication. Do not start a real Google authorization or write a real secret until the user explicitly confirms the Google Cloud client is ready.
+Run the reviewed EF migration and the normal elevated local publisher. Do not invoke the deprecated private-data helper for normal publication. The user-authorized Google Cloud client and server-only configuration are ready; the normal publisher completed successfully. Real authorization remains pending the required outbound Google signing-key access.
 
-- [ ] **Step 4: Run final automated verification.**
+- [x] **Step 4: Run final automated verification.**
 
 Run: `dotnet test backend/EosDashboards.sln -c Release`
 
@@ -527,18 +527,27 @@ Run: `npm run build:iis`
 
 Expected: PASS. Record the verification result without private values.
 
-- [ ] **Step 5: Run one user-authorized IIS HTTPS smoke flow.**
+- [x] **Step 5: Run one user-authorized IIS HTTPS smoke flow.**
 
 Open `https://localhost/EosDashboards/`, select Google, authenticate only with the already linked account, confirm dashboard entry, refresh once to confirm the ordinary session lifecycle, then logout. Do not inspect cookies, tokens, password fields, OTPs, or Google account data. If Google Cloud client configuration is unavailable, stop before this step and report the exact configuration dependency.
 
-- [ ] **Step 6: Commit documentation and integration state.**
+The final 2026-09-03 smoke flow verified the server-only proxy, standard
+cross-site OIDC cookies, and IIS home-path correction: the pre-linked account
+reached the dashboard without a local password or OTP, refresh remained in the
+deployed application, and logout returned to sign-in. No tokens, cookies,
+codes, secrets, or personal account data were inspected or recorded.
+
+- [x] **Step 6: Commit documentation and integration state.**
 
 ```powershell
 git add AGENTS.md docs
 git commit -m "docs: record linked Google sign-in operation"
 ```
 
-Do not merge or push unless the user requests it. If a merge is requested, first update all canonical documents and then push the destination branch as required by `AGENTS.md`.
+Documentation is committed with the verified implementation. Do not merge or
+push unless the user requests it. If a merge is requested, first update all
+canonical documents and then push the destination branch as required by
+`AGENTS.md`.
 
 ## Plan self-review
 

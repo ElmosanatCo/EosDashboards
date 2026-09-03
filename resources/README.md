@@ -22,3 +22,6 @@ For every added asset, record its source, owner, license, version or acquisition
 - EOS logo: user-provided approved SVG, acquired 2026-09-02, SHA-256
   `4CDAFBE41DF7653BBEC3CC9D201D3DC974306BC2CC2B1A02424E3E03F770FC6F`.
   Use only for EosDashboards branding, including the browser favicon; do not recolor or substitute it.
+- Login geometric mesh: user-provided image, acquired 2026-09-03 and stored as
+  `branding/auth-background.jpg`. It is used only behind the sign-in brand
+  panel with a dark readability overlay; do not use it as workspace content.

@@ -121,6 +121,45 @@ internal sealed class FakeUserSessionRepository : IUserSessionRepository
     }
 }
 
+internal sealed class FakeExternalIdentityLinkRepository : IExternalIdentityLinkRepository
+{
+    public List<ExternalIdentityLink> Links { get; } = [];
+
+    public Task<ExternalIdentityLink?> FindByProviderSubjectAsync(
+        ExternalIdentityProvider provider,
+        string providerSubject,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(Links.SingleOrDefault(link =>
+            link.Provider == provider && link.ProviderSubject == providerSubject));
+    }
+
+    public Task<ExternalIdentityLink?> FindPendingByProviderEmailAsync(
+        ExternalIdentityProvider provider,
+        string normalizedEmail,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(Links.SingleOrDefault(link =>
+            link.Provider == provider &&
+            link.ProviderSubject is null &&
+            link.NormalizedEmail == normalizedEmail));
+    }
+
+    public Task<ExternalIdentityLink?> FindByUserIdAndProviderAsync(
+        long userId,
+        ExternalIdentityProvider provider,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(Links.SingleOrDefault(link =>
+            link.UserId == userId && link.Provider == provider));
+    }
+
+    public void Add(ExternalIdentityLink link) => Links.Add(link);
+}
+
 internal sealed class FakeSmsSender : ISmsSender
 {
     public List<SmsMessage> Messages { get; } = [];
@@ -263,6 +302,8 @@ internal sealed class FakeUnitOfWork(
 
     public List<CancellationToken> CancellationTokens { get; } = [];
 
+    public List<string> OperationKeys { get; } = [];
+
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken)
     {
         CancellationTokens.Add(cancellationToken);
@@ -284,10 +325,14 @@ internal sealed class FakeUnitOfWork(
         return Task.FromResult(1);
     }
 
-    public Task ExecuteSerializedTransactionAsync(
+    public async Task ExecuteSerializedTransactionAsync(
         string operationKey,
         Func<CancellationToken, Task> operation,
-        CancellationToken cancellationToken) => operation(cancellationToken);
+        CancellationToken cancellationToken)
+    {
+        OperationKeys.Add(operationKey);
+        await operation(cancellationToken);
+    }
 }
 
 internal sealed record SaveObservation(

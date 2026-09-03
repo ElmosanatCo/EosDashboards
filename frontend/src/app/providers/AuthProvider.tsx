@@ -86,6 +86,7 @@ export function AuthProvider({
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState<string>();
   const [notice, setNotice] = useState<string>();
+  const [googleAvailable, setGoogleAvailable] = useState(false);
   const applyAuthentication = useCallback(
     (response: Awaited<ReturnType<typeof authApi.refresh>>) => {
       authTokenStore.set(response.accessToken);
@@ -107,9 +108,35 @@ export function AuthProvider({
   }, [applyAuthentication]);
   useEffect(() => {
     registerRefreshHandler(refresh);
+    let mounted = true;
+    void authApi
+      .getSignInProviders()
+      .then((providers) => {
+        if (mounted) setGoogleAvailable(providers.google);
+      })
+      .catch(() => {
+        if (mounted) setGoogleAvailable(false);
+      });
     void refresh().finally(() => setBusy(false));
-    return () => registerRefreshHandler(null);
+    return () => {
+      mounted = false;
+      registerRefreshHandler(null);
+    };
   }, [refresh]);
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("authError") !== "google") return;
+
+    setError(
+      "ورود با Google انجام نشد. دوباره تلاش کنید یا با رمز عبور وارد شوید.",
+    );
+    url.searchParams.delete("authError");
+    window.history.replaceState(
+      null,
+      "",
+      `${url.pathname}${url.search}${url.hash}`,
+    );
+  }, []);
   const startSignIn = useCallback(
     async (username: string, password: string) => {
       setBusy(true);
@@ -202,6 +229,11 @@ export function AuthProvider({
     setMode("signIn");
     setError(undefined);
   }, []);
+  const startGoogleSignIn = useCallback(() => {
+    window.location.assign(
+      `${import.meta.env.VITE_API_BASE_URL ?? ""}/api/v1/auth/google/start`,
+    );
+  }, []);
   const logout = useCallback(async () => {
     try {
       await authApi.logout();
@@ -237,12 +269,14 @@ export function AuthProvider({
         busy={busy}
         error={error}
         notice={notice}
+        googleAvailable={googleAvailable}
         onStartSignIn={startSignIn}
         onVerifyOtp={verifyOtp}
         onStartPasswordReset={startPasswordReset}
         onCompletePasswordReset={completePasswordReset}
         onResendOtp={resendOtp}
         onBack={back}
+        onStartGoogleSignIn={startGoogleSignIn}
       />
     );
   return <AuthContext value={value}>{children}</AuthContext>;

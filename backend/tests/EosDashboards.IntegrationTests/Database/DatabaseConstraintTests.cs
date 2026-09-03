@@ -1,4 +1,5 @@
 using EosDashboards.Domain.Entities;
+using EosDashboards.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace EosDashboards.IntegrationTests.Database;
@@ -15,6 +16,32 @@ public sealed class DatabaseConstraintTests(SqlServerDatabaseFixture database)
         var organizationalId = $"duplicate-org-{Guid.NewGuid():N}";
         context.Users.Add(CreateUser(organizationalId, Guid.NewGuid().ToString("N")));
         context.Users.Add(CreateUser(organizationalId, Guid.NewGuid().ToString("N")));
+
+        await Assert.ThrowsAnyAsync<DbUpdateException>(
+            () => context.SaveChangesAsync(CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task ExternalIdentityLinks_RejectDuplicateGoogleEmailOrSubject()
+    {
+        await using var context = database.CreateDbContext();
+        var suffix = Guid.NewGuid().ToString("N");
+        var firstUser = await AddUserAsync(context);
+        var secondUser = await AddUserAsync(context);
+        var first = ExternalIdentityLink.CreatePending(
+            firstUser.Id,
+            ExternalIdentityProvider.Google,
+            $"person-{suffix}@example.com",
+            TestNow);
+        first.BindSubject($"subject-{suffix}", TestNow);
+        var duplicate = ExternalIdentityLink.CreatePending(
+            secondUser.Id,
+            ExternalIdentityProvider.Google,
+            $"person-{suffix}@example.com",
+            TestNow);
+        duplicate.BindSubject($"subject-{suffix}", TestNow);
+        context.Add(first);
+        context.Add(duplicate);
 
         await Assert.ThrowsAnyAsync<DbUpdateException>(
             () => context.SaveChangesAsync(CancellationToken.None));
