@@ -50,26 +50,34 @@ Initial authentication and application-shell implementation.
 - The local development database applied the additive external-identity migration on 2026-09-03. At the user's request, one approved Google email from the established private configuration was linked to the single active System Administrator through a parameterized transaction. A non-sensitive verification confirmed exactly one active pending Google link and no bound provider subject; no identity value is recorded here.
 - The Google sign-in UI is implemented in the isolated worktree: anonymous provider discovery runs alongside session refresh, the credential form remains available, and the Google action performs only a top-level navigation to the server-owned start endpoint. A generic callback failure is shown once and removed from the address bar. The plain initial session-check placeholder was removed so the usual sign-in surface remains visible. Focused component tests, TypeScript checking, and three mocked browser scenarios passed; no real Google authorization was attempted.
 - Decision 0007 and `docs/operations/google-sign-in.md` record the approved linked-account boundary and the exact local setup. The UI deliberately keeps the Google action unavailable until a user-administered Google Cloud Web OAuth client exists and its Client ID, Client Secret, and exact HTTPS callback are configured server-side.
+- A local Google Cloud Web OAuth client was created on 2026-09-03 with the
+  approved exact callback. The approved active administrator is listed as a
+  test user, and only the standard OpenID, email, and profile scopes are
+  configured. Its Client ID and Client Secret are held only in the private
+  server-side API configuration and are absent from documentation and frontend
+  settings. Publication and a user-authorized HTTPS smoke flow remain pending.
 - Two user-provided visual references are stored under `resources/images/references/` for future UI decisions: a split login layout and a dashboard-toolbar control hierarchy. They are reference-only, not approved product assets; their provenance and unverified redistribution status are recorded in `resources/README.md`.
 - Resolve the configured external SMS endpoint/connectivity only if it recurs in a new local live sign-in attempt; the user confirmed that a full username/password-and-OTP sign-in succeeded on 2026-09-02.
 - A local provisioning defect was corrected: Persian administrator profile text had been corrupted while being passed from the deployment helper to its child process, despite Unicode SQL Server columns. The helper and provisioner now declare UTF-8 at every process boundary. A safe database-wide text scan found exactly two affected values, both in the initial administrator's first/last-name fields, and none elsewhere. A parameterized corrective update restored the affected profile; a non-sensitive verification confirmed zero remaining corrupted profiles and one exact Unicode profile match. No private value is recorded in repository documentation.
 - The private local deployment file is now interpreted by named administrator fields rather than positional values; only username, password, first name, last name, and mobile are consumed. Extra labelled values are ignored. The parser and private-config validation completed without disclosing values.
-- A local IIS publication helper now copies already-built API/UI artifacts to new versioned directories, switches the two IIS applications, configures the API from the private file, and verifies readiness. It uses Windows PowerShell only for IIS management and UTF-8 PowerShell for private Persian input.
+- A local IIS publication helper now copies already-built API/UI artifacts to
+  new versioned directories, switches the two IIS applications, and verifies
+  readiness. Normal publication reuses existing IIS runtime configuration and
+  does not require a private-data file; the legacy private-data helper remains
+  only for recovery and initial provisioning.
 - The local IIS UI was rebuilt with its `/EosDashboards/` asset base and `/EosDashboardsApi` API base, correcting the prior blank page and same-origin API routing failure. The user confirmed on 2026-09-03 that live username/password sign-in was tested successfully against the provisioned account. The subsequent configured SMS call timed out, so the resulting OTP was marked send-failed; no credential, code, phone number, or endpoint is recorded here.
 
 ## Next agreed step
 
-Create the local Google Cloud Web OAuth client, configure its Client ID and
-Client Secret in the API/IIS server-side `GoogleAuthentication` section, then
-publish and complete one user-authorized IIS HTTPS Google sign-in, refresh, and
-logout smoke flow. Do not deploy to company production servers in this slice.
+Run the elevated normal local publisher without a private-data file, then
+complete one user-authorized IIS HTTPS Google sign-in, refresh, and logout
+smoke flow. Do not deploy to company production servers in this slice.
 
 ## Blockers
 
 - The configured local SMS service endpoint timed out during one authorized live sign-in attempt. Login cannot complete until its endpoint, network reachability, or SOAP service contract is corrected. Do not repeat live OTP sends until that is resolved.
-- Google sign-in cannot be activated until an operator with access to the
-  selected Google Cloud project creates the Web OAuth client and supplies its
-  Client ID and Client Secret to the API/IIS server-side configuration.
+- IIS publication needs an elevated local PowerShell session. The current agent
+  session is not elevated, so it cannot switch the two local IIS applications.
 
 ## Immediate unresolved questions
 

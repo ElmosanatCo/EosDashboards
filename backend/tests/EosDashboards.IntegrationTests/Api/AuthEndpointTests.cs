@@ -116,6 +116,7 @@ public sealed class AuthEndpointTests : IClassFixture<AuthEndpointTests.ApiFacto
             builder.UseSetting("AuthSecurity:KeyRingPath", _keyRingPath);
             builder.UseSetting("Sms:Endpoint", "https://sms.test.invalid/soap");
             builder.UseSetting("Sms:Timeout", "00:00:01");
+            builder.UseSetting("GoogleAuthentication:Enabled", "false");
             builder.ConfigureServices(services =>
             {
                 services.AddScoped<IUserRepository, MissingUserRepository>();

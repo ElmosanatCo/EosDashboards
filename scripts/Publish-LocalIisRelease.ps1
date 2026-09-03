@@ -1,8 +1,7 @@
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory = $true)]
-    [ValidateNotNullOrEmpty()]
-    [string]$PrivateDataFile,
+    [AllowEmptyString()]
+    [string]$PrivateDataFile = '',
 
     [string]$ApiArtifact,
 
@@ -162,11 +161,13 @@ foreach ($release in @(
 }
 
 $deploymentStage = 'configure-api'
-& $Utf8PowerShell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $scriptRoot 'Configure-LocalIisFromPrivateData.ps1') `
-    -PrivateDataFile $PrivateDataFile `
-    -ProvisionAdministratorFromPrivateData
-if ($LASTEXITCODE -ne 0) {
-    throw 'The local API configuration did not complete.'
+if (-not [string]::IsNullOrWhiteSpace($PrivateDataFile)) {
+    & $Utf8PowerShell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $scriptRoot 'Configure-LocalIisFromPrivateData.ps1') `
+        -PrivateDataFile $PrivateDataFile `
+        -ProvisionAdministratorFromPrivateData
+    if ($LASTEXITCODE -ne 0) {
+        throw 'The local API configuration did not complete.'
+    }
 }
 
 $deploymentStage = 'ui-readiness-check'

@@ -17,7 +17,9 @@ Copy `frontend/dist/` to a versioned UI directory. Point IIS to the versioned di
 - Use **No Managed Code**, Integrated pipeline mode, and a dedicated identity.
 - Install the matching ASP.NET Core Hosting Bundle.
 - Grant the identity read/execute access to the API files, write access only to the configured key-ring directory, and the least SQL permission required.
-- Configure secrets and connection strings outside the artifact.
+- Keep local server-only settings in the private repository's API configuration
+  or the API IIS application configuration under decision 0006. Never place
+  them in frontend build settings.
 - Enable Windows Authentication and disable Anonymous Authentication for the API application. ASP.NET Core's Negotiate handler intentionally refuses to start when IIS does not provide this boundary.
 - The Windows-authenticated API may return `401` to an unauthenticated health request. Local probes must use the current Windows identity, for example `Invoke-WebRequest -UseDefaultCredentials`; successful `/health/live` and `/health/ready` responses return `200`.
 - Keep the API application configuration when switching versioned release directories. It contains the environment-specific values outside the artifact.
@@ -27,7 +29,9 @@ Copy `frontend/dist/` to a versioned UI directory. Point IIS to the versioned di
 - Serve both child applications through the `Default Web Site` HTTPS binding. The local UI origin configured for credentialed CORS is exactly `https://localhost`; paths do not form part of an origin.
 - Keep UI and API in separate child applications and pools. The UI build must retain `VITE_PUBLIC_BASE=/EosDashboards/`; the API base remains `/EosDashboardsApi`.
 - Keep the persistent Data Protection key ring outside the web root, at a path writable by the API pool identity and not by the UI pool. The installed local path is `C:\ProgramData\EosDashboards\keys`.
-- Use the approved private-data helper for local runtime configuration and provisioning. Do not copy private values into `appsettings.json`, deployment artifacts, source control, terminal history, or documentation.
+- The normal local publisher reuses the existing IIS runtime configuration and
+  does not require a private-data file. It must not move server credentials or
+  identity-provider secrets into frontend settings or terminal history.
 
 ## Local installed applications
 
@@ -61,9 +65,10 @@ Authentication enabled and anonymous access disabled. Its required runtime
 configuration remains outside the artifact; do not record those values in this
 repository or its published artifact.
 
-## Local private-data helper
+## Legacy private-data helper
 
-`scripts/Configure-LocalIisFromPrivateData.ps1` accepts the path to a
+`scripts/Configure-LocalIisFromPrivateData.ps1` is a legacy recovery and
+first-provisioning helper. It accepts the path to a
 developer-owned private text file outside this repository. It expects `Server`,
 `User`, `Pass`, `DataBase`, and an HTTPS endpoint following `Sms Web Servise`.
 It validates the file before use, generates independent local security keys,
@@ -72,7 +77,8 @@ development migration, and provisions the first administrator. The file path
 and every supplied value remain outside source control and are never printed by
 the helper.
 
-When explicitly requested by its `-ProvisionAdministratorFromPrivateData`
+Do not use this helper for an ordinary paired release. When explicitly
+requested by its `-ProvisionAdministratorFromPrivateData`
 switch, the helper takes the three administrator profile values placed after
 `Method` in that same private file. It obtains the organizational stable ID and
 account name from the current Windows identity, sends the values only through

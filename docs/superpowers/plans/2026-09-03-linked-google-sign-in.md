@@ -509,7 +509,7 @@ Document: create a Google consent screen; create a Web OAuth client; add exactly
 
 - [ ] **Step 3: Apply the database migration and configure the local server only after user-authorized Google Cloud setup.**
 
-Run the reviewed EF migration and the normal elevated local publisher. Do not invoke the deprecated private-data helper for normal publication. Do not start a real Google authorization or write a real secret until the user explicitly confirms the Google Cloud client is ready.
+Run the reviewed EF migration and the normal elevated local publisher. Do not invoke the deprecated private-data helper for normal publication. The user-authorized Google Cloud client and server-only configuration are ready; publication and real authorization remain pending.
 
 - [ ] **Step 4: Run final automated verification.**
 
