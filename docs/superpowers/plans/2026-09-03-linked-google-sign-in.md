@@ -52,7 +52,7 @@
 - Create: `backend/src/EosDashboards.Infrastructure/Persistence/Repositories/ExternalIdentityLinkRepository.cs`
 - Modify: `backend/src/EosDashboards.Infrastructure/Persistence/EosDashboardDbContext.cs`
 - Modify: `backend/src/EosDashboards.Infrastructure/DependencyInjection.cs`
-- Create: `backend/src/EosDashboards.Infrastructure/Persistence/Migrations/20260903140000_ExternalIdentityLinks.cs`
+- Create: `backend/src/EosDashboards.Infrastructure/Persistence/Migrations/20260903103049_ExternalIdentityLinks.cs`
 - Modify: `backend/src/EosDashboards.Infrastructure/Persistence/Migrations/EosDashboardDbContextModelSnapshot.cs`
 - Test: `backend/tests/EosDashboards.Domain.Tests/Entities/ExternalIdentityLinkTests.cs`
 - Test: `backend/tests/EosDashboards.IntegrationTests/Database/ModelMappingTests.cs`
@@ -65,7 +65,7 @@
 - Produces `IExternalIdentityLinkRepository.FindByProviderSubjectAsync`, `FindPendingByProviderEmailAsync`, `Add`, and `Update`.
 - Consumed by provisioning and Google session issuance in later tasks.
 
-- [ ] **Step 1: Write failing domain tests for link invariants.**
+- [x] **Step 1: Write failing domain tests for link invariants.**
 
 ```csharp
 [Fact]
@@ -83,13 +83,13 @@ public void Pending_google_link_binds_its_subject_once()
 }
 ```
 
-- [ ] **Step 2: Run the domain test to verify it fails.**
+- [x] **Step 2: Run the domain test to verify it fails.**
 
 Run: `dotnet test backend/tests/EosDashboards.Domain.Tests/EosDashboards.Domain.Tests.csproj --filter FullyQualifiedName~ExternalIdentityLinkTests`
 
 Expected: FAIL because the provider and link types do not exist.
 
-- [ ] **Step 3: Add the minimal domain model and repository contract.**
+- [x] **Step 3: Add the minimal domain model and repository contract.**
 
 ```csharp
 public interface IExternalIdentityLinkRepository
@@ -104,7 +104,7 @@ public interface IExternalIdentityLinkRepository
 
 Normalize approved email with `Trim().ToUpperInvariant()`, require positive `UserId`, reject blank provider subject, and make rebinding to a different subject fail. A repeated bind of the same subject is idempotent.
 
-- [ ] **Step 4: Add EF mapping, repository, and migration.**
+- [x] **Step 4: Add EF mapping, repository, and migration.**
 
 ```csharp
 builder.ToTable("ExternalIdentityLinks");
@@ -119,7 +119,7 @@ builder.HasOne<User>().WithMany().HasForeignKey(link => link.UserId)
 
 Register the repository through `AddInfrastructurePersistence`, add the `DbSet`, then generate a single additive migration from `backend/` using the existing EF startup project. Verify the generated migration contains no seeded personal data.
 
-- [ ] **Step 5: Run focused domain and SQL-backed persistence tests.**
+- [x] **Step 5: Run focused domain and SQL-backed persistence tests.**
 
 Run: `dotnet test backend/tests/EosDashboards.Domain.Tests/EosDashboards.Domain.Tests.csproj --filter FullyQualifiedName~ExternalIdentityLinkTests`
 

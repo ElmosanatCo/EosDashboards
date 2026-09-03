@@ -110,6 +110,35 @@ public sealed class RepositoryTests(SqlServerDatabaseFixture database)
     }
 
     [Fact]
+    public async Task ExternalIdentityLinkRepository_ReturnsTrackedPendingLinkForSubjectBinding()
+    {
+        await using var context = database.CreateDbContext();
+        var user = await AddUserAsync(context);
+        var repository = new ExternalIdentityLinkRepository(context);
+        var unitOfWork = new EfUnitOfWork(context);
+        var suffix = Guid.NewGuid().ToString("N");
+        repository.Add(ExternalIdentityLink.CreatePending(
+            user.Id,
+            ExternalIdentityProvider.Google,
+            $"person-{suffix}@example.com",
+            TestNow));
+        await unitOfWork.SaveChangesAsync(CancellationToken.None);
+        context.ChangeTracker.Clear();
+
+        var found = await repository.FindPendingByProviderEmailAsync(
+            ExternalIdentityProvider.Google,
+            $"PERSON-{suffix}@EXAMPLE.COM",
+            CancellationToken.None);
+        found!.BindSubject($"subject-{suffix}", TestNow.AddMinutes(1));
+        await unitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        Assert.NotNull(await repository.FindByProviderSubjectAsync(
+            ExternalIdentityProvider.Google,
+            $"subject-{suffix}",
+            CancellationToken.None));
+    }
+
+    [Fact]
     public async Task RoleAndPreferenceRepositories_ReturnNoTrackingReads()
     {
         await using var context = database.CreateDbContext();

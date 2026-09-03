@@ -41,6 +41,7 @@ public static class DependencyInjection
         services.AddScoped<IOtpChallengeRepository, OtpChallengeRepository>();
         services.AddScoped<IUserSessionRepository, UserSessionRepository>();
         services.AddScoped<IUserPreferenceRepository, UserPreferenceRepository>();
+        services.AddScoped<IExternalIdentityLinkRepository, ExternalIdentityLinkRepository>();
         services.AddScoped<IAuditWriter, AuditWriter>();
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         return services;
