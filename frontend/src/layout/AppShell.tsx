@@ -90,6 +90,7 @@ export function AppShell() {
         onMenu={toggleSidebar}
         targets={targets}
         onOpenTarget={openTarget}
+        showBrand={!compactLayout}
       />
       <Box sx={{ display: "flex", flex: 1, minHeight: 0 }}>
         <AppSidebar
@@ -98,6 +99,7 @@ export function AppShell() {
           targets={targets}
           onOpenTarget={openTarget}
           onActivateHome={activateHome}
+          showBrand={compactLayout}
           onClose={() => {
             if (compactLayout) setMobileSidebarOpen(false);
             else updateSidebarCollapsed(true);

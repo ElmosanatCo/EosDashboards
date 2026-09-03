@@ -1,4 +1,5 @@
 import {
+  Box,
   Drawer,
   IconButton,
   List,
@@ -12,6 +13,7 @@ import HomeIcon from "@mui/icons-material/Home";
 import type { WorkspaceTarget } from "../navigation/workspaceTargets";
 import { appHeaderHeight } from "./AppHeader";
 import { statusBarHeight } from "./StatusBar";
+import { AppBrand } from "./AppBrand";
 
 export const sidebarWidth = 240;
 
@@ -22,6 +24,7 @@ export function AppSidebar({
   targets,
   onOpenTarget,
   onActivateHome,
+  showBrand,
 }: {
   open: boolean;
   onClose: () => void;
@@ -29,6 +32,7 @@ export function AppSidebar({
   targets: readonly WorkspaceTarget[];
   onOpenTarget: (target: WorkspaceTarget) => void;
   onActivateHome: () => void;
+  showBrand: boolean;
 }) {
   return (
     <Drawer
@@ -59,6 +63,18 @@ export function AppSidebar({
         flexShrink: temporary ? undefined : 0,
       }}
     >
+      {showBrand && (
+        <Box
+          sx={{
+            px: 2,
+            py: 1.5,
+            borderBottom: "1px solid",
+            borderColor: "divider",
+          }}
+        >
+          <AppBrand />
+        </Box>
+      )}
       <Toolbar
         sx={{
           display: { xs: "flex", md: "none" },

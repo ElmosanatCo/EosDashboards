@@ -94,7 +94,7 @@ The React application is an SPA whose opened pages appear in closable internal w
 
 **Status:** Confirmed
 
-The UI displays the company name `علم و صنعت` and the approved EOS logo. The fixed bottom status bar displays the actual application version, live local-system time, and Persian-calendar date.
+The UI displays the company name `علم و صنعت` and the approved EOS logo. On phone-sized layouts, the brand moves from the fixed header to the temporary navigation menu; desktop layouts keep it in the header. The fixed bottom status bar displays the actual application version, live local-system time, and Persian-calendar date.
 
 ## Confirmed technical constraints
 

@@ -74,6 +74,8 @@ test("local credential OTP opens the authenticated shell and logout returns to s
   await page.getByLabel("کد شش‌رقمی").fill("۱۲۳۴۵۶");
   await page.getByRole("button", { name: "تأیید کد" }).click();
   await expect(page.getByText("داده‌ای برای نمایش وجود ندارد.")).toBeVisible();
+  await expect(page.locator("header").getByAltText("EOS")).toBeVisible();
+  await expect(page.locator("header").getByText("علم و صنعت")).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "فضای کاری مدیریت" }),
   ).toHaveCSS("text-align", "start");
@@ -165,6 +167,13 @@ test("local credential OTP opens the authenticated shell and logout returns to s
   await page.getByRole("button", { name: "باز و بسته کردن منو" }).click();
   await expect(
     page.getByRole("navigation", { name: "منوی اصلی" }),
+  ).toBeVisible();
+  await expect(page.locator("header").getByAltText("EOS")).toHaveCount(0);
+  await expect(
+    page.locator(".MuiModal-root .MuiDrawer-paper").getByAltText("EOS"),
+  ).toBeVisible();
+  await expect(
+    page.locator(".MuiModal-root .MuiDrawer-paper").getByText("علم و صنعت"),
   ).toBeVisible();
   const mobileDrawerLayout = await page.evaluate(() => {
     const header = document.querySelector("header");

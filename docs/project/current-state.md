@@ -19,6 +19,7 @@ Initial authentication and application-shell implementation.
 - The repository-level shared resource hierarchy was created.
 - The first implementation slice was approved: separate backend/frontend foundations, pre-provisioned system administrator, local username/password sign-in, mandatory SMS OTP, session management, and the initial SPA shell.
 - Company branding, footer version/date/time, and closable internal workspace tabs were approved.
+- On phone-sized layouts, the approved EOS logo and company name move from the fixed header into the temporary navigation menu; desktop layouts keep the brand in the header. Shared brand rendering and focused responsive component coverage are in place.
 - The initial authentication and tabbed-shell design was reviewed and approved.
 - A task-by-task, test-driven implementation plan was prepared.
 - The user selected inline plan execution with review checkpoints.

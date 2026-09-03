@@ -23,8 +23,7 @@ import { useUserPreferences } from "../app/providers/UserPreferenceProvider";
 import { paletteOptions } from "../theme/palettes";
 import type { WorkspaceTarget } from "../navigation/workspaceTargets";
 import { CommandSearch } from "./CommandSearch";
-
-const eosLogoUrl = `${import.meta.env.BASE_URL}generated-assets/brand/eos.svg`;
+import { AppBrand } from "./AppBrand";
 
 export const appHeaderHeight = 58;
 
@@ -32,10 +31,12 @@ export function AppHeader({
   onMenu,
   targets,
   onOpenTarget,
+  showBrand,
 }: {
   onMenu: () => void;
   targets: readonly WorkspaceTarget[];
   onOpenTarget: (target: WorkspaceTarget) => void;
+  showBrand: boolean;
 }) {
   const { user, logout, changePassword } = useAuth();
   const { palette, resolvedAppearanceMode, toggleAppearance, updatePalette } =
@@ -67,24 +68,7 @@ export function AppHeader({
         >
           <MenuIcon />
         </IconButton>
-        <Stack
-          direction="row"
-          spacing={1}
-          sx={{ alignItems: "center", minWidth: 0 }}
-        >
-          <Box
-            component="img"
-            src={eosLogoUrl}
-            alt="EOS"
-            sx={{ width: 32, height: 32 }}
-            onError={(event) => {
-              event.currentTarget.style.display = "none";
-            }}
-          />
-          <Typography variant="subtitle1" sx={{ fontWeight: 750 }}>
-            علم و صنعت
-          </Typography>
-        </Stack>
+        {showBrand && <AppBrand />}
         <Box
           sx={{ flexGrow: 1, display: "flex", justifyContent: "center", px: 1 }}
         >
