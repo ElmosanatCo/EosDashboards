@@ -61,7 +61,7 @@ public sealed class GoogleSignIn(
                     return;
                 }
 
-                var now = clock.UtcNow;
+                var now = clock.Now;
                 if (link.ProviderSubject is null)
                 {
                     link.BindSubject(subject, now);
@@ -80,7 +80,7 @@ public sealed class GoogleSignIn(
                         VerifyOtpStatus.Succeeded,
                         accessToken,
                         refreshCredential,
-                        session.ExpiresAtUtc,
+                        session.ExpiresAt,
                         await VerifyOtp.ProjectAsync(
                             user,
                             roles,

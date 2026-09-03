@@ -49,8 +49,8 @@ public enum PasswordResetStartStatus
 public sealed record PasswordResetStartResult(
     PasswordResetStartStatus Status,
     string ChallengeToken,
-    DateTimeOffset ExpiresAtUtc,
-    DateTimeOffset ResendAvailableAtUtc)
+    DateTime ExpiresAt,
+    DateTime ResendAvailableAt)
 {
     public override string ToString() => nameof(PasswordResetStartResult);
 }
@@ -69,7 +69,7 @@ public sealed record SmsMessage(string Mobile, string Text)
 
 public sealed record SmsSendResult(bool Succeeded, string? SafeErrorCode);
 
-public sealed record IssuedAccessToken(string Value, DateTimeOffset ExpiresAtUtc)
+public sealed record IssuedAccessToken(string Value, DateTime ExpiresAt)
 {
     public override string ToString() => nameof(IssuedAccessToken);
 }
@@ -86,8 +86,8 @@ public sealed record StartSignInResult(
     StartSignInStatus Status,
     string? ChallengeToken,
     string? MaskedMobile,
-    DateTimeOffset? ExpiresAtUtc,
-    DateTimeOffset? ResendAvailableAtUtc)
+    DateTime? ExpiresAt,
+    DateTime? ResendAvailableAt)
 {
     public override string ToString() => nameof(StartSignInResult);
 }
@@ -119,7 +119,7 @@ public sealed record AuthenticationResult(
     VerifyOtpStatus Status,
     IssuedAccessToken? AccessToken,
     string? RefreshCredential,
-    DateTimeOffset? SessionExpiresAtUtc,
+    DateTime? SessionExpiresAt,
     AuthenticatedUser? User)
 {
     public override string ToString() => nameof(AuthenticationResult);
@@ -153,7 +153,7 @@ public sealed record RefreshSessionResult(
     RefreshSessionStatus Status,
     IssuedAccessToken? AccessToken,
     string? RefreshCredential,
-    DateTimeOffset? SessionExpiresAtUtc,
+    DateTime? SessionExpiresAt,
     AuthenticatedUser? User)
 {
     public override string ToString() => nameof(RefreshSessionResult);

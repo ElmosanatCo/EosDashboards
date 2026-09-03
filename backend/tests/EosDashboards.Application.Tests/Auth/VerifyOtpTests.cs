@@ -6,7 +6,7 @@ namespace EosDashboards.Application.Tests.Auth;
 
 public sealed class VerifyOtpTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 9, 2, 8, 0, 0, TimeSpan.Zero);
+    private static readonly DateTime Now = new DateTime(2026, 9, 2, 8, 0, 0, DateTimeKind.Unspecified);
 
     [Fact]
     public async Task Correct_otp_consumes_challenge_then_atomically_creates_an_eight_hour_session()
@@ -21,10 +21,10 @@ public sealed class VerifyOtpTests
         Assert.Equal([OtpChallengeStatus.Consumed], context.Sessions.ChallengeStatusesAtAdd);
         var session = Assert.Single(context.Sessions.Sessions);
         Assert.Equal("E5F6", session.RefreshCredentialHash);
-        Assert.Equal(context.Clock.UtcNow.AddHours(8), session.ExpiresAtUtc);
+        Assert.Equal(context.Clock.Now.AddHours(8), session.ExpiresAt);
         Assert.Equal("refresh-credential", result.RefreshCredential);
-        Assert.Equal(context.Clock.UtcNow.AddHours(8), result.SessionExpiresAtUtc);
-        Assert.Equal(context.Clock.UtcNow.AddMinutes(10), result.AccessToken?.ExpiresAtUtc);
+        Assert.Equal(context.Clock.Now.AddHours(8), result.SessionExpiresAt);
+        Assert.Equal(context.Clock.Now.AddMinutes(10), result.AccessToken?.ExpiresAt);
         Assert.Equal(context.User.Id, result.User?.Id);
         Assert.Equal([31], result.User?.RoleIds);
         Assert.Equal(["SystemAdministrator"], result.User?.RoleCodes);
@@ -34,7 +34,7 @@ public sealed class VerifyOtpTests
         var save = Assert.Single(context.UnitOfWork.Observations);
         Assert.Equal(OtpChallengeStatus.Consumed, Assert.Single(save.ChallengeStatuses));
         Assert.Equal(1, save.SessionCount);
-        Assert.Equal(context.Clock.UtcNow.AddMinutes(10), Assert.Single(context.TokenIssuer.Requests).ExpiresAtUtc);
+        Assert.Equal(context.Clock.Now.AddMinutes(10), Assert.Single(context.TokenIssuer.Requests).ExpiresAt);
         AuditRecordAssertions.AssertSingle(context.Audit, 11, 11, "AuthenticationSucceeded", true);
         Assert.DoesNotContain("refresh-credential", session.ToString(), StringComparison.Ordinal);
     }
@@ -61,7 +61,7 @@ public sealed class VerifyOtpTests
     {
         // Break caught: treating the five-minute endpoint as a valid verification instant.
         var context = new VerifyOtpContext();
-        context.Clock.UtcNow = Now.AddMinutes(5);
+        context.Clock.Now = Now.AddMinutes(5);
 
         var result = await context.UseCase.HandleAsync(context.Command(), CancellationToken.None);
 

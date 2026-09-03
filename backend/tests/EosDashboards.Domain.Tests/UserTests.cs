@@ -4,7 +4,7 @@ namespace EosDashboards.Domain.Tests;
 
 public sealed class UserTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 9, 2, 8, 0, 0, TimeSpan.Zero);
+    private static readonly DateTime Now = new DateTime(2026, 9, 2, 8, 0, 0, DateTimeKind.Unspecified);
 
     [Fact]
     public void Create_rejects_missing_stable_organizational_id()
@@ -57,7 +57,7 @@ public sealed class UserTests
         user.Deactivate(Now.AddMinutes(1));
 
         Assert.False(user.IsActive);
-        Assert.Equal(Now.AddMinutes(1), user.DeactivatedAtUtc);
+        Assert.Equal(Now.AddMinutes(1), user.DeactivatedAt);
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public sealed class UserTests
         Assert.Equal("Person", user.LastName);
         Assert.Equal("new-protected-mobile", user.ProtectedMobileNumber);
         Assert.Equal("new-masked-mobile", user.MaskedMobileNumber);
-        Assert.Equal(Now.AddMinutes(1), user.UpdatedAtUtc);
+        Assert.Equal(Now.AddMinutes(1), user.UpdatedAt);
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public sealed class UserTests
 
         Assert.Equal("ADMIN.USER", user.Username);
         Assert.Equal("versioned-password-hash", user.PasswordHash);
-        Assert.Equal(Now.AddMinutes(1), user.UpdatedAtUtc);
+        Assert.Equal(Now.AddMinutes(1), user.UpdatedAt);
     }
 
     [Fact]
@@ -107,12 +107,13 @@ public sealed class UserTests
     }
 
     [Fact]
-    public void Preference_create_normalizes_its_timestamp_to_utc()
+    public void Preference_create_preserves_its_local_timestamp()
     {
-        // Break caught: persisting a user preference timestamp with a local offset.
-        var preference = UserPreference.Create(1, "system", "navyTeal", false, Now.ToOffset(TimeSpan.FromHours(3.5)));
+        // Break caught: converting an application-local preference timestamp before persistence.
+        var createdAt = new DateTime(2026, 9, 2, 11, 30, 0, 123, DateTimeKind.Unspecified);
+        var preference = UserPreference.Create(1, "system", "navyTeal", false, createdAt);
 
-        Assert.Equal(TimeSpan.Zero, preference.CreatedAtUtc.Offset);
+        Assert.Equal(createdAt, preference.CreatedAt);
     }
 
     [Fact]

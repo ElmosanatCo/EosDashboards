@@ -21,7 +21,7 @@ public sealed class RefreshSession(
         RefreshSessionCommand command,
         CancellationToken cancellationToken)
     {
-        var now = clock.UtcNow;
+        var now = clock.Now;
         var traceId = correlationContext.TraceId;
         var refreshHash = secretHasher.Hash(command.RefreshCredential);
         var session = await sessions.FindByRefreshHashAsync(refreshHash, cancellationToken);
@@ -46,14 +46,14 @@ public sealed class RefreshSession(
             cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        var accessTokenExpiresAtUtc = now.Add(AccessTokenLifetime) < session.ExpiresAtUtc
+        var accessTokenExpiresAt = now.Add(AccessTokenLifetime) < session.ExpiresAt
             ? now.Add(AccessTokenLifetime)
-            : session.ExpiresAtUtc;
+            : session.ExpiresAt;
         return new RefreshSessionResult(
             RefreshSessionStatus.Succeeded,
-            accessTokenIssuer.Issue(user, session.Id, now, accessTokenExpiresAtUtc),
+            accessTokenIssuer.Issue(user, session.Id, now, accessTokenExpiresAt),
             replacementCredential,
-            session.ExpiresAtUtc,
+            session.ExpiresAt,
             await VerifyOtp.ProjectAsync(user, roles, departments, cancellationToken));
     }
 

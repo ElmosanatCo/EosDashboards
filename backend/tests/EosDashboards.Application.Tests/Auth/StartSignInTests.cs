@@ -6,7 +6,7 @@ namespace EosDashboards.Application.Tests.Auth;
 
 public sealed class StartSignInTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 9, 2, 8, 0, 0, TimeSpan.Zero);
+    private static readonly DateTime Now = new DateTime(2026, 9, 2, 8, 0, 0, DateTimeKind.Unspecified);
 
     [Fact]
     public async Task Known_active_user_sends_one_sms_and_persists_a_sent_challenge()
@@ -19,8 +19,8 @@ public sealed class StartSignInTests
         Assert.Equal(StartSignInStatus.Succeeded, result.Status);
         Assert.Equal("challenge-token", result.ChallengeToken);
         Assert.Equal("masked-mobile", result.MaskedMobile);
-        Assert.Equal(Now.AddMinutes(5), result.ExpiresAtUtc);
-        Assert.Equal(Now.AddSeconds(60), result.ResendAvailableAtUtc);
+        Assert.Equal(Now.AddMinutes(5), result.ExpiresAt);
+        Assert.Equal(Now.AddSeconds(60), result.ResendAvailableAt);
         var message = Assert.Single(context.Sms.Messages);
         Assert.Equal("synthetic-normalized-mobile", message.Mobile);
         Assert.Equal(
@@ -94,13 +94,13 @@ public sealed class StartSignInTests
     {
         // Break caught: sending a replacement OTP before the exact 60-second resend boundary.
         var context = new StartSignInContext();
-        context.Clock.UtcNow = Now.AddSeconds(60).AddTicks(-1);
+        context.Clock.Now = Now.AddSeconds(60).AddTicks(-1);
         context.AddExistingChallenge(Now);
 
         var result = await context.UseCase.HandleAsync(context.Command, CancellationToken.None);
 
         Assert.Equal(StartSignInStatus.Cooldown, result.Status);
-        Assert.Equal(Now.AddSeconds(60), result.ResendAvailableAtUtc);
+        Assert.Equal(Now.AddSeconds(60), result.ResendAvailableAt);
         Assert.Empty(context.Sms.Messages);
         Assert.Single(context.OtpChallenges.Challenges);
         Assert.Equal(1, context.UnitOfWork.SaveCount);
@@ -112,7 +112,7 @@ public sealed class StartSignInTests
     {
         // Break caught: extending the resend cooldown by treating its endpoint as unavailable.
         var context = new StartSignInContext();
-        context.Clock.UtcNow = Now.AddSeconds(60);
+        context.Clock.Now = Now.AddSeconds(60);
         var priorChallenge = context.AddExistingChallenge(Now);
 
         var result = await context.UseCase.HandleAsync(context.Command, CancellationToken.None);
@@ -129,7 +129,7 @@ public sealed class StartSignInTests
         // Break caught: requiring the browser to retain a plaintext password before it can request a replacement OTP.
         var context = new StartSignInContext();
         var priorChallenge = context.AddExistingChallenge(Now);
-        context.Clock.UtcNow = Now.AddSeconds(60);
+        context.Clock.Now = Now.AddSeconds(60);
 
         var result = await context.UseCase.ResendAsync(
             new ResendOtpCommand(priorChallenge.PublicToken, "network-bucket"),
@@ -215,14 +215,14 @@ public sealed class StartSignInTests
             "valid password",
             "network-bucket");
 
-        public OtpChallenge AddExistingChallenge(DateTimeOffset createdAtUtc)
+        public OtpChallenge AddExistingChallenge(DateTime createdAt)
         {
             var challenge = OtpChallenge.Create(
                 User!.Id,
-                $"prior-{createdAtUtc.Ticks}",
+                $"prior-{createdAt.Ticks}",
                 "C3D4",
-                createdAtUtc,
-                createdAtUtc.AddMinutes(5));
+                createdAt,
+                createdAt.AddMinutes(5));
             challenge.MarkSent();
             EntityId.Set(challenge, 99);
             OtpChallenges.Challenges.Add(challenge);

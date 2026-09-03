@@ -14,14 +14,14 @@ export type AuthenticatedUser = {
 export type Challenge = {
   challengeToken: string;
   maskedMobile: string;
-  expiresAtUtc: string;
-  resendAvailableAtUtc: string;
+  expiresAt: string;
+  resendAvailableAt: string;
 };
 
 export type AuthResponse = {
   accessToken: string;
-  accessTokenExpiresAtUtc: string;
-  sessionExpiresAtUtc: string;
+  accessTokenExpiresAt: string;
+  sessionExpiresAt: string;
   user: AuthenticatedUser;
 };
 

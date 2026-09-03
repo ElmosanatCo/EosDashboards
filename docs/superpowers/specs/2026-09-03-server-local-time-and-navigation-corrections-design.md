@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-03
 
-**Status:** Approved in conversation; implementation planned
+**Status:** Implemented on the integration branch; awaiting final integration review
 
 ## Goal
 

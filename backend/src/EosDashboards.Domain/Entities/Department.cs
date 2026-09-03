@@ -7,12 +7,12 @@ public sealed class Department
         Name = null!;
     }
 
-    private Department(string name, Department? parentDepartment, DateTimeOffset createdAtUtc)
+    private Department(string name, Department? parentDepartment, DateTime createdAt)
     {
         Name = name;
         ParentDepartment = parentDepartment;
-        CreatedAtUtc = createdAtUtc;
-        UpdatedAtUtc = createdAtUtc;
+        CreatedAt = createdAt;
+        UpdatedAt = createdAt;
     }
 
     public long Id { get; private set; }
@@ -23,14 +23,14 @@ public sealed class Department
 
     public Department? ParentDepartment { get; private set; }
 
-    public DateTimeOffset CreatedAtUtc { get; private set; }
+    public DateTime CreatedAt { get; private set; }
 
-    public DateTimeOffset UpdatedAtUtc { get; private set; }
+    public DateTime UpdatedAt { get; private set; }
 
-    public static Department CreateRoot(string name, DateTimeOffset createdAtUtc) =>
-        new(ValidateName(name), null, createdAtUtc.ToUniversalTime());
+    public static Department CreateRoot(string name, DateTime createdAt) =>
+        new(ValidateName(name), null, createdAt);
 
-    public static Department CreateChild(Department parentDepartment, string name, DateTimeOffset createdAtUtc)
+    public static Department CreateChild(Department parentDepartment, string name, DateTime createdAt)
     {
         ArgumentNullException.ThrowIfNull(parentDepartment);
         if (parentDepartment.ParentDepartmentId is not null || parentDepartment.ParentDepartment is not null)
@@ -38,7 +38,7 @@ public sealed class Department
             throw new InvalidOperationException("A child department cannot have children.");
         }
 
-        return new Department(ValidateName(name), parentDepartment, createdAtUtc.ToUniversalTime());
+        return new Department(ValidateName(name), parentDepartment, createdAt);
     }
 
     private static string ValidateName(string name)

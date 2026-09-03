@@ -68,7 +68,7 @@ public sealed class ProvisionSystemAdministrator(
         var normalizedGoogleEmail = NormalizeOptionalGoogleEmail(command.GoogleEmail);
         var protectedMobile = mobileProtector.Protect(normalizedMobile);
         var maskedMobile = mobileProtector.Mask(normalizedMobile);
-        var now = clock.UtcNow;
+        var now = clock.Now;
         var traceId = correlationContext.TraceId;
         User? provisionedUser = null;
 

@@ -7,14 +7,14 @@ public sealed class UserPreference
         string appearanceMode,
         string palette,
         bool sidebarCollapsed,
-        DateTimeOffset createdAtUtc)
+        DateTime createdAt)
     {
         UserId = userId;
         AppearanceMode = appearanceMode;
         Palette = palette;
         SidebarCollapsed = sidebarCollapsed;
-        CreatedAtUtc = createdAtUtc;
-        UpdatedAtUtc = createdAtUtc;
+        CreatedAt = createdAt;
+        UpdatedAt = createdAt;
     }
 
     public long Id { get; private set; }
@@ -27,16 +27,16 @@ public sealed class UserPreference
 
     public bool SidebarCollapsed { get; private set; }
 
-    public DateTimeOffset CreatedAtUtc { get; private set; }
+    public DateTime CreatedAt { get; private set; }
 
-    public DateTimeOffset UpdatedAtUtc { get; private set; }
+    public DateTime UpdatedAt { get; private set; }
 
     public static UserPreference Create(
         long userId,
         string appearanceMode,
         string palette,
         bool sidebarCollapsed,
-        DateTimeOffset createdAtUtc)
+        DateTime createdAt)
     {
         if (userId <= 0)
         {
@@ -53,14 +53,14 @@ public sealed class UserPreference
             throw new ArgumentException("A palette is required.", nameof(palette));
         }
 
-        return new UserPreference(userId, appearanceMode, palette, sidebarCollapsed, createdAtUtc.ToUniversalTime());
+        return new UserPreference(userId, appearanceMode, palette, sidebarCollapsed, createdAt);
     }
 
     public bool Update(
         string appearanceMode,
         string palette,
         bool sidebarCollapsed,
-        DateTimeOffset updatedAtUtc)
+        DateTime updatedAt)
     {
         if (string.IsNullOrWhiteSpace(appearanceMode))
         {
@@ -82,7 +82,7 @@ public sealed class UserPreference
         AppearanceMode = appearanceMode;
         Palette = palette;
         SidebarCollapsed = sidebarCollapsed;
-        UpdatedAtUtc = updatedAtUtc.ToUniversalTime();
+        UpdatedAt = updatedAt;
         return true;
     }
 }

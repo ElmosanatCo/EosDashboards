@@ -26,28 +26,30 @@ public sealed class JwtAccessTokenIssuer : IAccessTokenIssuer
     public IssuedAccessToken Issue(
         User user,
         long sessionId,
-        DateTimeOffset issuedAtUtc,
-        DateTimeOffset expiresAtUtc)
+        DateTime issuedAt,
+        DateTime expiresAt)
     {
         ArgumentNullException.ThrowIfNull(user);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(sessionId);
 
-        var normalizedIssuedAtUtc = issuedAtUtc.ToUniversalTime();
-        var normalizedExpiresAtUtc = expiresAtUtc.ToUniversalTime();
-        if (normalizedExpiresAtUtc <= normalizedIssuedAtUtc)
+        if (expiresAt <= issuedAt)
         {
             throw new ArgumentOutOfRangeException(
-                nameof(expiresAtUtc),
+                nameof(expiresAt),
                 "Token expiry must follow issue time.");
         }
 
+        var protocolIssuedAt = new DateTimeOffset(
+            DateTime.SpecifyKind(issuedAt, DateTimeKind.Local));
+        var protocolExpiresAt = new DateTimeOffset(
+            DateTime.SpecifyKind(expiresAt, DateTimeKind.Local));
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, user.Id.ToString(CultureInfo.InvariantCulture)),
             new(JwtRegisteredClaimNames.Sid, sessionId.ToString(CultureInfo.InvariantCulture)),
             new(
                 JwtRegisteredClaimNames.Iat,
-                normalizedIssuedAtUtc.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture),
+                protocolIssuedAt.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture),
                 ClaimValueTypes.Integer64),
         };
         claims.AddRange(user.UserRoles.Select(userRole =>
@@ -57,11 +59,11 @@ public sealed class JwtAccessTokenIssuer : IAccessTokenIssuer
             _issuer,
             _audience,
             claims,
-            normalizedIssuedAtUtc.UtcDateTime,
-            normalizedExpiresAtUtc.UtcDateTime,
+            protocolIssuedAt.UtcDateTime,
+            protocolExpiresAt.UtcDateTime,
             new SigningCredentials(_signingKey, SecurityAlgorithms.HmacSha256));
         var value = new JwtSecurityTokenHandler().WriteToken(token);
-        return new IssuedAccessToken(value, normalizedExpiresAtUtc);
+        return new IssuedAccessToken(value, expiresAt);
     }
 
     public TokenValidationParameters CreateValidationParameters()

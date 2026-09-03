@@ -20,12 +20,14 @@ export function AppSidebar({
   temporary,
   targets,
   onOpenTarget,
+  onActivateHome,
 }: {
   open: boolean;
   onClose: () => void;
   temporary: boolean;
   targets: readonly WorkspaceTarget[];
   onOpenTarget: (target: WorkspaceTarget) => void;
+  onActivateHome: () => void;
 }) {
   return (
     <Drawer
@@ -43,8 +45,8 @@ export function AppSidebar({
         "& .MuiDrawer-paper": {
           width: { xs: "min(280px, 86vw)", md: sidebarWidth },
           border: "none",
-          top: temporary ? 0 : 64,
-          bottom: temporary ? 0 : statusBarHeight,
+          top: 64,
+          bottom: statusBarHeight,
           boxSizing: "border-box",
         },
       }}
@@ -64,7 +66,7 @@ export function AppSidebar({
         sx={{ display: { xs: "none", sm: "block" }, minHeight: "0!important" }}
       />
       <List component="nav" aria-label="منوی اصلی">
-        <ListItemButton onClick={onClose}>
+        <ListItemButton onClick={onActivateHome}>
           <ListItemIcon>
             <HomeIcon />
           </ListItemIcon>

@@ -17,7 +17,7 @@ public sealed class AuditWriter(EosDashboardDbContext context, IClock clock) : I
             record.ActorUserId,
             record.SubjectUserId,
             record.EventCode,
-            clock.UtcNow,
+            clock.Now,
             record.Succeeded,
             record.TraceId,
             safeMetadata));

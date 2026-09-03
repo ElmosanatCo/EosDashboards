@@ -33,7 +33,7 @@ public sealed class ChangePassword(
             return new ChangePasswordResult(ChangePasswordStatus.Invalid);
         }
 
-        var now = clock.UtcNow;
+        var now = clock.Now;
         var traceId = correlationContext.TraceId;
         var user = await users.GetByIdAsync(command.UserId, cancellationToken);
         if (user is null ||

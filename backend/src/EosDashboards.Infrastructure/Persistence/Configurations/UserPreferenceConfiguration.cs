@@ -14,8 +14,8 @@ internal sealed class UserPreferenceConfiguration : IEntityTypeConfiguration<Use
         builder.Property(preference => preference.UserId).HasColumnType("bigint");
         builder.Property(preference => preference.AppearanceMode).HasMaxLength(16).IsRequired();
         builder.Property(preference => preference.Palette).HasMaxLength(64).IsRequired();
-        builder.Property(preference => preference.CreatedAtUtc).HasColumnType("datetimeoffset(7)");
-        builder.Property(preference => preference.UpdatedAtUtc).HasColumnType("datetimeoffset(7)");
+        builder.Property(preference => preference.CreatedAt).HasColumnType("datetime2(3)");
+        builder.Property(preference => preference.UpdatedAt).HasColumnType("datetime2(3)");
         builder.HasIndex(preference => preference.UserId).IsUnique();
         builder.HasOne<User>()
             .WithOne()

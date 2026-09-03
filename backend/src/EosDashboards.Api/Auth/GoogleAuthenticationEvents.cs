@@ -44,7 +44,7 @@ public static class GoogleAuthenticationEvents
             var authentication = result.Authentication!;
             context.HttpContext.RequestServices
                 .GetRequiredService<RefreshCookieService>()
-                .Set(context.Response, authentication.RefreshCredential!, authentication.SessionExpiresAtUtc!.Value);
+                .Set(context.Response, authentication.RefreshCredential!, authentication.SessionExpiresAt!.Value);
             context.Response.Redirect("/EosDashboards/");
             context.HandleResponse();
         }

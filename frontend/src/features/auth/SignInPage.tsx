@@ -188,8 +188,8 @@ export function SignInPage({
               <OtpForm
                 purpose={otpPurpose}
                 maskedMobile={challenge.maskedMobile}
-                expiresAtUtc={challenge.expiresAtUtc}
-                resendAvailableAtUtc={challenge.resendAvailableAtUtc}
+                expiresAt={challenge.expiresAt}
+                resendAvailableAt={challenge.resendAvailableAt}
                 busy={busy}
                 error={error}
                 onSubmit={(code, newPassword) =>

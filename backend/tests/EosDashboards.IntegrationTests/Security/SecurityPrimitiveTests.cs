@@ -96,16 +96,17 @@ public sealed partial class SecurityPrimitiveTests
     }
 
     [Fact]
-    public void System_clock_returns_a_utc_instant()
+    public void System_clock_returns_a_local_millisecond_value()
     {
-        // Break caught: returning local wall-clock time through the UTC application port.
+        // Break caught: storing UTC, an offset, or sub-millisecond precision in application timestamps.
         var clock = new SystemClock();
-        var before = DateTimeOffset.UtcNow;
+        var before = DateTime.Now;
 
-        var actual = clock.UtcNow;
+        var actual = clock.Now;
 
-        Assert.Equal(TimeSpan.Zero, actual.Offset);
-        Assert.InRange(actual, before, DateTimeOffset.UtcNow);
+        Assert.Equal(DateTimeKind.Unspecified, actual.Kind);
+        Assert.Equal(0, actual.Ticks % TimeSpan.TicksPerMillisecond);
+        Assert.InRange(actual, before.AddSeconds(-1), DateTime.Now.AddSeconds(1));
     }
 
     [Fact]

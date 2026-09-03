@@ -4,5 +4,14 @@ namespace EosDashboards.Infrastructure.Security;
 
 public sealed class SystemClock : IClock
 {
-    public DateTimeOffset UtcNow => DateTimeOffset.UtcNow;
+    public DateTime Now
+    {
+        get
+        {
+            var local = DateTime.Now;
+            return DateTime.SpecifyKind(
+                local.AddTicks(-(local.Ticks % TimeSpan.TicksPerMillisecond)),
+                DateTimeKind.Unspecified);
+        }
+    }
 }

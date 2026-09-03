@@ -6,7 +6,7 @@ namespace EosDashboards.Application.Tests.Auth;
 
 public sealed class SessionLifecycleTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 9, 2, 8, 0, 0, TimeSpan.Zero);
+    private static readonly DateTime Now = new DateTime(2026, 9, 2, 8, 0, 0, DateTimeKind.Unspecified);
 
     [Fact]
     public async Task Refresh_rotates_the_credential_and_does_not_extend_absolute_expiry()
@@ -23,13 +23,13 @@ public sealed class SessionLifecycleTests
         Assert.Equal(["SystemAdministrator"], result.User?.RoleCodes);
         Assert.Equal("واحد آزمایشی", result.User?.Department.Name);
         Assert.Equal("C3D4", context.Session.RefreshCredentialHash);
-        Assert.Equal(Now.AddHours(8), context.Session.ExpiresAtUtc);
-        Assert.Equal(Now.AddHours(8), result.SessionExpiresAtUtc);
-        Assert.Equal(context.Clock.UtcNow.AddMinutes(10), result.AccessToken?.ExpiresAtUtc);
+        Assert.Equal(Now.AddHours(8), context.Session.ExpiresAt);
+        Assert.Equal(Now.AddHours(8), result.SessionExpiresAt);
+        Assert.Equal(context.Clock.Now.AddMinutes(10), result.AccessToken?.ExpiresAt);
         Assert.Equal([32], context.Tokens.RequestedByteCounts);
         Assert.Equal(1, context.UnitOfWork.SaveCount);
         Assert.Null(await context.Sessions.FindByRefreshHashAsync("A1B2", CancellationToken.None));
-        Assert.Equal(context.Clock.UtcNow.AddMinutes(10), Assert.Single(context.TokenIssuer.Requests).ExpiresAtUtc);
+        Assert.Equal(context.Clock.Now.AddMinutes(10), Assert.Single(context.TokenIssuer.Requests).ExpiresAt);
         AuditRecordAssertions.AssertSingle(context.Audit, 11, 11, "SessionRefreshed", true);
     }
 
@@ -38,7 +38,7 @@ public sealed class SessionLifecycleTests
     {
         // Break caught: refreshing at the exact eight-hour absolute expiry boundary.
         var context = new SessionContext();
-        context.Clock.UtcNow = Now.AddHours(8);
+        context.Clock.Now = Now.AddHours(8);
 
         var result = await context.Refresh.HandleAsync(
             new RefreshSessionCommand("current-refresh"),
@@ -55,17 +55,17 @@ public sealed class SessionLifecycleTests
     {
         // Break caught: ending usable refresh access ten minutes before the absolute session expiry.
         var context = new SessionContext();
-        context.Clock.UtcNow = Now.AddHours(8).AddMinutes(-10).AddTicks(1);
+        context.Clock.Now = Now.AddHours(8).AddMinutes(-10).AddTicks(1);
 
         var result = await context.Refresh.HandleAsync(
             new RefreshSessionCommand("current-refresh"),
             CancellationToken.None);
 
         Assert.Equal(RefreshSessionStatus.Succeeded, result.Status);
-        Assert.Equal(Now.AddHours(8), result.AccessToken?.ExpiresAtUtc);
-        Assert.Equal(Now.AddHours(8), result.SessionExpiresAtUtc);
+        Assert.Equal(Now.AddHours(8), result.AccessToken?.ExpiresAt);
+        Assert.Equal(Now.AddHours(8), result.SessionExpiresAt);
         Assert.Equal("C3D4", context.Session.RefreshCredentialHash);
-        Assert.Equal(Now.AddHours(8), Assert.Single(context.TokenIssuer.Requests).ExpiresAtUtc);
+        Assert.Equal(Now.AddHours(8), Assert.Single(context.TokenIssuer.Requests).ExpiresAt);
         AuditRecordAssertions.AssertSingle(context.Audit, 11, 11, "SessionRefreshed", true);
     }
 
@@ -74,15 +74,15 @@ public sealed class SessionLifecycleTests
     {
         // Break caught: denying the exact valid boundary or allowing its access token beyond the session.
         var context = new SessionContext();
-        context.Clock.UtcNow = Now.AddHours(8).AddMinutes(-10);
+        context.Clock.Now = Now.AddHours(8).AddMinutes(-10);
 
         var result = await context.Refresh.HandleAsync(
             new RefreshSessionCommand("current-refresh"),
             CancellationToken.None);
 
         Assert.Equal(RefreshSessionStatus.Succeeded, result.Status);
-        Assert.Equal(Now.AddHours(8), result.AccessToken?.ExpiresAtUtc);
-        Assert.Equal(Now.AddHours(8), result.SessionExpiresAtUtc);
+        Assert.Equal(Now.AddHours(8), result.AccessToken?.ExpiresAt);
+        Assert.Equal(Now.AddHours(8), result.SessionExpiresAt);
         Assert.Equal("C3D4", context.Session.RefreshCredentialHash);
     }
 
@@ -126,10 +126,10 @@ public sealed class SessionLifecycleTests
         var context = new SessionContext();
 
         await context.Logout.HandleAsync(new LogoutCommand(context.Session.Id), CancellationToken.None);
-        context.Clock.UtcNow = Now.AddHours(2);
+        context.Clock.Now = Now.AddHours(2);
         await context.Logout.HandleAsync(new LogoutCommand(context.Session.Id), CancellationToken.None);
 
-        Assert.Equal(Now.AddHours(1), context.Session.RevokedAtUtc);
+        Assert.Equal(Now.AddHours(1), context.Session.RevokedAt);
         Assert.Equal(SessionRevocationReason.UserLogout, context.Session.RevocationReason);
         Assert.Equal(1, context.UnitOfWork.SaveCount);
         AuditRecordAssertions.AssertSingle(context.Audit, 11, 11, "UserLogout", true);

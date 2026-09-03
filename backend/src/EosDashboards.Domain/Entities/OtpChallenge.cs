@@ -11,17 +11,17 @@ public sealed class OtpChallenge
         long userId,
         string publicToken,
         string codeHash,
-        DateTimeOffset createdAtUtc,
-        DateTimeOffset expiresAtUtc,
+        DateTime createdAt,
+        DateTime expiresAt,
         OtpChallengePurpose purpose)
     {
         UserId = userId;
         PublicToken = publicToken;
         CodeHash = codeHash;
-        CreatedAtUtc = createdAtUtc;
-        ExpiresAtUtc = expiresAtUtc;
+        CreatedAt = createdAt;
+        ExpiresAt = expiresAt;
         Purpose = purpose;
-        ResendAvailableAtUtc = createdAtUtc.AddSeconds(60);
+        ResendAvailableAt = createdAt.AddSeconds(60);
         Status = OtpChallengeStatus.Pending;
     }
 
@@ -33,13 +33,13 @@ public sealed class OtpChallenge
 
     public string CodeHash { get; private set; }
 
-    public DateTimeOffset CreatedAtUtc { get; private set; }
+    public DateTime CreatedAt { get; private set; }
 
-    public DateTimeOffset ExpiresAtUtc { get; private set; }
+    public DateTime ExpiresAt { get; private set; }
 
-    public DateTimeOffset ResendAvailableAtUtc { get; private set; }
+    public DateTime ResendAvailableAt { get; private set; }
 
-    public DateTimeOffset? ConsumedAtUtc { get; private set; }
+    public DateTime? ConsumedAt { get; private set; }
 
     public int FailedAttemptCount { get; private set; }
 
@@ -51,8 +51,8 @@ public sealed class OtpChallenge
         long userId,
         string publicToken,
         string codeHash,
-        DateTimeOffset createdAtUtc,
-        DateTimeOffset expiresAtUtc,
+        DateTime createdAt,
+        DateTime expiresAt,
         OtpChallengePurpose purpose = OtpChallengePurpose.SignIn)
     {
         if (userId <= 0)
@@ -71,20 +71,20 @@ public sealed class OtpChallenge
         }
 
         ValidateHash(codeHash, nameof(codeHash));
-        var normalizedCreatedAtUtc = createdAtUtc.ToUniversalTime();
-        var normalizedExpiresAtUtc = expiresAtUtc.ToUniversalTime();
+        var normalizedCreatedAt = createdAt;
+        var normalizedExpiresAt = expiresAt;
 
-        if (normalizedExpiresAtUtc - normalizedCreatedAtUtc != TimeSpan.FromMinutes(5))
+        if (normalizedExpiresAt - normalizedCreatedAt != TimeSpan.FromMinutes(5))
         {
-            throw new ArgumentOutOfRangeException(nameof(expiresAtUtc));
+            throw new ArgumentOutOfRangeException(nameof(expiresAt));
         }
 
         return new OtpChallenge(
             userId,
             publicToken,
             codeHash,
-            normalizedCreatedAtUtc,
-            normalizedExpiresAtUtc,
+            normalizedCreatedAt,
+            normalizedExpiresAt,
             purpose);
     }
 
@@ -112,15 +112,15 @@ public sealed class OtpChallenge
         }
     }
 
-    public bool Verify(string candidateHash, DateTimeOffset verifiedAtUtc)
+    public bool Verify(string candidateHash, DateTime verifiedAt)
     {
         if (Status != OtpChallengeStatus.Sent)
         {
             return false;
         }
 
-        var normalizedVerifiedAtUtc = verifiedAtUtc.ToUniversalTime();
-        if (normalizedVerifiedAtUtc >= ExpiresAtUtc)
+        var normalizedVerifiedAt = verifiedAt;
+        if (normalizedVerifiedAt >= ExpiresAt)
         {
             Status = OtpChallengeStatus.Expired;
             return false;
@@ -141,7 +141,7 @@ public sealed class OtpChallenge
         if (hashesMatch)
         {
             Status = OtpChallengeStatus.Consumed;
-            ConsumedAtUtc = normalizedVerifiedAtUtc;
+            ConsumedAt = normalizedVerifiedAt;
             return true;
         }
 

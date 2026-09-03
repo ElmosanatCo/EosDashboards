@@ -8,8 +8,8 @@ namespace EosDashboards.Application.Tests.Provisioning;
 
 public sealed class ProvisionSystemAdministratorTests
 {
-    private static readonly DateTimeOffset TestNow =
-        new(2026, 9, 2, 12, 0, 0, TimeSpan.Zero);
+    private static readonly DateTime TestNow =
+        new DateTime(2026, 9, 2, 12, 0, 0, DateTimeKind.Unspecified);
 
     [Fact]
     public async Task RepeatedProvisioningKeepsOneActiveAdministratorAndAuditsEachOperation()
@@ -136,7 +136,7 @@ public sealed class ProvisionSystemAdministratorTests
             CancellationToken.None);
 
         Assert.True(user.IsActive);
-        Assert.Null(user.DeactivatedAtUtc);
+        Assert.Null(user.DeactivatedAt);
         Assert.Equal(2, user.UserRoles.Count);
         Assert.Equal([2], dependencies.UnitOfWork.SaveCountsByTransaction);
     }
@@ -178,7 +178,7 @@ public sealed class ProvisionSystemAdministratorTests
         Assert.Equal(ExternalIdentityProvider.Google, link.Provider);
         Assert.Equal("SECOND.SYNTHETIC@EXAMPLE.TEST", link.NormalizedEmail);
         Assert.Equal("synthetic-google-subject", link.ProviderSubject);
-        Assert.Equal(TestNow.AddMinutes(1), link.LinkedAtUtc);
+        Assert.Equal(TestNow.AddMinutes(1), link.LinkedAt);
         Assert.DoesNotContain(
             "second.synthetic@example.test",
             string.Join(Environment.NewLine, dependencies.Audits.Records),
@@ -329,9 +329,9 @@ public sealed class ProvisionSystemAdministratorTests
             UnitOfWork);
     }
 
-    private sealed class TestClock(DateTimeOffset utcNow) : IClock
+    private sealed class TestClock(DateTime utcNow) : IClock
     {
-        public DateTimeOffset UtcNow { get; } = utcNow;
+        public DateTime Now { get; } = utcNow;
     }
 
     private sealed class TestCorrelationContext : ICorrelationContext

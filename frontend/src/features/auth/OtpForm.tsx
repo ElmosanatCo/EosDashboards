@@ -13,8 +13,8 @@ import { useEffect, useState } from "react";
 type Props = {
   purpose: "signIn" | "passwordReset";
   maskedMobile?: string;
-  expiresAtUtc: string;
-  resendAvailableAtUtc: string;
+  expiresAt: string;
+  resendAvailableAt: string;
   busy: boolean;
   error?: string;
   onSubmit: (code: string, newPassword?: string) => Promise<void>;
@@ -25,8 +25,8 @@ type Props = {
 export function OtpForm({
   purpose,
   maskedMobile,
-  expiresAtUtc,
-  resendAvailableAtUtc,
+  expiresAt,
+  resendAvailableAt,
   busy,
   error,
   onSubmit,
@@ -43,10 +43,10 @@ export function OtpForm({
     setNow(Date.now());
     const timer = window.setInterval(() => setNow(Date.now()), 1_000);
     return () => window.clearInterval(timer);
-  }, [expiresAtUtc, resendAvailableAtUtc]);
+  }, [expiresAt, resendAvailableAt]);
 
-  const secondsLeft = secondsUntil(expiresAtUtc, now);
-  const resendSecondsLeft = secondsUntil(resendAvailableAtUtc, now);
+  const secondsLeft = secondsUntil(expiresAt, now);
+  const resendSecondsLeft = secondsUntil(resendAvailableAt, now);
   const codeExpired = secondsLeft === 0;
 
   return (

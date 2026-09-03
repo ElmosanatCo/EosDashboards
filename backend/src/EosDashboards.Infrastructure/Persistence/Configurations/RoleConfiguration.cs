@@ -13,7 +13,7 @@ internal sealed class RoleConfiguration : IEntityTypeConfiguration<Role>
         builder.Property(role => role.Id).HasColumnType("bigint").UseIdentityColumn();
         builder.Property(role => role.Code).HasMaxLength(100).IsRequired();
         builder.Property(role => role.DisplayName).HasMaxLength(200).IsRequired();
-        builder.Property(role => role.CreatedAtUtc).HasColumnType("datetimeoffset(7)");
+        builder.Property(role => role.CreatedAt).HasColumnType("datetime2(3)");
         builder.HasIndex(role => role.Code).IsUnique();
         builder.HasIndex(role => role.IsActive);
     }

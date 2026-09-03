@@ -13,14 +13,14 @@ internal sealed class UserSessionConfiguration : IEntityTypeConfiguration<UserSe
         builder.Property(session => session.Id).HasColumnType("bigint").UseIdentityColumn();
         builder.Property(session => session.UserId).HasColumnType("bigint");
         builder.Property(session => session.RefreshCredentialHash).HasMaxLength(512).IsRequired();
-        builder.Property(session => session.CreatedAtUtc).HasColumnType("datetimeoffset(7)");
-        builder.Property(session => session.ExpiresAtUtc).HasColumnType("datetimeoffset(7)");
-        builder.Property(session => session.LastRefreshedAtUtc).HasColumnType("datetimeoffset(7)");
-        builder.Property(session => session.RevokedAtUtc).HasColumnType("datetimeoffset(7)");
+        builder.Property(session => session.CreatedAt).HasColumnType("datetime2(3)");
+        builder.Property(session => session.ExpiresAt).HasColumnType("datetime2(3)");
+        builder.Property(session => session.LastRefreshedAt).HasColumnType("datetime2(3)");
+        builder.Property(session => session.RevokedAt).HasColumnType("datetime2(3)");
         builder.Property(session => session.RevocationReason).HasConversion<string>().HasMaxLength(32);
         builder.Property<byte[]>("RowVersion").IsRequired().IsRowVersion().HasColumnType("rowversion");
         builder.HasIndex(session => session.RefreshCredentialHash).IsUnique();
-        builder.HasIndex(session => new { session.UserId, session.ExpiresAtUtc, session.RevokedAtUtc });
+        builder.HasIndex(session => new { session.UserId, session.ExpiresAt, session.RevokedAt });
         builder.HasOne<User>()
             .WithMany()
             .HasForeignKey(session => session.UserId)

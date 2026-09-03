@@ -16,14 +16,14 @@ public sealed class UserSessionRepository(EosDashboardDbContext context) : IUser
 
     public async Task<IReadOnlyCollection<UserSession>> GetActiveByUserIdAsync(
         long userId,
-        DateTimeOffset nowUtc,
+        DateTime now,
         CancellationToken cancellationToken) =>
         await context.UserSessions
             .Where(session =>
                 session.UserId == userId &&
-                session.RevokedAtUtc == null &&
-                session.CreatedAtUtc <= nowUtc &&
-                nowUtc < session.ExpiresAtUtc)
+                session.RevokedAt == null &&
+                session.CreatedAt <= now &&
+                now < session.ExpiresAt)
             .ToArrayAsync(cancellationToken);
 
     public void Add(UserSession session) => context.UserSessions.Add(session);

@@ -13,12 +13,12 @@ public sealed class ExternalIdentityLink
         long userId,
         ExternalIdentityProvider provider,
         string normalizedEmail,
-        DateTimeOffset createdAtUtc)
+        DateTime createdAt)
     {
         UserId = userId;
         Provider = provider;
         NormalizedEmail = normalizedEmail;
-        CreatedAtUtc = createdAtUtc;
+        CreatedAt = createdAt;
     }
 
     public long Id { get; private set; }
@@ -31,15 +31,15 @@ public sealed class ExternalIdentityLink
 
     public string? ProviderSubject { get; private set; }
 
-    public DateTimeOffset CreatedAtUtc { get; private set; }
+    public DateTime CreatedAt { get; private set; }
 
-    public DateTimeOffset? LinkedAtUtc { get; private set; }
+    public DateTime? LinkedAt { get; private set; }
 
     public static ExternalIdentityLink CreatePending(
         long userId,
         ExternalIdentityProvider provider,
         string email,
-        DateTimeOffset createdAtUtc)
+        DateTime createdAt)
     {
         if (userId <= 0)
         {
@@ -50,10 +50,10 @@ public sealed class ExternalIdentityLink
             userId,
             provider,
             NormalizeEmail(email),
-            createdAtUtc.ToUniversalTime());
+            createdAt);
     }
 
-    public void BindSubject(string providerSubject, DateTimeOffset linkedAtUtc)
+    public void BindSubject(string providerSubject, DateTime linkedAt)
     {
         var normalizedSubject = NormalizeSubject(providerSubject);
         if (ProviderSubject is not null)
@@ -67,7 +67,7 @@ public sealed class ExternalIdentityLink
         }
 
         ProviderSubject = normalizedSubject;
-        LinkedAtUtc = linkedAtUtc.ToUniversalTime();
+        LinkedAt = linkedAt;
     }
 
     public void UpdateApprovedEmail(string email)

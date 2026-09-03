@@ -13,12 +13,12 @@ public sealed class Logout(
     public async Task HandleAsync(LogoutCommand command, CancellationToken cancellationToken)
     {
         var session = await sessions.GetByIdAsync(command.SessionId, cancellationToken);
-        if (session is null || session.RevokedAtUtc.HasValue)
+        if (session is null || session.RevokedAt.HasValue)
         {
             return;
         }
 
-        session.Revoke(SessionRevocationReason.UserLogout, clock.UtcNow);
+        session.Revoke(SessionRevocationReason.UserLogout, clock.Now);
         await auditWriter.WriteAsync(
             new AuditRecord(
                 session.UserId,

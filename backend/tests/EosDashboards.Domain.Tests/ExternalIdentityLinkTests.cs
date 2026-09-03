@@ -5,7 +5,7 @@ namespace EosDashboards.Domain.Tests;
 
 public sealed class ExternalIdentityLinkTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 9, 3, 10, 0, 0, TimeSpan.Zero);
+    private static readonly DateTime Now = new DateTime(2026, 9, 3, 10, 0, 0, DateTimeKind.Unspecified);
 
     [Fact]
     public void Pending_google_link_normalizes_email_and_binds_subject_once()
@@ -21,7 +21,7 @@ public sealed class ExternalIdentityLinkTests
 
         Assert.Equal("PERSON@EXAMPLE.COM", link.NormalizedEmail);
         Assert.Equal("google-subject", link.ProviderSubject);
-        Assert.Equal(Now.AddMinutes(1), link.LinkedAtUtc);
+        Assert.Equal(Now.AddMinutes(1), link.LinkedAt);
         Assert.Throws<InvalidOperationException>(() =>
         {
             link.BindSubject("different-subject", Now.AddMinutes(3));
@@ -55,6 +55,6 @@ public sealed class ExternalIdentityLinkTests
 
         Assert.Equal("SECOND.SYNTHETIC@EXAMPLE.TEST", link.NormalizedEmail);
         Assert.Equal("google-subject-synthetic", link.ProviderSubject);
-        Assert.Equal(Now.AddMinutes(2), link.LinkedAtUtc);
+        Assert.Equal(Now.AddMinutes(2), link.LinkedAt);
     }
 }

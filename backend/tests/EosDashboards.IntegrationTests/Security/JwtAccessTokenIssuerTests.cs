@@ -18,10 +18,10 @@ public sealed class JwtAccessTokenIssuerTests
         var signingKey = Enumerable.Range(65, 32).Select(value => (byte)value).ToArray();
         var issuer = CreateIssuer(signingKey);
         var user = CreateUser(17, 31, 42);
-        var issuedAtUtc = CurrentWholeSecond().AddMinutes(-1);
-        var expiresAtUtc = issuedAtUtc.AddMinutes(10);
+        var issuedAt = CurrentWholeSecond().AddMinutes(-1);
+        var expiresAt = issuedAt.AddMinutes(10);
 
-        var issued = issuer.Issue(user, 23, issuedAtUtc, expiresAtUtc);
+        var issued = issuer.Issue(user, 23, issuedAt, expiresAt);
         var handler = new JwtSecurityTokenHandler { MapInboundClaims = false };
         var principal = handler.ValidateToken(
             issued.Value,
@@ -34,9 +34,9 @@ public sealed class JwtAccessTokenIssuerTests
         Assert.Equal("17", principal.FindFirstValue(JwtRegisteredClaimNames.Sub));
         Assert.Equal("23", principal.FindFirstValue(JwtRegisteredClaimNames.Sid));
         Assert.Equal(["31", "42"], principal.FindAll("role").Select(claim => claim.Value));
-        Assert.Equal(expiresAtUtc, issued.ExpiresAtUtc);
-        Assert.Equal(expiresAtUtc.UtcDateTime, jwt.ValidTo);
-        Assert.Equal(issuedAtUtc.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture),
+        Assert.Equal(expiresAt, issued.ExpiresAt);
+        Assert.Equal(ToProtocolInstant(expiresAt).UtcDateTime, jwt.ValidTo);
+        Assert.Equal(ToProtocolInstant(issuedAt).ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture),
             principal.FindFirstValue(JwtRegisteredClaimNames.Iat));
     }
 
@@ -46,14 +46,14 @@ public sealed class JwtAccessTokenIssuerTests
         // Break caught: replacing the caller's absolute-session cap with a fresh ten-minute lifetime.
         var issuer = CreateIssuer(Enumerable.Repeat((byte)91, 32).ToArray());
         var user = CreateUser(17, 31);
-        var issuedAtUtc = CurrentWholeSecond();
-        var finalSessionExpiryUtc = issuedAtUtc.AddSeconds(45);
+        var issuedAt = CurrentWholeSecond();
+        var finalSessionExpiry = issuedAt.AddSeconds(45);
 
-        var issued = issuer.Issue(user, 23, issuedAtUtc, finalSessionExpiryUtc);
+        var issued = issuer.Issue(user, 23, issuedAt, finalSessionExpiry);
         var token = new JwtSecurityTokenHandler().ReadJwtToken(issued.Value);
 
-        Assert.Equal(finalSessionExpiryUtc, issued.ExpiresAtUtc);
-        Assert.Equal(finalSessionExpiryUtc.UtcDateTime, token.ValidTo);
+        Assert.Equal(finalSessionExpiry, issued.ExpiresAt);
+        Assert.Equal(ToProtocolInstant(finalSessionExpiry).UtcDateTime, token.ValidTo);
     }
 
     [Fact]
@@ -63,9 +63,9 @@ public sealed class JwtAccessTokenIssuerTests
         var issuer = CreateIssuer(Enumerable.Repeat((byte)123, 32).ToArray());
         var validation = issuer.CreateValidationParameters();
         var user = CreateUser(17, 31);
-        var issuedAtUtc = CurrentWholeSecond().AddMinutes(-2);
-        var expiredAtUtc = CurrentWholeSecond().AddSeconds(-5);
-        var issued = issuer.Issue(user, 23, issuedAtUtc, expiredAtUtc);
+        var issuedAt = CurrentWholeSecond().AddMinutes(-2);
+        var expiredAt = CurrentWholeSecond().AddSeconds(-5);
+        var issued = issuer.Issue(user, 23, issuedAt, expiredAt);
 
         Assert.Equal(TimeSpan.Zero, validation.ClockSkew);
         Assert.Throws<SecurityTokenExpiredException>(() =>
@@ -80,12 +80,12 @@ public sealed class JwtAccessTokenIssuerTests
         var signingKey = Enumerable.Repeat((byte)141, 32).ToArray();
         var expectedIssuer = CreateIssuer(signingKey);
         var differentIssuer = CreateIssuer(signingKey, issuerName: "Different.Issuer");
-        var issuedAtUtc = CurrentWholeSecond().AddMinutes(-1);
+        var issuedAt = CurrentWholeSecond().AddMinutes(-1);
         var token = differentIssuer.Issue(
             CreateUser(17, 31),
             23,
-            issuedAtUtc,
-            issuedAtUtc.AddMinutes(10));
+            issuedAt,
+            issuedAt.AddMinutes(10));
 
         Assert.Throws<SecurityTokenInvalidIssuerException>(() =>
             Validate(token.Value, expectedIssuer.CreateValidationParameters()));
@@ -98,12 +98,12 @@ public sealed class JwtAccessTokenIssuerTests
         var signingKey = Enumerable.Repeat((byte)151, 32).ToArray();
         var expectedAudience = CreateIssuer(signingKey);
         var differentAudience = CreateIssuer(signingKey, audienceName: "Different.Audience");
-        var issuedAtUtc = CurrentWholeSecond().AddMinutes(-1);
+        var issuedAt = CurrentWholeSecond().AddMinutes(-1);
         var token = differentAudience.Issue(
             CreateUser(17, 31),
             23,
-            issuedAtUtc,
-            issuedAtUtc.AddMinutes(10));
+            issuedAt,
+            issuedAt.AddMinutes(10));
 
         Assert.Throws<SecurityTokenInvalidAudienceException>(() =>
             Validate(token.Value, expectedAudience.CreateValidationParameters()));
@@ -115,12 +115,12 @@ public sealed class JwtAccessTokenIssuerTests
         // Break caught: bypassing signature validation in the production token-validation policy.
         var expectedIssuer = CreateIssuer(Enumerable.Repeat((byte)161, 32).ToArray());
         var differentSigner = CreateIssuer(Enumerable.Repeat((byte)162, 32).ToArray());
-        var issuedAtUtc = CurrentWholeSecond().AddMinutes(-1);
+        var issuedAt = CurrentWholeSecond().AddMinutes(-1);
         var token = differentSigner.Issue(
             CreateUser(17, 31),
             23,
-            issuedAtUtc,
-            issuedAtUtc.AddMinutes(10));
+            issuedAt,
+            issuedAt.AddMinutes(10));
 
         Assert.ThrowsAny<SecurityTokenException>(() =>
             Validate(token.Value, expectedIssuer.CreateValidationParameters()));
@@ -132,12 +132,12 @@ public sealed class JwtAccessTokenIssuerTests
         // Break caught: removing the HS256 allowlist from the production validation policy.
         var signingKey = Enumerable.Repeat((byte)171, 64).ToArray();
         var issuer = CreateIssuer(signingKey);
-        var issuedAtUtc = CurrentWholeSecond().AddMinutes(-1);
+        var issuedAt = CurrentWholeSecond().AddMinutes(-1);
         var token = CreateToken(
             signingKey,
             SecurityAlgorithms.HmacSha384,
-            issuedAtUtc,
-            issuedAtUtc.AddMinutes(10));
+            ToProtocolInstant(issuedAt),
+            ToProtocolInstant(issuedAt.AddMinutes(10)));
 
         Assert.ThrowsAny<SecurityTokenException>(() =>
             Validate(token, issuer.CreateValidationParameters()));
@@ -149,10 +149,10 @@ public sealed class JwtAccessTokenIssuerTests
         // Break caught: issuing a token without a usable revocable-session identifier.
         var issuer = CreateIssuer(Enumerable.Repeat((byte)222, 32).ToArray());
         var user = CreateUser(17, 31);
-        var issuedAtUtc = CurrentWholeSecond();
+        var issuedAt = CurrentWholeSecond();
 
         var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
-            issuer.Issue(user, 0, issuedAtUtc, issuedAtUtc.AddMinutes(1)));
+            issuer.Issue(user, 0, issuedAt, issuedAt.AddMinutes(1)));
 
         Assert.Equal("sessionId", exception.ParamName);
     }
@@ -163,12 +163,12 @@ public sealed class JwtAccessTokenIssuerTests
         // Break caught: creating zero-length or backwards-lifetime credentials.
         var issuer = CreateIssuer(Enumerable.Repeat((byte)177, 32).ToArray());
         var user = CreateUser(17, 31);
-        var issuedAtUtc = CurrentWholeSecond();
+        var issuedAt = CurrentWholeSecond();
 
         var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
-            issuer.Issue(user, 23, issuedAtUtc, issuedAtUtc));
+            issuer.Issue(user, 23, issuedAt, issuedAt));
 
-        Assert.Equal("expiresAtUtc", exception.ParamName);
+        Assert.Equal("expiresAt", exception.ParamName);
     }
 
     private static JwtAccessTokenIssuer CreateIssuer(
@@ -189,8 +189,8 @@ public sealed class JwtAccessTokenIssuerTests
     private static string CreateToken(
         byte[] signingKey,
         string algorithm,
-        DateTimeOffset issuedAtUtc,
-        DateTimeOffset expiresAtUtc)
+        DateTimeOffset issuedAt,
+        DateTimeOffset expiresAt)
     {
         var token = new JwtSecurityToken(
             "EosDashboards.Tests",
@@ -199,8 +199,8 @@ public sealed class JwtAccessTokenIssuerTests
                 new Claim(JwtRegisteredClaimNames.Sub, "17"),
                 new Claim(JwtRegisteredClaimNames.Sid, "23"),
             ],
-            issuedAtUtc.UtcDateTime,
-            expiresAtUtc.UtcDateTime,
+            issuedAt.UtcDateTime,
+            expiresAt.UtcDateTime,
             new SigningCredentials(new SymmetricSecurityKey(signingKey), algorithm));
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
@@ -239,7 +239,7 @@ public sealed class JwtAccessTokenIssuerTests
             "protected-value",
             "*******6789",
             1,
-            DateTimeOffset.UtcNow.AddDays(-1));
+            DateTime.Now.AddDays(-1));
         typeof(User)
             .GetProperty(nameof(User.Id), BindingFlags.Instance | BindingFlags.Public)!
             .SetValue(user, userId);
@@ -251,8 +251,14 @@ public sealed class JwtAccessTokenIssuerTests
         return user;
     }
 
-    private static DateTimeOffset CurrentWholeSecond()
+    private static DateTime CurrentWholeSecond()
     {
-        return DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+        var local = DateTime.Now;
+        return DateTime.SpecifyKind(
+            new DateTime(local.Year, local.Month, local.Day, local.Hour, local.Minute, local.Second),
+            DateTimeKind.Unspecified);
     }
+
+    private static DateTimeOffset ToProtocolInstant(DateTime value) => new(
+        DateTime.SpecifyKind(value, DateTimeKind.Local));
 }

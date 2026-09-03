@@ -29,14 +29,14 @@ public sealed record ChangePasswordRequest(string CurrentPassword, string NewPas
 
 public sealed record AuthResponse(
     string AccessToken,
-    DateTimeOffset AccessTokenExpiresAtUtc,
-    DateTimeOffset SessionExpiresAtUtc,
+    DateTime AccessTokenExpiresAt,
+    DateTime SessionExpiresAt,
     AuthenticatedUser User);
 
 public sealed record ChallengeResponse(
     string ChallengeToken,
     string MaskedMobile,
-    DateTimeOffset ExpiresAtUtc,
-    DateTimeOffset ResendAvailableAtUtc);
+    DateTime ExpiresAt,
+    DateTime ResendAvailableAt);
 
 public sealed record SignInProvidersResponse(bool Google);

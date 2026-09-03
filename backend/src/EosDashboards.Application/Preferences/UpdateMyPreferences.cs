@@ -31,7 +31,7 @@ public sealed class UpdateMyPreferences(
             throw new ArgumentException("The preference value is not supported.", nameof(command));
         }
 
-        var now = clock.UtcNow;
+        var now = clock.Now;
         var preference = await preferences.GetForUpdateAsync(userId, cancellationToken);
         var changed = false;
         if (preference is null)

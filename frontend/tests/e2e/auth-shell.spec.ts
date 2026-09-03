@@ -17,16 +17,16 @@ test("local credential OTP opens the authenticated shell and logout returns to s
         json: {
           challengeToken: "synthetic-challenge",
           maskedMobile: "*******6789",
-          expiresAtUtc: new Date(Date.now() + 300_000).toISOString(),
-          resendAvailableAtUtc: new Date(Date.now() + 60_000).toISOString(),
+          expiresAt: new Date(Date.now() + 300_000).toISOString(),
+          resendAvailableAt: new Date(Date.now() + 60_000).toISOString(),
         },
       });
     } else if (path.includes("/verify")) {
       await route.fulfill({
         json: {
           accessToken: "synthetic-access",
-          accessTokenExpiresAtUtc: new Date(Date.now() + 600_000).toISOString(),
-          sessionExpiresAtUtc: new Date(Date.now() + 28_800_000).toISOString(),
+          accessTokenExpiresAt: new Date(Date.now() + 600_000).toISOString(),
+          sessionExpiresAt: new Date(Date.now() + 28_800_000).toISOString(),
           user: {
             id: 1,
             accountName: "TEST\\admin",
@@ -132,10 +132,13 @@ test("local credential OTP opens the authenticated shell and logout returns to s
       "تنظیمات روی این دستگاه اعمال شد؛ همگام‌سازی با سرور انجام نشد.",
     ),
   ).not.toBeVisible();
-  await page.getByRole("button", { name: "خانه" }).click();
+  await page
+    .getByRole("navigation", { name: "منوی اصلی" })
+    .getByRole("button", { name: "خانه" })
+    .click();
   await expect(
     page.getByRole("navigation", { name: "منوی اصلی" }),
-  ).toBeHidden();
+  ).toBeVisible();
   await page.getByRole("button", { name: "باز و بسته کردن منو" }).click();
   await expect(
     page.getByRole("navigation", { name: "منوی اصلی" }),
@@ -145,6 +148,16 @@ test("local credential OTP opens the authenticated shell and logout returns to s
   await expect(
     page.getByRole("navigation", { name: "منوی اصلی" }),
   ).toBeVisible();
+  const drawerBounds = await page
+    .getByRole("navigation", { name: "منوی اصلی" })
+    .evaluate((element) => {
+      const bounds = element.getBoundingClientRect();
+      return {
+        bottom: Math.round(bounds.bottom),
+        viewportHeight: window.innerHeight,
+      };
+    });
+  expect(drawerBounds.bottom).toBeLessThan(drawerBounds.viewportHeight);
   const mobileLayout = await page.locator("main").evaluate((element) => ({
     width: Math.round(element.getBoundingClientRect().width),
     scrollWidth: element.scrollWidth,
@@ -225,8 +238,8 @@ test("a strict-mode bootstrap restores a session with one refresh request", asyn
       await route.fulfill({
         json: {
           accessToken: "synthetic-access",
-          accessTokenExpiresAtUtc: new Date(Date.now() + 600_000).toISOString(),
-          sessionExpiresAtUtc: new Date(Date.now() + 28_800_000).toISOString(),
+          accessTokenExpiresAt: new Date(Date.now() + 600_000).toISOString(),
+          sessionExpiresAt: new Date(Date.now() + 28_800_000).toISOString(),
           user: {
             id: 1,
             accountName: "TEST\\admin",
@@ -319,8 +332,8 @@ test("OTP offers a one-click resend after its 60-second cooldown", async ({
         json: {
           challengeToken: "replacement-challenge",
           maskedMobile: "*******6789",
-          expiresAtUtc: new Date(Date.now() + 300_000).toISOString(),
-          resendAvailableAtUtc: new Date(Date.now() + 60_000).toISOString(),
+          expiresAt: new Date(Date.now() + 300_000).toISOString(),
+          resendAvailableAt: new Date(Date.now() + 60_000).toISOString(),
         },
       });
     } else if (path.endsWith("/auth/sign-in/challenges")) {
@@ -328,8 +341,8 @@ test("OTP offers a one-click resend after its 60-second cooldown", async ({
         json: {
           challengeToken: "initial-challenge",
           maskedMobile: "*******6789",
-          expiresAtUtc: new Date(Date.now() + 300_000).toISOString(),
-          resendAvailableAtUtc: new Date(Date.now() - 1_000).toISOString(),
+          expiresAt: new Date(Date.now() + 300_000).toISOString(),
+          resendAvailableAt: new Date(Date.now() - 1_000).toISOString(),
         },
       });
     } else {
