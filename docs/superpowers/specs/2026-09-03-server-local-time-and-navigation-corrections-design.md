@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-03
 
-**Status:** Implemented on the integration branch; awaiting final integration review
+**Status:** Implemented and integrated into `main` as merge commit `98a457d`
 
 ## Goal
 
