@@ -44,6 +44,7 @@ public static class DependencyInjection
         services.AddScoped<IUserPreferenceRepository, UserPreferenceRepository>();
         services.AddScoped<IExternalIdentityLinkRepository, ExternalIdentityLinkRepository>();
         services.AddScoped<IAuditWriter, AuditWriter>();
+        services.AddScoped<ISystemAdministrationMetricsReader, SystemAdministrationMetricsReader>();
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         return services;
     }

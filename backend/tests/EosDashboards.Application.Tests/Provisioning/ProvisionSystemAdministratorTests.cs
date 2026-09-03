@@ -424,6 +424,19 @@ public sealed class ProvisionSystemAdministratorTests
             cancellationToken.ThrowIfCancellationRequested();
             return Task.FromResult(Items.SingleOrDefault(department => department.Id == id));
         }
+
+        public Task<Department?> GetForUpdateAsync(long id, CancellationToken cancellationToken) =>
+            GetByIdAsync(id, cancellationToken);
+
+        public Task<int> CountChildrenAsync(long id, CancellationToken cancellationToken) =>
+            Task.FromResult(0);
+
+        public Task<int> CountAssignedUsersAsync(long id, CancellationToken cancellationToken) =>
+            Task.FromResult(0);
+
+        public void Add(Department department) => Items.Add(department);
+
+        public void Remove(Department department) => Items.Remove(department);
     }
 
     private sealed class TestMobileProtector : IMobileProtector

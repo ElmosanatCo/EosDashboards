@@ -79,11 +79,28 @@ internal sealed class FakeDepartmentRepository : IDepartmentRepository
 {
     public List<Department> Departments { get; } = [];
 
+    public Dictionary<long, int> AssignedUserCounts { get; } = [];
+
+    public Dictionary<long, int> ChildCounts { get; } = [];
+
     public Task<Department?> FindByNameAsync(string name, CancellationToken cancellationToken) =>
         Task.FromResult(Departments.SingleOrDefault(department => department.Name == name));
 
     public Task<Department?> GetByIdAsync(long id, CancellationToken cancellationToken) =>
         Task.FromResult(Departments.SingleOrDefault(department => department.Id == id));
+
+    public Task<Department?> GetForUpdateAsync(long id, CancellationToken cancellationToken) =>
+        Task.FromResult(Departments.SingleOrDefault(department => department.Id == id));
+
+    public Task<int> CountChildrenAsync(long id, CancellationToken cancellationToken) =>
+        Task.FromResult(ChildCounts.GetValueOrDefault(id));
+
+    public Task<int> CountAssignedUsersAsync(long id, CancellationToken cancellationToken) =>
+        Task.FromResult(AssignedUserCounts.GetValueOrDefault(id));
+
+    public void Add(Department department) => Departments.Add(department);
+
+    public void Remove(Department department) => Departments.Remove(department);
 }
 
 internal sealed class FakeOtpChallengeRepository : IOtpChallengeRepository

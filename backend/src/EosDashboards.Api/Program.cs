@@ -48,6 +48,7 @@ builder.Services.AddScoped<CompletePasswordReset>();
 builder.Services.AddScoped<ChangePassword>();
 builder.Services.AddScoped<RefreshSession>();
 builder.Services.AddScoped<ManageUsers>();
+builder.Services.AddScoped<GetSystemAdministrationDashboard>();
 builder.Services.AddScoped<Logout>();
 builder.Services.AddScoped<GetMyPreferences>();
 builder.Services.AddScoped<UpdateMyPreferences>();
