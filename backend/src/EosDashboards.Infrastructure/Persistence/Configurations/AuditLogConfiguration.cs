@@ -14,13 +14,13 @@ internal sealed class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
         builder.Property(audit => audit.ActorUserId).HasColumnType("bigint");
         builder.Property(audit => audit.SubjectUserId).HasColumnType("bigint");
         builder.Property(audit => audit.EventCode).HasMaxLength(128).IsRequired();
-        builder.Property(audit => audit.OccurredAtUtc).HasColumnType("datetimeoffset(7)");
+        builder.Property(audit => audit.OccurredAt).HasColumnType("datetime2(3)");
         builder.Property(audit => audit.TraceId).HasMaxLength(128).IsRequired();
         builder.Property(audit => audit.SafeMetadata).HasMaxLength(4000);
-        builder.HasIndex(audit => audit.OccurredAtUtc);
-        builder.HasIndex(audit => new { audit.ActorUserId, audit.OccurredAtUtc });
-        builder.HasIndex(audit => new { audit.SubjectUserId, audit.OccurredAtUtc });
-        builder.HasIndex(audit => new { audit.EventCode, audit.OccurredAtUtc });
+        builder.HasIndex(audit => audit.OccurredAt);
+        builder.HasIndex(audit => new { audit.ActorUserId, audit.OccurredAt });
+        builder.HasIndex(audit => new { audit.SubjectUserId, audit.OccurredAt });
+        builder.HasIndex(audit => new { audit.EventCode, audit.OccurredAt });
         builder.HasOne<User>()
             .WithMany()
             .HasForeignKey(audit => audit.ActorUserId)

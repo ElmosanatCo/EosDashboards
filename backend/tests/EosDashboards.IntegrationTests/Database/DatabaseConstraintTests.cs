@@ -7,7 +7,20 @@ namespace EosDashboards.IntegrationTests.Database;
 [Collection(SqlServerDatabaseCollection.Name)]
 public sealed class DatabaseConstraintTests(SqlServerDatabaseFixture database)
 {
-    private static readonly DateTimeOffset TestNow = new(2026, 9, 2, 8, 0, 0, TimeSpan.Zero);
+    private static readonly DateTime TestNow = new DateTime(2026, 9, 2, 8, 0, 0, DateTimeKind.Unspecified);
+
+    [Fact]
+    public async Task Otp_challenge_timestamps_use_local_millisecond_datetime2_columns()
+    {
+        // Break caught: storing a local application time as an offset-bearing or sub-millisecond SQL value.
+        await using var context = database.CreateDbContext();
+        var entityType = context.Model.FindEntityType(typeof(OtpChallenge))!;
+
+        Assert.Equal(
+            "datetime2(3)",
+            entityType.FindProperty(nameof(OtpChallenge.CreatedAt))!.GetColumnType());
+        Assert.Null(entityType.FindProperty("CreatedAtUtc"));
+    }
 
     [Fact]
     public async Task Users_RejectDuplicateOrganizationalIdentifiers()

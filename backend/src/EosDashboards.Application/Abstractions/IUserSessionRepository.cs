@@ -10,7 +10,7 @@ public interface IUserSessionRepository
 
     Task<IReadOnlyCollection<UserSession>> GetActiveByUserIdAsync(
         long userId,
-        DateTimeOffset nowUtc,
+        DateTime now,
         CancellationToken cancellationToken);
 
     void Add(UserSession session);

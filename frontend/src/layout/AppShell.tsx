@@ -58,6 +58,9 @@ export function AppShell() {
     dispatch({ type: "open", tab: createWorkspaceTab(target) });
     if (compactLayout) setMobileSidebarOpen(false);
   };
+  const activateHome = () => {
+    dispatch({ type: "activate", key: "home" });
+  };
   return (
     <Box
       sx={{
@@ -79,6 +82,7 @@ export function AppShell() {
           temporary={compactLayout}
           targets={targets}
           onOpenTarget={openTarget}
+          onActivateHome={activateHome}
           onClose={() => {
             if (compactLayout) setMobileSidebarOpen(false);
             else updateSidebarCollapsed(true);

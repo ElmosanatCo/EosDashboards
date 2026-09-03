@@ -9,7 +9,7 @@ public sealed class AuthContractSafetyTests
     {
         // Break caught: accidental logging of authentication secrets through record ToString implementations.
         const string secret = "sensitive-value";
-        var expiresAtUtc = new DateTimeOffset(2026, 9, 2, 9, 0, 0, TimeSpan.Zero);
+        var expiresAt = new DateTime(2026, 9, 2, 9, 0, 0, DateTimeKind.Unspecified);
         object[] contracts =
         [
             new StartSignInCommand(secret, secret, secret),
@@ -19,20 +19,20 @@ public sealed class AuthContractSafetyTests
             new ChangePasswordCommand(11, secret, secret),
             new RefreshSessionCommand(secret),
             new SmsMessage(secret, secret),
-            new IssuedAccessToken(secret, expiresAtUtc),
-            new StartSignInResult(StartSignInStatus.Succeeded, secret, secret, expiresAtUtc, expiresAtUtc),
+            new IssuedAccessToken(secret, expiresAt),
+            new StartSignInResult(StartSignInStatus.Succeeded, secret, secret, expiresAt, expiresAt),
             new AuthenticatedUser(11, secret, secret, secret, [31], ["SystemAdministrator"], new AuthenticatedDepartment(1, "واحد آزمایشی")),
             new AuthenticationResult(
                 VerifyOtpStatus.Succeeded,
-                new IssuedAccessToken(secret, expiresAtUtc),
+                new IssuedAccessToken(secret, expiresAt),
                 secret,
-                expiresAtUtc,
+                expiresAt,
                 null),
             new RefreshSessionResult(
                 RefreshSessionStatus.Succeeded,
-                new IssuedAccessToken(secret, expiresAtUtc),
+                new IssuedAccessToken(secret, expiresAt),
                 secret,
-                expiresAtUtc,
+                expiresAt,
                 null),
         ];
 

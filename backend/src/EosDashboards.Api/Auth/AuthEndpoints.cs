@@ -76,10 +76,10 @@ public static class AuthEndpoints
             StartSignInStatus.Succeeded => Results.Ok(new ChallengeResponse(
                 result.ChallengeToken!,
                 result.MaskedMobile!,
-                result.ExpiresAtUtc!.Value,
-                result.ResendAvailableAtUtc!.Value)),
+                result.ExpiresAt!.Value,
+                result.ResendAvailableAt!.Value)),
             StartSignInStatus.Cooldown => Results.Json(
-                new { code = "otp_cooldown", retryAtUtc = result.ResendAvailableAtUtc, traceId = context.TraceIdentifier },
+                new { code = "otp_cooldown", retryAt = result.ResendAvailableAt, traceId = context.TraceIdentifier },
                 statusCode: StatusCodes.Status429TooManyRequests),
             StartSignInStatus.DependencyUnavailable => ApiResults.Problem(
                 context, 503, "sms_unavailable", "The verification service is temporarily unavailable."),
@@ -101,10 +101,10 @@ public static class AuthEndpoints
             StartSignInStatus.Succeeded => Results.Ok(new ChallengeResponse(
                 result.ChallengeToken!,
                 result.MaskedMobile!,
-                result.ExpiresAtUtc!.Value,
-                result.ResendAvailableAtUtc!.Value)),
+                result.ExpiresAt!.Value,
+                result.ResendAvailableAt!.Value)),
             StartSignInStatus.Cooldown => Results.Json(
-                new { code = "otp_cooldown", retryAtUtc = result.ResendAvailableAtUtc, traceId = context.TraceIdentifier },
+                new { code = "otp_cooldown", retryAt = result.ResendAvailableAt, traceId = context.TraceIdentifier },
                 statusCode: StatusCodes.Status429TooManyRequests),
             StartSignInStatus.DependencyUnavailable => ApiResults.Problem(
                 context, 503, "sms_unavailable", "The verification service is temporarily unavailable."),
@@ -126,8 +126,8 @@ public static class AuthEndpoints
             PasswordResetStartStatus.Succeeded => Results.Ok(new ChallengeResponse(
                 result.ChallengeToken,
                 "",
-                result.ExpiresAtUtc,
-                result.ResendAvailableAtUtc)),
+                result.ExpiresAt,
+                result.ResendAvailableAt)),
             _ => ApiResults.Problem(
                 context, 503, "sms_unavailable", "The verification service is temporarily unavailable."),
         };
@@ -147,8 +147,8 @@ public static class AuthEndpoints
             PasswordResetStartStatus.Succeeded => Results.Ok(new ChallengeResponse(
                 result.ChallengeToken,
                 "",
-                result.ExpiresAtUtc,
-                result.ResendAvailableAtUtc)),
+                result.ExpiresAt,
+                result.ResendAvailableAt)),
             _ => ApiResults.Problem(
                 context, 503, "sms_unavailable", "The verification service is temporarily unavailable."),
         };
@@ -219,11 +219,11 @@ public static class AuthEndpoints
             return ApiResults.Problem(context, 401, "otp_verification_failed", "The verification code is invalid or unavailable.");
         }
 
-        cookies.Set(context.Response, result.RefreshCredential!, result.SessionExpiresAtUtc!.Value);
+        cookies.Set(context.Response, result.RefreshCredential!, result.SessionExpiresAt!.Value);
         return Results.Ok(new AuthResponse(
             result.AccessToken!.Value,
-            result.AccessToken.ExpiresAtUtc,
-            result.SessionExpiresAtUtc.Value,
+            result.AccessToken.ExpiresAt,
+            result.SessionExpiresAt.Value,
             result.User!));
     }
 
@@ -250,11 +250,11 @@ public static class AuthEndpoints
             return ApiResults.Problem(context, 401, "refresh_denied", "The session could not be refreshed.");
         }
 
-        cookies.Set(context.Response, result.RefreshCredential!, result.SessionExpiresAtUtc!.Value);
+        cookies.Set(context.Response, result.RefreshCredential!, result.SessionExpiresAt!.Value);
         return Results.Ok(new AuthResponse(
             result.AccessToken!.Value,
-            result.AccessToken.ExpiresAtUtc,
-            result.SessionExpiresAtUtc.Value,
+            result.AccessToken.ExpiresAt,
+            result.SessionExpiresAt.Value,
             result.User!));
     }
 

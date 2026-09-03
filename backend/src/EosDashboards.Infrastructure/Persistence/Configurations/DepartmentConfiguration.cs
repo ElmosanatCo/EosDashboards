@@ -13,8 +13,8 @@ internal sealed class DepartmentConfiguration : IEntityTypeConfiguration<Departm
         builder.Property(department => department.Id).HasColumnType("bigint").UseIdentityColumn();
         builder.Property(department => department.Name).HasMaxLength(200).IsRequired();
         builder.Property(department => department.ParentDepartmentId).HasColumnType("bigint");
-        builder.Property(department => department.CreatedAtUtc).HasColumnType("datetimeoffset(7)");
-        builder.Property(department => department.UpdatedAtUtc).HasColumnType("datetimeoffset(7)");
+        builder.Property(department => department.CreatedAt).HasColumnType("datetime2(3)");
+        builder.Property(department => department.UpdatedAt).HasColumnType("datetime2(3)");
         builder.HasOne(department => department.ParentDepartment)
             .WithMany()
             .HasForeignKey(department => department.ParentDepartmentId)

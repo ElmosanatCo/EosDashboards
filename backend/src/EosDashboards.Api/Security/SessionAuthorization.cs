@@ -30,7 +30,7 @@ public sealed class SessionAuthorizationHandler(
 
         var session = await sessions.GetByIdAsync(sessionId, CancellationToken.None);
         var user = await users.GetByIdAsync(userId, CancellationToken.None);
-        if (session is null || session.UserId != userId || !session.IsActive(clock.UtcNow) ||
+        if (session is null || session.UserId != userId || !session.IsActive(clock.Now) ||
             user is null || !user.IsActive)
         {
             return;

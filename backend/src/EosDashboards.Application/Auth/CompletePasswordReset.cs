@@ -30,7 +30,7 @@ public sealed class CompletePasswordReset(
         }
 
         var traceId = correlationContext.TraceId;
-        var now = clock.UtcNow;
+        var now = clock.Now;
         var challenge = await otpChallenges.FindByPublicTokenAsync(command.ChallengeToken, cancellationToken);
         if (challenge is null ||
             challenge.Purpose != OtpChallengePurpose.PasswordReset ||

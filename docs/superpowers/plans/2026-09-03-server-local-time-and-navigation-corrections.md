@@ -4,6 +4,8 @@
 
 **Goal:** Store all application timestamps as local server time with millisecond precision and correct fixed-home and mobile-drawer shell behavior.
 
+**Status:** Implemented on the integration branch; awaiting final integration review.
+
 **Architecture:** Replace `DateTimeOffset` persistence with local `DateTime` values supplied by a millisecond-truncating `IClock`. Rename every timestamp member and contract from `…Utc` to `…At`, then use an EF Core migration to preserve legacy timestamp meaning while changing storage to `datetime2(3)`. Keep JWT numeric-date conversion contained in the issuer. Give the sidebar a separate home-activation action and constrain the temporary Drawer and its modal to the space between header and status bar.
 
 **Tech Stack:** .NET 10, EF Core 10, SQL Server, ASP.NET Core, React 19, TypeScript, Material UI 9, Vitest, Playwright.

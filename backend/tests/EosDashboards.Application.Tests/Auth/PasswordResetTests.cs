@@ -6,7 +6,7 @@ namespace EosDashboards.Application.Tests.Auth;
 
 public sealed class PasswordResetTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 9, 2, 8, 0, 0, TimeSpan.Zero);
+    private static readonly DateTime Now = new DateTime(2026, 9, 2, 8, 0, 0, DateTimeKind.Unspecified);
 
     [Fact]
     public void Password_reset_commands_do_not_expose_passwords_or_tokens_in_diagnostics()

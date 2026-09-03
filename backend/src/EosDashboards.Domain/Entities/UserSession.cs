@@ -6,12 +6,12 @@ public sealed class UserSession
 {
     private static readonly TimeSpan AbsoluteLifetime = TimeSpan.FromHours(8);
 
-    private UserSession(long userId, string refreshCredentialHash, DateTimeOffset createdAtUtc)
+    private UserSession(long userId, string refreshCredentialHash, DateTime createdAt)
     {
         UserId = userId;
         RefreshCredentialHash = refreshCredentialHash;
-        CreatedAtUtc = createdAtUtc;
-        ExpiresAtUtc = createdAtUtc.Add(AbsoluteLifetime);
+        CreatedAt = createdAt;
+        ExpiresAt = createdAt.Add(AbsoluteLifetime);
     }
 
     public long Id { get; private set; }
@@ -20,17 +20,17 @@ public sealed class UserSession
 
     public string RefreshCredentialHash { get; private set; }
 
-    public DateTimeOffset CreatedAtUtc { get; private set; }
+    public DateTime CreatedAt { get; private set; }
 
-    public DateTimeOffset ExpiresAtUtc { get; private set; }
+    public DateTime ExpiresAt { get; private set; }
 
-    public DateTimeOffset? LastRefreshedAtUtc { get; private set; }
+    public DateTime? LastRefreshedAt { get; private set; }
 
-    public DateTimeOffset? RevokedAtUtc { get; private set; }
+    public DateTime? RevokedAt { get; private set; }
 
     public SessionRevocationReason? RevocationReason { get; private set; }
 
-    public static UserSession Create(long userId, string refreshCredentialHash, DateTimeOffset createdAtUtc)
+    public static UserSession Create(long userId, string refreshCredentialHash, DateTime createdAt)
     {
         if (userId <= 0)
         {
@@ -42,10 +42,10 @@ public sealed class UserSession
             throw new ArgumentException("A refresh credential hash is required.", nameof(refreshCredentialHash));
         }
 
-        return new UserSession(userId, refreshCredentialHash, createdAtUtc.ToUniversalTime());
+        return new UserSession(userId, refreshCredentialHash, createdAt);
     }
 
-    public void Rotate(string replacementRefreshCredentialHash, DateTimeOffset rotatedAtUtc)
+    public void Rotate(string replacementRefreshCredentialHash, DateTime rotatedAt)
     {
         if (string.IsNullOrWhiteSpace(replacementRefreshCredentialHash))
         {
@@ -62,32 +62,31 @@ public sealed class UserSession
                 nameof(replacementRefreshCredentialHash));
         }
 
-        var normalizedRotatedAtUtc = rotatedAtUtc.ToUniversalTime();
-        if (!IsActive(normalizedRotatedAtUtc))
+        var normalizedRotatedAt = rotatedAt;
+        if (!IsActive(normalizedRotatedAt))
         {
             return;
         }
 
         RefreshCredentialHash = replacementRefreshCredentialHash;
-        LastRefreshedAtUtc = normalizedRotatedAtUtc;
+        LastRefreshedAt = normalizedRotatedAt;
     }
 
-    public void Revoke(SessionRevocationReason reason, DateTimeOffset revokedAtUtc)
+    public void Revoke(SessionRevocationReason reason, DateTime revokedAt)
     {
-        if (RevokedAtUtc.HasValue)
+        if (RevokedAt.HasValue)
         {
             return;
         }
 
-        RevokedAtUtc = revokedAtUtc.ToUniversalTime();
+        RevokedAt = revokedAt;
         RevocationReason = reason;
     }
 
-    public bool IsActive(DateTimeOffset atUtc)
+    public bool IsActive(DateTime at)
     {
-        var normalizedAtUtc = atUtc.ToUniversalTime();
-        return !RevokedAtUtc.HasValue &&
-               CreatedAtUtc <= normalizedAtUtc &&
-               normalizedAtUtc < ExpiresAtUtc;
+        return !RevokedAt.HasValue &&
+               CreatedAt <= at &&
+               at < ExpiresAt;
     }
 }

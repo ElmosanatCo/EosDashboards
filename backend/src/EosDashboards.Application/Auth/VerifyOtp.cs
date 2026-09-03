@@ -23,7 +23,7 @@ public sealed class VerifyOtp(
         VerifyOtpCommand command,
         CancellationToken cancellationToken)
     {
-        var now = clock.UtcNow;
+        var now = clock.Now;
         var traceId = correlationContext.TraceId;
         var challenge = await otpChallenges.FindByPublicTokenAsync(
             command.ChallengeToken,
@@ -71,7 +71,7 @@ public sealed class VerifyOtp(
             VerifyOtpStatus.Succeeded,
             accessToken,
             refreshCredential,
-            session.ExpiresAtUtc,
+            session.ExpiresAt,
             await ProjectAsync(user, roles, departments, cancellationToken));
     }
 

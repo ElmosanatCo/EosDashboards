@@ -6,7 +6,7 @@ public sealed class AuditLog
         long? actorUserId,
         long? subjectUserId,
         string eventCode,
-        DateTimeOffset occurredAtUtc,
+        DateTime occurredAt,
         bool succeeded,
         string traceId,
         string? safeMetadata)
@@ -14,7 +14,7 @@ public sealed class AuditLog
         ActorUserId = actorUserId;
         SubjectUserId = subjectUserId;
         EventCode = eventCode;
-        OccurredAtUtc = occurredAtUtc;
+        OccurredAt = occurredAt;
         Succeeded = succeeded;
         TraceId = traceId;
         SafeMetadata = safeMetadata;
@@ -28,7 +28,7 @@ public sealed class AuditLog
 
     public string EventCode { get; private set; }
 
-    public DateTimeOffset OccurredAtUtc { get; private set; }
+    public DateTime OccurredAt { get; private set; }
 
     public bool Succeeded { get; private set; }
 
@@ -40,7 +40,7 @@ public sealed class AuditLog
         long? actorUserId,
         long? subjectUserId,
         string eventCode,
-        DateTimeOffset occurredAtUtc,
+        DateTime occurredAt,
         bool succeeded,
         string traceId,
         string? safeMetadata)
@@ -69,7 +69,7 @@ public sealed class AuditLog
             actorUserId,
             subjectUserId,
             eventCode,
-            occurredAtUtc.ToUniversalTime(),
+            occurredAt,
             succeeded,
             traceId,
             safeMetadata);

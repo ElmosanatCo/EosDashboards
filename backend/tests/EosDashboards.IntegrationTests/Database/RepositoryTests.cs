@@ -11,7 +11,7 @@ namespace EosDashboards.IntegrationTests.Database;
 [Collection(SqlServerDatabaseCollection.Name)]
 public sealed class RepositoryTests(SqlServerDatabaseFixture database)
 {
-    private static readonly DateTimeOffset TestNow = new(2026, 9, 2, 8, 0, 0, TimeSpan.Zero);
+    private static readonly DateTime TestNow = new DateTime(2026, 9, 2, 8, 0, 0, DateTimeKind.Unspecified);
 
     [Fact]
     public async Task UserRepository_OrganizationalLookupPersistsProvisioningMutations()
@@ -165,7 +165,7 @@ public sealed class RepositoryTests(SqlServerDatabaseFixture database)
     }
 
     [Fact]
-    public async Task AuditWriter_PersistsSafeRecordWithUtcTimestamp()
+    public async Task AuditWriter_PersistsSafeRecordWithLocalTimestamp()
     {
         await using var context = database.CreateDbContext();
         var writer = new AuditWriter(context, new FixedClock(TestNow));
@@ -187,7 +187,7 @@ public sealed class RepositoryTests(SqlServerDatabaseFixture database)
             .SingleAsync(
                 item => item.TraceId == "trace-test",
                 CancellationToken.None);
-        Assert.Equal(TestNow, audit.OccurredAtUtc);
+        Assert.Equal(TestNow, audit.OccurredAt);
         Assert.Equal("authentication.test", audit.EventCode);
         using var metadata = JsonDocument.Parse(audit.SafeMetadata!);
         Assert.Equal("synthetic", metadata.RootElement.GetProperty("reason").GetString());
@@ -203,13 +203,13 @@ public sealed class RepositoryTests(SqlServerDatabaseFixture database)
         1,
         TestNow);
 
-    private static OtpChallenge CreateChallenge(long userId, DateTimeOffset createdAtUtc, string label) =>
+    private static OtpChallenge CreateChallenge(long userId, DateTime createdAt, string label) =>
         OtpChallenge.Create(
             userId,
             $"challenge-{label}-{Guid.NewGuid():N}",
             new string('a', 64),
-            createdAtUtc,
-            createdAtUtc.AddMinutes(5));
+            createdAt,
+            createdAt.AddMinutes(5));
 
     private static async Task<User> AddUserAsync(Microsoft.EntityFrameworkCore.DbContext context)
     {
@@ -220,8 +220,8 @@ public sealed class RepositoryTests(SqlServerDatabaseFixture database)
         return user;
     }
 
-    private sealed class FixedClock(DateTimeOffset utcNow) : IClock
+    private sealed class FixedClock(DateTime utcNow) : IClock
     {
-        public DateTimeOffset UtcNow { get; } = utcNow;
+        public DateTime Now { get; } = utcNow;
     }
 }

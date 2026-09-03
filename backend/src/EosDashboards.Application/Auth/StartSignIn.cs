@@ -23,7 +23,7 @@ public sealed class StartSignIn(
         StartSignInCommand command,
         CancellationToken cancellationToken)
     {
-        var now = clock.UtcNow;
+        var now = clock.Now;
         var traceId = correlationContext.TraceId;
         if (!PasswordPolicy.IsValid(command.Password))
         {
@@ -54,7 +54,7 @@ public sealed class StartSignIn(
         }
 
         var latestChallenge = await otpChallenges.FindLatestActiveAsync(user.Id, cancellationToken);
-        if (latestChallenge is not null && now < latestChallenge.ResendAvailableAtUtc)
+        if (latestChallenge is not null && now < latestChallenge.ResendAvailableAt)
         {
             await auditWriter.WriteAsync(
                 new AuditRecord(null, user.Id, "OtpResendCooldown", false, traceId, null),
@@ -65,7 +65,7 @@ public sealed class StartSignIn(
                 null,
                 null,
                 null,
-                latestChallenge.ResendAvailableAtUtc);
+                latestChallenge.ResendAvailableAt);
         }
 
         latestChallenge?.Supersede();
@@ -76,18 +76,18 @@ public sealed class StartSignIn(
         ResendOtpCommand command,
         CancellationToken cancellationToken)
     {
-        var now = clock.UtcNow;
+        var now = clock.Now;
         var traceId = correlationContext.TraceId;
         var previous = await otpChallenges.FindByPublicTokenAsync(command.ChallengeToken, cancellationToken);
         if (previous is null ||
             previous.Purpose != OtpChallengePurpose.SignIn ||
             previous.Status != OtpChallengeStatus.Sent ||
-            now >= previous.ExpiresAtUtc)
+            now >= previous.ExpiresAt)
         {
             return await ResendDeniedAsync(null, traceId, cancellationToken);
         }
 
-        if (now < previous.ResendAvailableAtUtc)
+        if (now < previous.ResendAvailableAt)
         {
             await auditWriter.WriteAsync(
                 new AuditRecord(null, previous.UserId, "OtpResendCooldown", false, traceId, null),
@@ -98,7 +98,7 @@ public sealed class StartSignIn(
                 null,
                 null,
                 null,
-                previous.ResendAvailableAtUtc);
+                previous.ResendAvailableAt);
         }
 
         var user = await users.GetByIdAsync(previous.UserId, cancellationToken);
@@ -113,7 +113,7 @@ public sealed class StartSignIn(
 
     private async Task<StartSignInResult> IssueChallengeAsync(
         User user,
-        DateTimeOffset now,
+        DateTime now,
         string traceId,
         string sentAuditEvent,
         string failedAuditEvent,
@@ -170,8 +170,8 @@ public sealed class StartSignIn(
             StartSignInStatus.Succeeded,
             challenge.PublicToken,
             user.MaskedMobileNumber,
-            challenge.ExpiresAtUtc,
-            challenge.ResendAvailableAtUtc);
+            challenge.ExpiresAt,
+            challenge.ResendAvailableAt);
     }
 
     private async Task<StartSignInResult> DeniedAsync(

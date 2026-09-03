@@ -2,13 +2,13 @@ namespace EosDashboards.Domain.Entities;
 
 public sealed class Role
 {
-    private Role(string code, string displayName, bool isSystem, DateTimeOffset createdAtUtc)
+    private Role(string code, string displayName, bool isSystem, DateTime createdAt)
     {
         Code = code;
         DisplayName = displayName;
         IsSystem = isSystem;
         IsActive = true;
-        CreatedAtUtc = createdAtUtc;
+        CreatedAt = createdAt;
     }
 
     public long Id { get; private set; }
@@ -21,9 +21,9 @@ public sealed class Role
 
     public bool IsSystem { get; private set; }
 
-    public DateTimeOffset CreatedAtUtc { get; private set; }
+    public DateTime CreatedAt { get; private set; }
 
-    public static Role Create(string code, string displayName, bool isSystem, DateTimeOffset createdAtUtc)
+    public static Role Create(string code, string displayName, bool isSystem, DateTime createdAt)
     {
         if (string.IsNullOrWhiteSpace(code))
         {
@@ -35,6 +35,6 @@ public sealed class Role
             throw new ArgumentException("A role display name is required.", nameof(displayName));
         }
 
-        return new Role(code, displayName, isSystem, createdAtUtc.ToUniversalTime());
+        return new Role(code, displayName, isSystem, createdAt);
     }
 }

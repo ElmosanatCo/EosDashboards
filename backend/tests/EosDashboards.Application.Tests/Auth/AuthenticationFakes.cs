@@ -6,9 +6,9 @@ using EosDashboards.Domain.Enums;
 
 namespace EosDashboards.Application.Tests.Auth;
 
-internal sealed class FakeClock(DateTimeOffset utcNow) : IClock
+internal sealed class FakeClock(DateTime utcNow) : IClock
 {
-    public DateTimeOffset UtcNow { get; set; } = utcNow;
+    public DateTime Now { get; set; } = utcNow;
 }
 
 internal sealed class FakeCorrelationContext(string traceId) : ICorrelationContext
@@ -100,7 +100,7 @@ internal sealed class FakeOtpChallengeRepository : IOtpChallengeRepository
             .Where(item => item.UserId == userId)
             .Where(item => item.Purpose == purpose)
             .Where(item => item.Status is OtpChallengeStatus.Pending or OtpChallengeStatus.Sent)
-            .OrderByDescending(item => item.CreatedAtUtc)
+            .OrderByDescending(item => item.CreatedAt)
             .FirstOrDefault();
         return Task.FromResult(challenge);
     }
@@ -128,12 +128,12 @@ internal sealed class FakeUserSessionRepository : IUserSessionRepository
 
     public Task<IReadOnlyCollection<UserSession>> GetActiveByUserIdAsync(
         long userId,
-        DateTimeOffset nowUtc,
+        DateTime now,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         return Task.FromResult<IReadOnlyCollection<UserSession>>(
-            Sessions.Where(session => session.UserId == userId && session.IsActive(nowUtc)).ToArray());
+            Sessions.Where(session => session.UserId == userId && session.IsActive(now)).ToArray());
     }
 
     public void Add(UserSession session)
@@ -280,16 +280,16 @@ internal sealed class FakeMobileProtector : IMobileProtector
 
 internal sealed class FakeAccessTokenIssuer : IAccessTokenIssuer
 {
-    public List<(User User, long SessionId, DateTimeOffset IssuedAtUtc, DateTimeOffset ExpiresAtUtc)> Requests { get; } = [];
+    public List<(User User, long SessionId, DateTime IssuedAt, DateTime ExpiresAt)> Requests { get; } = [];
 
     public IssuedAccessToken Issue(
         User user,
         long sessionId,
-        DateTimeOffset issuedAtUtc,
-        DateTimeOffset expiresAtUtc)
+        DateTime issuedAt,
+        DateTime expiresAt)
     {
-        Requests.Add((user, sessionId, issuedAtUtc, expiresAtUtc));
-        return new IssuedAccessToken("access-token", expiresAtUtc);
+        Requests.Add((user, sessionId, issuedAt, expiresAt));
+        return new IssuedAccessToken("access-token", expiresAt);
     }
 }
 

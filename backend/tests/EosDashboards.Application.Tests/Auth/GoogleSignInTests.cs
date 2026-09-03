@@ -6,7 +6,7 @@ namespace EosDashboards.Application.Tests.Auth;
 
 public sealed class GoogleSignInTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 9, 3, 12, 0, 0, TimeSpan.Zero);
+    private static readonly DateTime Now = new DateTime(2026, 9, 3, 12, 0, 0, DateTimeKind.Unspecified);
 
     [Fact]
     public async Task Verified_prelinked_email_binds_subject_and_issues_a_standard_session()
@@ -20,14 +20,14 @@ public sealed class GoogleSignInTests
         Assert.Equal(GoogleSignInStatus.Succeeded, result.Status);
         var link = Assert.Single(context.Links.Links);
         Assert.Equal("google-subject-synthetic", link.ProviderSubject);
-        Assert.Equal(context.Clock.UtcNow, link.LinkedAtUtc);
+        Assert.Equal(context.Clock.Now, link.LinkedAt);
         var session = Assert.Single(context.Sessions.Sessions);
         Assert.Equal(context.User.Id, session.UserId);
-        Assert.Equal(context.Clock.UtcNow.AddHours(8), session.ExpiresAtUtc);
+        Assert.Equal(context.Clock.Now.AddHours(8), session.ExpiresAt);
         Assert.Equal("refresh-credential", result.Authentication?.RefreshCredential);
         Assert.Equal(["SystemAdministrator"], result.Authentication?.User?.RoleCodes);
         Assert.Equal("واحد آزمایشی", result.Authentication?.User?.Department.Name);
-        Assert.Equal(context.Clock.UtcNow.AddMinutes(10), result.Authentication?.AccessToken?.ExpiresAtUtc);
+        Assert.Equal(context.Clock.Now.AddMinutes(10), result.Authentication?.AccessToken?.ExpiresAt);
         Assert.Equal(["GoogleSignIn"], context.UnitOfWork.OperationKeys);
         AuditRecordAssertions.AssertSingle(context.Audit, context.User.Id, context.User.Id, "GoogleAuthenticationSucceeded", true);
     }

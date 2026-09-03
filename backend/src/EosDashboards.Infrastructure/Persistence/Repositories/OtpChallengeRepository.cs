@@ -25,7 +25,7 @@ public sealed class OtpChallengeRepository(EosDashboardDbContext context) : IOtp
                 challenge.Purpose == purpose &&
                 (challenge.Status == OtpChallengeStatus.Pending ||
                  challenge.Status == OtpChallengeStatus.Sent))
-            .OrderByDescending(challenge => challenge.CreatedAtUtc)
+            .OrderByDescending(challenge => challenge.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
     public void Add(OtpChallenge challenge) => context.OtpChallenges.Add(challenge);

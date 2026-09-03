@@ -8,6 +8,6 @@ public interface IAccessTokenIssuer
     IssuedAccessToken Issue(
         User user,
         long sessionId,
-        DateTimeOffset issuedAtUtc,
-        DateTimeOffset expiresAtUtc);
+        DateTime issuedAt,
+        DateTime expiresAt);
 }

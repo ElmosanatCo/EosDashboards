@@ -20,13 +20,13 @@ internal sealed class OtpChallengeConfiguration : IEntityTypeConfiguration<OtpCh
             .HasConversion<string>()
             .HasMaxLength(32)
             .HasDefaultValue(OtpChallengePurpose.SignIn);
-        builder.Property(challenge => challenge.CreatedAtUtc).HasColumnType("datetimeoffset(7)");
-        builder.Property(challenge => challenge.ExpiresAtUtc).HasColumnType("datetimeoffset(7)");
-        builder.Property(challenge => challenge.ResendAvailableAtUtc).HasColumnType("datetimeoffset(7)");
-        builder.Property(challenge => challenge.ConsumedAtUtc).HasColumnType("datetimeoffset(7)");
+        builder.Property(challenge => challenge.CreatedAt).HasColumnType("datetime2(3)");
+        builder.Property(challenge => challenge.ExpiresAt).HasColumnType("datetime2(3)");
+        builder.Property(challenge => challenge.ResendAvailableAt).HasColumnType("datetime2(3)");
+        builder.Property(challenge => challenge.ConsumedAt).HasColumnType("datetime2(3)");
         builder.Property<byte[]>("RowVersion").IsRequired().IsRowVersion().HasColumnType("rowversion");
         builder.HasIndex(challenge => challenge.PublicToken).IsUnique();
-        builder.HasIndex(challenge => new { challenge.UserId, challenge.Status, challenge.CreatedAtUtc });
+        builder.HasIndex(challenge => new { challenge.UserId, challenge.Status, challenge.CreatedAt });
         builder.HasOne<User>()
             .WithMany()
             .HasForeignKey(challenge => challenge.UserId)

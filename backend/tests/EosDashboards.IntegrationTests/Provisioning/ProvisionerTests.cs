@@ -19,8 +19,8 @@ namespace EosDashboards.IntegrationTests.Provisioning;
 [Collection(SqlServerDatabaseCollection.Name)]
 public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
 {
-    private static readonly DateTimeOffset TestNow =
-        new(2026, 9, 2, 14, 0, 0, TimeSpan.Zero);
+    private static readonly DateTime TestNow =
+        new DateTime(2026, 9, 2, 14, 0, 0, DateTimeKind.Unspecified);
 
     [Fact]
     public async Task RepeatedProvisioningPersistsOneAdministratorAndTwoSafeAudits()
@@ -142,7 +142,7 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
                 .ToListAsync());
             Assert.Equal(EosDashboards.Domain.Enums.ExternalIdentityProvider.Google, link.Provider);
             Assert.Null(link.ProviderSubject);
-            Assert.Null(link.LinkedAtUtc);
+            Assert.Null(link.LinkedAt);
 
             var auditText = string.Join(
                 Environment.NewLine,
@@ -647,9 +647,9 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
             .Build();
     }
 
-    private sealed class FixedClock(DateTimeOffset utcNow) : IClock
+    private sealed class FixedClock(DateTime utcNow) : IClock
     {
-        public DateTimeOffset UtcNow { get; } = utcNow;
+        public DateTime Now { get; } = utcNow;
     }
 
     private sealed class FixedCorrelationContext(string traceId) : ICorrelationContext

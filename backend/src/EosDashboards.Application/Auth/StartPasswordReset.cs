@@ -22,10 +22,10 @@ public sealed class StartPasswordReset(
         StartPasswordResetCommand command,
         CancellationToken cancellationToken)
     {
-        var now = clock.UtcNow;
+        var now = clock.Now;
         var traceId = correlationContext.TraceId;
         var publicToken = tokenGenerator.CreateOpaqueToken(32);
-        var expiresAtUtc = now.Add(ChallengeLifetime);
+        var expiresAt = now.Add(ChallengeLifetime);
         var user = await users.FindByUsernameAsync(NormalizeUsername(command.Username), cancellationToken);
         if (user is null || !user.IsActive || user.PasswordHash is null)
         {
@@ -33,7 +33,7 @@ public sealed class StartPasswordReset(
             return new PasswordResetStartResult(
                 PasswordResetStartStatus.Succeeded,
                 publicToken,
-                expiresAtUtc,
+                expiresAt,
                 now.AddSeconds(60));
         }
 
@@ -41,14 +41,14 @@ public sealed class StartPasswordReset(
             user.Id,
             OtpChallengePurpose.PasswordReset,
             cancellationToken);
-        if (latest is not null && now < latest.ResendAvailableAtUtc)
+        if (latest is not null && now < latest.ResendAvailableAt)
         {
             await WriteAuditAsync(user.Id, "PasswordResetCooldown", false, traceId, cancellationToken);
             return new PasswordResetStartResult(
                 PasswordResetStartStatus.Succeeded,
                 latest.PublicToken,
-                latest.ExpiresAtUtc,
-                latest.ResendAvailableAtUtc);
+                latest.ExpiresAt,
+                latest.ResendAvailableAt);
         }
 
         latest?.Supersede();
@@ -66,25 +66,25 @@ public sealed class StartPasswordReset(
         ResendOtpCommand command,
         CancellationToken cancellationToken)
     {
-        var now = clock.UtcNow;
+        var now = clock.Now;
         var traceId = correlationContext.TraceId;
         var previous = await otpChallenges.FindByPublicTokenAsync(command.ChallengeToken, cancellationToken);
         if (previous is null ||
             previous.Purpose != OtpChallengePurpose.PasswordReset ||
             previous.Status != OtpChallengeStatus.Sent ||
-            now >= previous.ExpiresAtUtc)
+            now >= previous.ExpiresAt)
         {
             return await GenericResultAsync(now, traceId, "PasswordResetResendRequested", cancellationToken);
         }
 
-        if (now < previous.ResendAvailableAtUtc)
+        if (now < previous.ResendAvailableAt)
         {
             await WriteAuditAsync(previous.UserId, "PasswordResetCooldown", false, traceId, cancellationToken);
             return new PasswordResetStartResult(
                 PasswordResetStartStatus.Succeeded,
                 previous.PublicToken,
-                previous.ExpiresAtUtc,
-                previous.ResendAvailableAtUtc);
+                previous.ExpiresAt,
+                previous.ResendAvailableAt);
         }
 
         var user = await users.GetByIdAsync(previous.UserId, cancellationToken);
@@ -107,20 +107,20 @@ public sealed class StartPasswordReset(
     private async Task<PasswordResetStartResult> IssueChallengeAsync(
         User user,
         string publicToken,
-        DateTimeOffset now,
+        DateTime now,
         string traceId,
         string sentAuditEvent,
         string failedAuditEvent,
         CancellationToken cancellationToken)
     {
-        var expiresAtUtc = now.Add(ChallengeLifetime);
+        var expiresAt = now.Add(ChallengeLifetime);
         var code = tokenGenerator.CreateSixDigitCode();
         var challenge = OtpChallenge.Create(
             user.Id,
             publicToken,
             secretHasher.Hash(code),
             now,
-            expiresAtUtc,
+            expiresAt,
             OtpChallengePurpose.PasswordReset);
         otpChallenges.Add(challenge);
         await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -146,8 +146,8 @@ public sealed class StartPasswordReset(
             return new PasswordResetStartResult(
                 PasswordResetStartStatus.DependencyUnavailable,
                 publicToken,
-                expiresAtUtc,
-                challenge.ResendAvailableAtUtc);
+                expiresAt,
+                challenge.ResendAvailableAt);
         }
 
         challenge.MarkSent();
@@ -155,12 +155,12 @@ public sealed class StartPasswordReset(
         return new PasswordResetStartResult(
             PasswordResetStartStatus.Succeeded,
             publicToken,
-            expiresAtUtc,
-            challenge.ResendAvailableAtUtc);
+            expiresAt,
+            challenge.ResendAvailableAt);
     }
 
     private async Task<PasswordResetStartResult> GenericResultAsync(
-        DateTimeOffset now,
+        DateTime now,
         string traceId,
         string auditEvent,
         CancellationToken cancellationToken)

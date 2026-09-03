@@ -66,7 +66,7 @@ public sealed class UserPreferenceTests
         public void Add(UserPreference preference) => Items.Add(preference);
     }
 
-    private sealed class Clock : IClock { public DateTimeOffset UtcNow => new(2026, 9, 2, 12, 0, 0, TimeSpan.Zero); }
+    private sealed class Clock : IClock { public DateTime Now => new DateTime(2026, 9, 2, 12, 0, 0, DateTimeKind.Unspecified); }
     private sealed class Correlation : ICorrelationContext { public string TraceId => "preference-test"; }
     private sealed class AuditWriter : IAuditWriter
     {

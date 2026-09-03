@@ -5,7 +5,18 @@ namespace EosDashboards.Domain.Tests;
 
 public sealed class UserSessionTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 9, 2, 8, 0, 0, TimeSpan.Zero);
+    private static readonly DateTime Now = new DateTime(2026, 9, 2, 8, 0, 0, DateTimeKind.Unspecified);
+
+    [Fact]
+    public void Create_preserves_local_millisecond_expiry()
+    {
+        // Break caught: retaining UTC-normalized session expiry values.
+        var createdAt = new DateTime(2026, 9, 3, 18, 30, 15, 123, DateTimeKind.Unspecified);
+        var session = UserSession.Create(1, "AABB", createdAt);
+
+        Assert.Equal(createdAt, session.CreatedAt);
+        Assert.Equal(createdAt.AddHours(8), session.ExpiresAt);
+    }
 
     [Fact]
     public void Create_sets_an_eight_hour_absolute_expiry()
@@ -13,7 +24,7 @@ public sealed class UserSessionTests
         // Break caught: creating a session with a lifetime other than eight absolute hours.
         var session = UserSession.Create(1, "AABB", Now);
 
-        Assert.Equal(Now.AddHours(8), session.ExpiresAtUtc);
+        Assert.Equal(Now.AddHours(8), session.ExpiresAt);
         Assert.True(session.IsActive(Now.AddHours(8).AddTicks(-1)));
         Assert.False(session.IsActive(Now.AddHours(8)));
     }
@@ -36,8 +47,8 @@ public sealed class UserSessionTests
         session.Rotate("CCDD", Now.AddHours(1));
 
         Assert.Equal("CCDD", session.RefreshCredentialHash);
-        Assert.Equal(Now.AddHours(1), session.LastRefreshedAtUtc);
-        Assert.Equal(Now.AddHours(8), session.ExpiresAtUtc);
+        Assert.Equal(Now.AddHours(1), session.LastRefreshedAt);
+        Assert.Equal(Now.AddHours(8), session.ExpiresAt);
         Assert.False(session.IsActive(Now.AddHours(8)));
     }
 
@@ -50,8 +61,8 @@ public sealed class UserSessionTests
         Assert.Throws<ArgumentException>(() => session.Rotate("AABB", Now.AddHours(1)));
 
         Assert.Equal("AABB", session.RefreshCredentialHash);
-        Assert.Null(session.LastRefreshedAtUtc);
-        Assert.Equal(Now.AddHours(8), session.ExpiresAtUtc);
+        Assert.Null(session.LastRefreshedAt);
+        Assert.Equal(Now.AddHours(8), session.ExpiresAt);
     }
 
     [Fact]
@@ -63,7 +74,7 @@ public sealed class UserSessionTests
         session.Revoke(SessionRevocationReason.UserLogout, Now.AddMinutes(1));
         session.Revoke(SessionRevocationReason.Administrator, Now.AddMinutes(2));
 
-        Assert.Equal(Now.AddMinutes(1), session.RevokedAtUtc);
+        Assert.Equal(Now.AddMinutes(1), session.RevokedAt);
         Assert.Equal(SessionRevocationReason.UserLogout, session.RevocationReason);
         Assert.False(session.IsActive(Now.AddMinutes(2)));
     }

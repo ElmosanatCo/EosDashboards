@@ -14,8 +14,8 @@ internal sealed class ExternalIdentityLinkConfiguration : IEntityTypeConfigurati
         builder.Property(link => link.Provider).HasConversion<string>().HasMaxLength(32).IsRequired();
         builder.Property(link => link.NormalizedEmail).HasMaxLength(320).IsRequired();
         builder.Property(link => link.ProviderSubject).HasMaxLength(255);
-        builder.Property(link => link.CreatedAtUtc).HasColumnType("datetimeoffset(7)");
-        builder.Property(link => link.LinkedAtUtc).HasColumnType("datetimeoffset(7)");
+        builder.Property(link => link.CreatedAt).HasColumnType("datetime2(3)");
+        builder.Property(link => link.LinkedAt).HasColumnType("datetime2(3)");
         builder.Property<byte[]>("RowVersion").IsRequired().IsRowVersion();
         builder.HasIndex(link => new { link.Provider, link.NormalizedEmail }).IsUnique();
         builder.HasIndex(link => new { link.Provider, link.ProviderSubject })

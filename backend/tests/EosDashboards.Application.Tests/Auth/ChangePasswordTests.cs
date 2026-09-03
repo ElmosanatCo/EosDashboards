@@ -58,5 +58,5 @@ public sealed class ChangePasswordTests
         Assert.Equal(SessionRevocationReason.PasswordChanged, session.RevocationReason);
     }
 
-    private static readonly DateTimeOffset Now = new(2026, 9, 2, 8, 0, 0, TimeSpan.Zero);
+    private static readonly DateTime Now = new DateTime(2026, 9, 2, 8, 0, 0, DateTimeKind.Unspecified);
 }

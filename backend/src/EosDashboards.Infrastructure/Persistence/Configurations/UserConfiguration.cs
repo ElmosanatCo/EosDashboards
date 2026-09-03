@@ -20,9 +20,9 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(user => user.ProtectedMobileNumber).HasMaxLength(2048).IsRequired();
         builder.Property(user => user.MaskedMobileNumber).HasMaxLength(64).IsRequired();
         builder.Property(user => user.DepartmentId).HasColumnType("bigint").IsRequired();
-        builder.Property(user => user.CreatedAtUtc).HasColumnType("datetimeoffset(7)");
-        builder.Property(user => user.UpdatedAtUtc).HasColumnType("datetimeoffset(7)");
-        builder.Property(user => user.DeactivatedAtUtc).HasColumnType("datetimeoffset(7)");
+        builder.Property(user => user.CreatedAt).HasColumnType("datetime2(3)");
+        builder.Property(user => user.UpdatedAt).HasColumnType("datetime2(3)");
+        builder.Property(user => user.DeactivatedAt).HasColumnType("datetime2(3)");
         builder.HasIndex(user => user.OrganizationalId).IsUnique();
         builder.HasIndex(user => user.AccountName);
         builder.HasIndex(user => user.Username).IsUnique().HasFilter("[Username] IS NOT NULL");

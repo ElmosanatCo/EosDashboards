@@ -12,7 +12,7 @@ public sealed class User
         string protectedMobileNumber,
         string maskedMobileNumber,
         long departmentId,
-        DateTimeOffset createdAtUtc)
+        DateTime createdAt)
     {
         OrganizationalId = organizationalId;
         AccountName = accountName;
@@ -21,8 +21,8 @@ public sealed class User
         ProtectedMobileNumber = protectedMobileNumber;
         MaskedMobileNumber = maskedMobileNumber;
         DepartmentId = departmentId;
-        CreatedAtUtc = createdAtUtc;
-        UpdatedAtUtc = createdAtUtc;
+        CreatedAt = createdAt;
+        UpdatedAt = createdAt;
         IsActive = true;
     }
 
@@ -48,11 +48,11 @@ public sealed class User
 
     public bool IsActive { get; private set; }
 
-    public DateTimeOffset CreatedAtUtc { get; private set; }
+    public DateTime CreatedAt { get; private set; }
 
-    public DateTimeOffset UpdatedAtUtc { get; private set; }
+    public DateTime UpdatedAt { get; private set; }
 
-    public DateTimeOffset? DeactivatedAtUtc { get; private set; }
+    public DateTime? DeactivatedAt { get; private set; }
 
     public IReadOnlyCollection<UserRole> UserRoles => _userRoles.AsReadOnly();
 
@@ -64,7 +64,7 @@ public sealed class User
         string protectedMobileNumber,
         string maskedMobileNumber,
         long departmentId,
-        DateTimeOffset createdAtUtc)
+        DateTime createdAt)
     {
         ValidateRequired(organizationalId, nameof(organizationalId));
         ValidateRequired(accountName, nameof(accountName));
@@ -85,7 +85,7 @@ public sealed class User
             protectedMobileNumber,
             maskedMobileNumber,
             departmentId,
-            createdAtUtc.ToUniversalTime());
+            createdAt);
     }
 
     public void AssignRole(long roleId)
@@ -103,7 +103,7 @@ public sealed class User
         _userRoles.Add(new UserRole(Id, roleId));
     }
 
-    public void AssignDepartment(long departmentId, DateTimeOffset updatedAtUtc)
+    public void AssignDepartment(long departmentId, DateTime updatedAt)
     {
         if (departmentId <= 0)
         {
@@ -111,7 +111,7 @@ public sealed class User
         }
 
         DepartmentId = departmentId;
-        UpdatedAtUtc = updatedAtUtc.ToUniversalTime();
+        UpdatedAt = updatedAt;
     }
 
     public void UpdateProfile(
@@ -120,7 +120,7 @@ public sealed class User
         string lastName,
         string protectedMobileNumber,
         string maskedMobileNumber,
-        DateTimeOffset updatedAtUtc)
+        DateTime updatedAt)
     {
         ValidateRequired(accountName, nameof(accountName));
         ValidateRequired(firstName, nameof(firstName));
@@ -133,13 +133,13 @@ public sealed class User
         LastName = lastName;
         ProtectedMobileNumber = protectedMobileNumber;
         MaskedMobileNumber = maskedMobileNumber;
-        UpdatedAtUtc = updatedAtUtc.ToUniversalTime();
+        UpdatedAt = updatedAt;
     }
 
     public void SetLocalCredentials(
         string username,
         string passwordHash,
-        DateTimeOffset updatedAtUtc)
+        DateTime updatedAt)
     {
         if (string.IsNullOrWhiteSpace(username))
         {
@@ -153,10 +153,10 @@ public sealed class User
 
         Username = username.Trim().ToUpperInvariant();
         PasswordHash = passwordHash;
-        UpdatedAtUtc = updatedAtUtc.ToUniversalTime();
+        UpdatedAt = updatedAt;
     }
 
-    public void Deactivate(DateTimeOffset deactivatedAtUtc)
+    public void Deactivate(DateTime deactivatedAt)
     {
         if (!IsActive)
         {
@@ -164,11 +164,11 @@ public sealed class User
         }
 
         IsActive = false;
-        DeactivatedAtUtc = deactivatedAtUtc.ToUniversalTime();
-        UpdatedAtUtc = DeactivatedAtUtc.Value;
+        DeactivatedAt = deactivatedAt;
+        UpdatedAt = DeactivatedAt.Value;
     }
 
-    public void Activate(DateTimeOffset activatedAtUtc)
+    public void Activate(DateTime activatedAt)
     {
         if (IsActive)
         {
@@ -176,8 +176,8 @@ public sealed class User
         }
 
         IsActive = true;
-        DeactivatedAtUtc = null;
-        UpdatedAtUtc = activatedAtUtc.ToUniversalTime();
+        DeactivatedAt = null;
+        UpdatedAt = activatedAt;
     }
 
     private static void ValidateRequired(string value, string parameterName)

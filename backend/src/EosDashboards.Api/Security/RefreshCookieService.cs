@@ -8,17 +8,17 @@ public sealed class RefreshCookieService(ISecureTokenGenerator tokens)
     public const string AntiforgeryCookieName = "Eos.Antiforgery";
     public const string AntiforgeryHeaderName = "X-CSRF-TOKEN";
 
-    public string Set(HttpResponse response, string refreshCredential, DateTimeOffset expiresAtUtc)
+    public string Set(HttpResponse response, string refreshCredential, DateTime expiresAt)
     {
         var antiforgeryToken = tokens.CreateOpaqueToken(32);
         response.Cookies.Append(
             RefreshCookieName,
             refreshCredential,
-            CookieOptions(expiresAtUtc, httpOnly: true));
+            CookieOptions(expiresAt, httpOnly: true));
         response.Cookies.Append(
             AntiforgeryCookieName,
             antiforgeryToken,
-            CookieOptions(expiresAtUtc, httpOnly: false));
+            CookieOptions(expiresAt, httpOnly: false));
         return antiforgeryToken;
     }
 
@@ -28,9 +28,9 @@ public sealed class RefreshCookieService(ISecureTokenGenerator tokens)
         response.Cookies.Delete(AntiforgeryCookieName, DeleteOptions(httpOnly: false));
     }
 
-    private static CookieOptions CookieOptions(DateTimeOffset expiresAtUtc, bool httpOnly) => new()
+    private static CookieOptions CookieOptions(DateTime expiresAt, bool httpOnly) => new()
     {
-        Expires = expiresAtUtc,
+        Expires = expiresAt,
         HttpOnly = httpOnly,
         IsEssential = true,
         Path = "/",

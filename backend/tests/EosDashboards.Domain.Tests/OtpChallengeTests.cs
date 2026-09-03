@@ -5,7 +5,23 @@ namespace EosDashboards.Domain.Tests;
 
 public sealed class OtpChallengeTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 9, 2, 8, 0, 0, TimeSpan.Zero);
+    private static readonly DateTime Now = new DateTime(2026, 9, 2, 8, 0, 0, DateTimeKind.Unspecified);
+
+    [Fact]
+    public void Create_preserves_local_millisecond_timestamp_names()
+    {
+        // Break caught: retaining UTC-normalized timestamp properties in an OTP challenge.
+        var createdAt = new DateTime(2026, 9, 3, 18, 30, 15, 123, DateTimeKind.Unspecified);
+        var challenge = OtpChallenge.Create(
+            1,
+            "local-token",
+            "AABB",
+            createdAt,
+            createdAt.AddMinutes(5));
+
+        Assert.Equal(createdAt, challenge.CreatedAt);
+        Assert.Equal(createdAt.AddMinutes(5), challenge.ExpiresAt);
+    }
 
     [Fact]
     public void Fifth_wrong_hash_exhausts_challenge()
@@ -34,18 +50,18 @@ public sealed class OtpChallengeTests
         Assert.False(challenge.Verify("AABB", Now.AddMinutes(1)));
 
         Assert.Equal(OtpChallengeStatus.Consumed, challenge.Status);
-        Assert.Equal(Now.AddMinutes(1), challenge.ConsumedAtUtc);
+        Assert.Equal(Now.AddMinutes(1), challenge.ConsumedAt);
     }
 
     [Fact]
     public void Verification_at_exact_expiry_rejects_and_expires_challenge()
     {
         // Break caught: treating the expiry instant as still valid.
-        var expiresAtUtc = Now.AddMinutes(5);
-        var challenge = OtpChallenge.Create(1, "public-token", "AABB", Now, expiresAtUtc);
+        var expiresAt = Now.AddMinutes(5);
+        var challenge = OtpChallenge.Create(1, "public-token", "AABB", Now, expiresAt);
         challenge.MarkSent();
 
-        Assert.False(challenge.Verify("AABB", expiresAtUtc));
+        Assert.False(challenge.Verify("AABB", expiresAt));
 
         Assert.Equal(OtpChallengeStatus.Expired, challenge.Status);
     }

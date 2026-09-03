@@ -4,7 +4,7 @@ namespace EosDashboards.Domain.Tests;
 
 public sealed class DepartmentTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 9, 3, 8, 0, 0, TimeSpan.Zero);
+    private static readonly DateTime Now = new DateTime(2026, 9, 3, 8, 0, 0, DateTimeKind.Unspecified);
 
     [Fact]
     public void Create_root_has_no_parent()
