@@ -183,6 +183,7 @@ resources/
 
 - Keep development and verification cost-conscious. Choose the smallest test scope that provides credible evidence for the changed behavior and its material risks.
 - During implementation, run focused tests for the affected component or flow. Avoid repeatedly running full backend, frontend, integration, browser, or multi-environment suites.
+- Keep agent token use cost-conscious: load only task-relevant context, avoid redundant scans and repeated diagnostics, and do not rerun a successful command unless code, configuration, environment, or the claim being verified changed.
 - Run broader suites only at meaningful checkpoints: completion of an integrated task, pre-merge/publication, or when a cross-cutting change creates a concrete regression risk.
 - Test essential behavior, boundaries, security controls, and regressions. Do not add redundant tests merely to increase test count or coverage.
 - Use one primary implementation/review path by default. Additional agents or repeated independent review loops require explicit user approval or a documented exceptional risk.
