@@ -535,8 +535,10 @@ The 2026-09-03 attempt reached the configured API but stopped before Google
 authorization because direct access to Google's public signing-key endpoint
 returned HTTP 403. A validated server-only OIDC backchannel-proxy setting is
 staged for publication because the approved local proxy can reach that
-endpoint. Do not bypass signature validation; publish the setting and retry
-this step.
+endpoint. The first authorization attempt also identified a missing cross-site
+`SameSite=None` setting on the temporary OIDC cookies; that correction is
+staged alongside the proxy. Do not bypass signature validation; publish both
+settings and retry this step.
 
 - [ ] **Step 6: Commit documentation and integration state.**
 

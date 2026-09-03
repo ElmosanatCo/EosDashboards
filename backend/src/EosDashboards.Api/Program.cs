@@ -79,16 +79,7 @@ if (googleAuthentication.Enabled)
                 UseProxy = true,
             });
         }
-        options.CorrelationCookie.Name = "__Host-Eos.Google.Correlation";
-        options.CorrelationCookie.Path = "/";
-        options.CorrelationCookie.HttpOnly = true;
-        options.CorrelationCookie.SameSite = SameSiteMode.Lax;
-        options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
-        options.NonceCookie.Name = "__Host-Eos.Google.Nonce";
-        options.NonceCookie.Path = "/";
-        options.NonceCookie.HttpOnly = true;
-        options.NonceCookie.SameSite = SameSiteMode.Lax;
-        options.NonceCookie.SecurePolicy = CookieSecurePolicy.Always;
+        GoogleAuthenticationCookieConfiguration.Configure(options);
         var events = GoogleAuthenticationEvents.Create();
         events.OnRedirectToIdentityProvider = context =>
         {

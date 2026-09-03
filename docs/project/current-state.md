@@ -64,8 +64,11 @@ Initial authentication and application-shell implementation.
   Google's public signing-key endpoint returned HTTP 403 while the configured
   local proxy succeeded. A server-only, validated optional Google OIDC
   backchannel-proxy setting is staged for publication so signature validation
-  remains intact; the final user-authorized sign-in smoke flow remains pending
-  that publication.
+  remains intact. The first successful authorization attempt then identified
+  that the temporary OIDC nonce and correlation cookies need `SameSite=None`
+  for the cross-site callback; the standards-compliant cookie correction is
+  also staged for publication. The final user-authorized sign-in smoke flow
+  remains pending that publication.
 - Final pre-publication verification passed on 2026-09-03: 195 backend tests
   (including 113 SQL-backed integration tests against the guarded test
   catalog), 12 frontend tests, TypeScript checking, the production frontend
@@ -90,9 +93,9 @@ Initial authentication and application-shell implementation.
 
 ## Next agreed step
 
-Publish the staged API backchannel-proxy setting, then complete one
-user-authorized IIS HTTPS Google sign-in, refresh, and logout smoke flow. Do
-not deploy to company production servers in this slice.
+Publish the staged API backchannel-proxy and OIDC temporary-cookie correction,
+then complete one user-authorized IIS HTTPS Google sign-in, refresh, and logout
+smoke flow. Do not deploy to company production servers in this slice.
 
 ## Blockers
 
