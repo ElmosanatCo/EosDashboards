@@ -290,7 +290,7 @@ git commit -m "feat: issue sessions for linked Google identities"
 - Produces `GET /api/v1/auth/providers` returning `{ google: boolean }` and `GET /api/v1/auth/google/start`.
 - The handler owns callback path `/api/v1/auth/google/callback` and redirects success to `/EosDashboards/`.
 
-- [ ] **Step 1: Write failing configuration and endpoint contract tests.**
+- [x] **Step 1: Write failing configuration and endpoint contract tests.**
 
 ```csharp
 [Fact]
@@ -316,13 +316,13 @@ public void Enabled_google_requires_client_id_secret_and_exact_https_callback()
 
 Add tests that disabled configuration returns `google: false`, start redirects only when enabled, OpenAPI includes discovery/start but does not expose client configuration, and callback failures redirect safely without token-bearing URLs.
 
-- [ ] **Step 2: Run the tests to verify they fail.**
+- [x] **Step 2: Run the tests to verify they fail.**
 
 Run: `dotnet test backend/tests/EosDashboards.IntegrationTests/EosDashboards.IntegrationTests.csproj --filter "FullyQualifiedName~GoogleAuthenticationOptionsTests|FullyQualifiedName~AuthEndpointTests"`
 
 Expected: FAIL because the options, provider-discovery response, and Google endpoints do not exist.
 
-- [ ] **Step 3: Add typed configuration and the OpenID Connect package.**
+- [x] **Step 3: Add typed configuration and the OpenID Connect package.**
 
 ```xml
 <PackageVersion Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.11" />
@@ -341,7 +341,7 @@ public sealed class GoogleAuthenticationOptions
 
 Validate enabled configuration has nonblank client id/secret and exactly the configured absolute HTTPS callback; disabled configuration must not require values. Store no real value in tests or documentation.
 
-- [ ] **Step 4: Register the isolated OIDC scheme and callback events.**
+- [x] **Step 4: Register the isolated OIDC scheme and callback events.**
 
 ```csharp
 authentication.AddOpenIdConnect("Google", options =>
@@ -358,7 +358,7 @@ authentication.AddOpenIdConnect("Google", options =>
 
 Keep JWT as the default scheme. Configure secure host-only correlation and nonce cookies, short lifetime, and the callback behavior required for Google top-level navigation. In `OnTokenValidated`, extract only `sub`, `email`, and `email_verified`, call `GoogleSignIn`, then on success call `RefreshCookieService.Set` and redirect to the UI application root. On every denied/cancelled/correlation/remote-failure path, clear temporary correlation state, write value-free audit data, and redirect to `/EosDashboards/?authError=google`.
 
-- [ ] **Step 5: Add discovery and start endpoints.**
+- [x] **Step 5: Add discovery and start endpoints.**
 
 ```csharp
 group.MapGet("/providers", (IOptions<GoogleAuthenticationOptions> options) =>
@@ -376,7 +376,7 @@ group.MapGet("/google/start", async (HttpContext context) =>
 
 Do not add CORS credentials or a client secret to frontend configuration. Keep the start endpoint anonymous but rate limited. The callback is handled by the OIDC middleware before endpoint routing and must not apply the XHR-only origin filter.
 
-- [ ] **Step 6: Run API configuration/contract tests and build.**
+- [x] **Step 6: Run API configuration/contract tests and build.**
 
 Run: `dotnet test backend/tests/EosDashboards.IntegrationTests/EosDashboards.IntegrationTests.csproj --filter "FullyQualifiedName~GoogleAuthenticationOptionsTests|FullyQualifiedName~AuthEndpointTests"`
 

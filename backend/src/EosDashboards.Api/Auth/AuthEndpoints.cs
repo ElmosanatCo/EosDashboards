@@ -3,6 +3,8 @@ using EosDashboards.Api.Errors;
 using EosDashboards.Api.Security;
 using EosDashboards.Application.Abstractions;
 using EosDashboards.Application.Auth;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.Options;
 
 namespace EosDashboards.Api.Auth;
 
@@ -15,6 +17,9 @@ public static class AuthEndpoints
             .AddEndpointFilter<NoStoreEndpointFilter>();
 
         group.MapPost("/sign-in/challenges", StartChallengeAsync)
+            .RequireRateLimiting("auth-sensitive");
+        group.MapGet("/providers", GetProviders);
+        group.MapGet("/google/start", StartGoogleAsync)
             .RequireRateLimiting("auth-sensitive");
         group.MapPost("/sign-in/challenges/{challengeToken}/verify", VerifyAsync)
             .RequireRateLimiting("auth-sensitive");
@@ -33,6 +38,21 @@ public static class AuthEndpoints
             .RequireAuthorization("ActiveUser");
 
         return endpoints;
+    }
+
+    private static IResult GetProviders(IOptions<GoogleAuthenticationOptions> googleAuthentication) =>
+        Results.Ok(new SignInProvidersResponse(googleAuthentication.Value.Enabled));
+
+    private static IResult StartGoogleAsync(IOptions<GoogleAuthenticationOptions> googleAuthentication)
+    {
+        if (!googleAuthentication.Value.Enabled)
+        {
+            return Results.NotFound();
+        }
+
+        return Results.Challenge(
+            new AuthenticationProperties { RedirectUri = "/EosDashboards/" },
+            [GoogleAuthenticationOptions.Scheme]);
     }
 
     private static async Task<IResult> StartChallengeAsync(

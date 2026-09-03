@@ -38,3 +38,5 @@ public sealed record ChallengeResponse(
     string MaskedMobile,
     DateTimeOffset ExpiresAtUtc,
     DateTimeOffset ResendAvailableAtUtc);
+
+public sealed record SignInProvidersResponse(bool Google);

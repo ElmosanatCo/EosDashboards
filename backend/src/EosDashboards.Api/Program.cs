@@ -10,6 +10,7 @@ using EosDashboards.Infrastructure;
 using EosDashboards.Infrastructure.Persistence;
 using EosDashboards.Infrastructure.Sms;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Server.IIS;
 using Microsoft.EntityFrameworkCore;
@@ -29,12 +30,17 @@ builder.Services.AddOptions<ApiSecurityOptions>()
     .Bind(builder.Configuration.GetSection(ApiSecurityOptions.SectionName))
     .ValidateOnStart();
 builder.Services.AddSingleton<IValidateOptions<ApiSecurityOptions>, ApiSecurityOptionsValidator>();
+builder.Services.AddOptions<GoogleAuthenticationOptions>()
+    .Bind(builder.Configuration.GetSection(GoogleAuthenticationOptions.SectionName))
+    .ValidateOnStart();
+builder.Services.AddSingleton<IValidateOptions<GoogleAuthenticationOptions>, GoogleAuthenticationOptionsValidator>();
 
 builder.Services.AddScoped<ICorrelationContext, HttpCorrelationContext>();
 builder.Services.AddScoped<RefreshCookieService>();
 builder.Services.AddScoped<TrustedOriginFilter>();
 builder.Services.AddScoped<StartSignIn>();
 builder.Services.AddScoped<VerifyOtp>();
+builder.Services.AddScoped<GoogleSignIn>();
 builder.Services.AddScoped<StartPasswordReset>();
 builder.Services.AddScoped<CompletePasswordReset>();
 builder.Services.AddScoped<ChangePassword>();
@@ -47,6 +53,42 @@ builder.Services.AddScoped<IAuthorizationHandler, SessionAuthorizationHandler>()
 var authentication = builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options => options.MapInboundClaims = false);
+var googleAuthentication = builder.Configuration
+    .GetSection(GoogleAuthenticationOptions.SectionName)
+    .Get<GoogleAuthenticationOptions>() ?? new GoogleAuthenticationOptions();
+if (googleAuthentication.Enabled)
+{
+    authentication.AddOpenIdConnect(GoogleAuthenticationOptions.Scheme, options =>
+    {
+        options.Authority = "https://accounts.google.com";
+        options.ClientId = googleAuthentication.ClientId!;
+        options.ClientSecret = googleAuthentication.ClientSecret!;
+        options.CallbackPath = GoogleAuthenticationOptions.CallbackPath;
+        options.ResponseType = "code";
+        options.UsePkce = true;
+        options.SaveTokens = false;
+        options.MapInboundClaims = false;
+        options.Scope.Add("email");
+        options.RemoteAuthenticationTimeout = TimeSpan.FromMinutes(10);
+        options.CorrelationCookie.Name = "__Host-Eos.Google.Correlation";
+        options.CorrelationCookie.Path = "/";
+        options.CorrelationCookie.HttpOnly = true;
+        options.CorrelationCookie.SameSite = SameSiteMode.Lax;
+        options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.NonceCookie.Name = "__Host-Eos.Google.Nonce";
+        options.NonceCookie.Path = "/";
+        options.NonceCookie.HttpOnly = true;
+        options.NonceCookie.SameSite = SameSiteMode.Lax;
+        options.NonceCookie.SecurePolicy = CookieSecurePolicy.Always;
+        var events = GoogleAuthenticationEvents.Create();
+        events.OnRedirectToIdentityProvider = context =>
+        {
+            context.ProtocolMessage.RedirectUri = googleAuthentication.RedirectUri!;
+            return Task.CompletedTask;
+        };
+        options.Events = events;
+    });
+}
 builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
     .Configure<TokenValidationParameters>((options, validationParameters) =>
         options.TokenValidationParameters = validationParameters);
