@@ -6,7 +6,6 @@ public sealed class User
 
     private User(
         string organizationalId,
-        string accountName,
         string firstName,
         string lastName,
         string protectedMobileNumber,
@@ -15,7 +14,6 @@ public sealed class User
         DateTime createdAt)
     {
         OrganizationalId = organizationalId;
-        AccountName = accountName;
         FirstName = firstName;
         LastName = lastName;
         ProtectedMobileNumber = protectedMobileNumber;
@@ -29,8 +27,6 @@ public sealed class User
     public long Id { get; private set; }
 
     public string OrganizationalId { get; private set; }
-
-    public string AccountName { get; private set; }
 
     public string? Username { get; private set; }
 
@@ -62,7 +58,6 @@ public sealed class User
 
     public static User Create(
         string organizationalId,
-        string accountName,
         string firstName,
         string lastName,
         string protectedMobileNumber,
@@ -71,7 +66,6 @@ public sealed class User
         DateTime createdAt)
     {
         ValidateRequired(organizationalId, nameof(organizationalId));
-        ValidateRequired(accountName, nameof(accountName));
         ValidateRequired(firstName, nameof(firstName));
         ValidateRequired(lastName, nameof(lastName));
         ValidateRequired(protectedMobileNumber, nameof(protectedMobileNumber));
@@ -83,7 +77,6 @@ public sealed class User
 
         return new User(
             organizationalId,
-            accountName,
             firstName,
             lastName,
             protectedMobileNumber,
@@ -127,20 +120,17 @@ public sealed class User
     }
 
     public void UpdateProfile(
-        string accountName,
         string firstName,
         string lastName,
         string protectedMobileNumber,
         string maskedMobileNumber,
         DateTime updatedAt)
     {
-        ValidateRequired(accountName, nameof(accountName));
         ValidateRequired(firstName, nameof(firstName));
         ValidateRequired(lastName, nameof(lastName));
         ValidateRequired(protectedMobileNumber, nameof(protectedMobileNumber));
         ValidateRequired(maskedMobileNumber, nameof(maskedMobileNumber));
 
-        AccountName = accountName;
         FirstName = firstName;
         LastName = lastName;
         ProtectedMobileNumber = protectedMobileNumber;

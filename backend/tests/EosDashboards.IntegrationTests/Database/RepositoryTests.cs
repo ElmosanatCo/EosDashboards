@@ -34,7 +34,6 @@ public sealed class RepositoryTests(SqlServerDatabaseFixture database)
             $"org-{suffix}",
             CancellationToken.None);
         found!.UpdateProfile(
-            $"updated-account-{suffix}",
             "Updated",
             "Profile",
             "updated-protected-test-value",
@@ -48,7 +47,6 @@ public sealed class RepositoryTests(SqlServerDatabaseFixture database)
             .AsNoTracking()
             .Include(candidate => candidate.UserRoles)
             .SingleAsync(candidate => candidate.Id == user.Id, CancellationToken.None);
-        Assert.Equal($"updated-account-{suffix}", persisted.AccountName);
         Assert.Equal("Updated", persisted.FirstName);
         Assert.Equal("Profile", persisted.LastName);
         Assert.Equal("updated-protected-test-value", persisted.ProtectedMobileNumber);
@@ -69,7 +67,6 @@ public sealed class RepositoryTests(SqlServerDatabaseFixture database)
 
         var user = User.Create(
             $"org-details-{suffix}",
-            $"account-details-{suffix}",
             "کاربر",
             "جزئیات",
             "protected-details",
@@ -105,7 +102,6 @@ public sealed class RepositoryTests(SqlServerDatabaseFixture database)
             .SingleAsync(item => item.Code == SystemRoleCodes.DepartmentManager, CancellationToken.None);
         var user = User.Create(
             $"ORG-UPDATE-{suffix}".ToUpperInvariant(),
-            $"account-update-{suffix}",
             "کاربر",
             "ویرایش",
             "protected-update",
@@ -137,7 +133,6 @@ public sealed class RepositoryTests(SqlServerDatabaseFixture database)
             new UpdateUserCommand(
                 found.Id,
                 found.OrganizationalId,
-                found.AccountName,
                 found.FirstName,
                 found.LastName,
                 null,
@@ -324,7 +319,6 @@ public sealed class RepositoryTests(SqlServerDatabaseFixture database)
 
     private static User CreateUser(string suffix) => User.Create(
         $"org-{suffix}",
-        $"account-{suffix}",
         "Test",
         "User",
         "protected-test-value",

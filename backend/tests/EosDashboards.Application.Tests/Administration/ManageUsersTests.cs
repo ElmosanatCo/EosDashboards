@@ -21,7 +21,6 @@ public sealed class ManageUsersTests
             context.Actor.Id,
             new CreateUserCommand(
                 "124",
-                "کاربر نمونه",
                 "نام",
                 "خانوادگی",
                 "09121111111",
@@ -54,7 +53,6 @@ public sealed class ManageUsersTests
             new UpdateUserCommand(
                 target.Id,
                 "126",
-                "نام کاربری",
                 "نام جدید",
                 "نام خانوادگی جدید",
                 "09123333333",
@@ -119,7 +117,6 @@ public sealed class ManageUsersTests
             new UpdateUserCommand(
                 context.Actor.Id,
                 context.Actor.OrganizationalId,
-                context.Actor.AccountName,
                 context.Actor.FirstName,
                 context.Actor.LastName,
                 null,
@@ -184,7 +181,6 @@ public sealed class ManageUsersTests
         {
             var user = User.Create(
                 personnelCode,
-                $"حساب {personnelCode}",
                 "نام",
                 "خانوادگی",
                 "protected:09120000000",

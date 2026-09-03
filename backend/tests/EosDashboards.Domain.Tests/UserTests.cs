@@ -12,7 +12,6 @@ public sealed class UserTests
         // Break caught: permitting a user without the immutable organizational identity used for lookup.
         Assert.Throws<ArgumentException>(() => User.Create(
             " ",
-            "account",
             "First",
             "Last",
             "protected-mobile",
@@ -39,7 +38,6 @@ public sealed class UserTests
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => User.Create(
             "stable-organizational-id",
-            "account",
             "First",
             "Last",
             "protected-mobile",
@@ -66,9 +64,8 @@ public sealed class UserTests
         // Break caught: retaining stale display or mobile data after a profile update.
         var user = CreateUser();
 
-        user.UpdateProfile("new-account", "Updated", "Person", "new-protected-mobile", "new-masked-mobile", Now.AddMinutes(1));
+        user.UpdateProfile("Updated", "Person", "new-protected-mobile", "new-masked-mobile", Now.AddMinutes(1));
 
-        Assert.Equal("new-account", user.AccountName);
         Assert.Equal("Updated", user.FirstName);
         Assert.Equal("Person", user.LastName);
         Assert.Equal("new-protected-mobile", user.ProtectedMobileNumber);
@@ -219,7 +216,6 @@ public sealed class UserTests
     {
         return User.Create(
             "stable-organizational-id",
-            "account",
             "First",
             "Last",
             "protected-mobile",

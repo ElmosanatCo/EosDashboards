@@ -136,7 +136,6 @@ public sealed class VerifyOtp(
             .ToArray();
         return new AuthenticatedUser(
             user.Id,
-            user.AccountName,
             user.FirstName,
             user.LastName,
             user.UserRoles.Select(role => role.RoleId).ToArray(),

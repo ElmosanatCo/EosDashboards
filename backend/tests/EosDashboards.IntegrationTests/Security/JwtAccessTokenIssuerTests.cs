@@ -233,7 +233,6 @@ public sealed class JwtAccessTokenIssuerTests
     {
         var user = User.Create(
             "synthetic-user",
-            "TEST\\synthetic-user",
             "Synthetic",
             "User",
             "protected-value",

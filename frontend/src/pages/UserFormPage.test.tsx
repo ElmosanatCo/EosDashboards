@@ -53,4 +53,14 @@ describe("UserFormPage", () => {
       screen.queryByRole("progressbar", { name: "در حال دریافت فرم کاربر" }),
     ).not.toBeInTheDocument();
   });
+
+  it("does not ask for an account name", async () => {
+    renderCreateForm();
+
+    await screen.findByRole("heading", { name: "تعریف کاربر" });
+
+    expect(
+      screen.queryByRole("textbox", { name: /نام حساب/ }),
+    ).not.toBeInTheDocument();
+  });
 });

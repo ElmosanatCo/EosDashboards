@@ -151,7 +151,6 @@ public sealed class StartSignInTests
             {
                 User = Domain.Entities.User.Create(
                     "stable-user",
-                    "DOMAIN\\user",
                     "Test",
                     "User",
                     "protected-mobile",

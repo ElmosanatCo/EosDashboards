@@ -30,7 +30,7 @@ public interface IAuditLogReader
 }
 
 public sealed record AdministrationUserListItem(
-    long Id, string PersonnelCode, string AccountName, string FirstName, string LastName,
+    long Id, string PersonnelCode, string FirstName, string LastName,
     string? Username, string MaskedMobile, long DepartmentId, string DepartmentName,
     bool IsActive, bool MustChangePassword, IReadOnlyList<long> RoleIds, byte[] RowVersion);
 

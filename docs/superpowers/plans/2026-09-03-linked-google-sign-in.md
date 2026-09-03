@@ -175,7 +175,7 @@ Expected: FAIL because the command has no Google email field and the provisioner
 
 ```csharp
 public sealed record ProvisionSystemAdministratorCommand(
-    string OrganizationalId, string AccountName, string Username, string Password,
+    string OrganizationalId, string Username, string Password,
     string FirstName, string LastName, string Mobile, string? GoogleEmail);
 ```
 

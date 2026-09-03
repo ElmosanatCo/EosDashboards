@@ -10,7 +10,6 @@ export type PagedResult<T> = {
 export type ManagedUser = {
   id: number;
   personnelCode: string;
-  accountName: string;
   firstName: string;
   lastName: string;
   username: string | null;
@@ -56,7 +55,6 @@ export type AdministrationDashboard = {
 
 export type UserInput = {
   personnelCode: string;
-  accountName: string;
   firstName: string;
   lastName: string;
   replacementMobile?: string | null;

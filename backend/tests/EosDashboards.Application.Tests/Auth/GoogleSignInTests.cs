@@ -118,7 +118,6 @@ public sealed class GoogleSignInTests
         {
             User = User.Create(
                 "synthetic-google-user",
-                "DOMAIN\\synthetic.google",
                 "Synthetic",
                 "Google",
                 "protected-mobile",

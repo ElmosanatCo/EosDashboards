@@ -103,7 +103,6 @@ public enum VerifyOtpStatus
 
 public sealed record AuthenticatedUser(
     long Id,
-    string AccountName,
     string FirstName,
     string LastName,
     IReadOnlyCollection<long> RoleIds,

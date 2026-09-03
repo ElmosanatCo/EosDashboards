@@ -23,8 +23,6 @@ public sealed class InteractiveInput(
     {
         console.Write("شناسه پایدار سازمانی: ");
         var organizationalId = console.ReadLine();
-        console.Write("نام حساب سازمانی: ");
-        var accountName = console.ReadLine();
         console.Write("نام کاربری: ");
         var username = console.ReadLine();
         console.Write("رمز عبور (مخفی): ");
@@ -40,7 +38,6 @@ public sealed class InteractiveInput(
         console.WriteLine(string.Empty);
 
         if (organizationalId is null ||
-            accountName is null ||
             username is null ||
             password is null ||
             firstName is null ||
@@ -75,7 +72,6 @@ public sealed class InteractiveInput(
 
         return new ProvisionSystemAdministratorCommand(
             organizationalId,
-            accountName,
             username,
             password,
             firstName,

@@ -1,6 +1,5 @@
 export type AuthenticatedUser = {
   id: number;
-  accountName: string;
   firstName: string;
   lastName: string;
   roleIds: number[];

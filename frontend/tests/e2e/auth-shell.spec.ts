@@ -29,7 +29,6 @@ test("local credential OTP opens the authenticated shell and logout returns to s
           sessionExpiresAt: new Date(Date.now() + 28_800_000).toISOString(),
           user: {
             id: 1,
-            accountName: "TEST\\admin",
             firstName: "مدیر",
             lastName: "سامانه",
             roleIds: [1],
@@ -288,7 +287,6 @@ test("a strict-mode bootstrap restores a session with one refresh request", asyn
           sessionExpiresAt: new Date(Date.now() + 28_800_000).toISOString(),
           user: {
             id: 1,
-            accountName: "TEST\\admin",
             firstName: "مدیر",
             lastName: "سامانه",
             roleIds: [1],
@@ -329,7 +327,6 @@ test("a System Administrator can open the operational dashboard", async ({
           sessionExpiresAt: new Date(Date.now() + 28_800_000).toISOString(),
           user: {
             id: 1,
-            accountName: "TEST\\admin",
             firstName: "مدیر",
             lastName: "سامانه",
             roleIds: [1],

@@ -8,7 +8,6 @@ namespace EosDashboards.Application.Provisioning;
 
 public sealed record ProvisionSystemAdministratorCommand(
     string OrganizationalId,
-    string AccountName,
     string Username,
     string Password,
     string FirstName,
@@ -53,9 +52,6 @@ public sealed class ProvisionSystemAdministrator(
         var normalizedOrganizationalId = NormalizeIdentifier(
             command.OrganizationalId,
             nameof(command.OrganizationalId));
-        var normalizedAccountName = NormalizeIdentifier(
-            command.AccountName,
-            nameof(command.AccountName));
         var normalizedUsername = NormalizeIdentifier(command.Username, nameof(command.Username));
         if (!PasswordPolicy.IsValid(command.Password))
         {
@@ -120,7 +116,6 @@ public sealed class ProvisionSystemAdministrator(
                 {
                     user = User.Create(
                         normalizedOrganizationalId,
-                        normalizedAccountName,
                         firstName,
                         lastName,
                         protectedMobile,
@@ -138,7 +133,6 @@ public sealed class ProvisionSystemAdministrator(
                 if (!createdUser)
                 {
                     user!.UpdateProfile(
-                        normalizedAccountName,
                         firstName,
                         lastName,
                         protectedMobile,

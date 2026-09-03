@@ -33,8 +33,8 @@ policy.
 - The API refuses to deactivate the last active System Administrator or remove
   that role from that user.
 - A user profile contains the existing organizational identifier (displayed as
-  `کد پرسنلی`), account name, first and last name, protected mobile number,
-  username, department, and roles. The personnel code is unique and may be
+  `کد پرسنلی`), first and last name, protected mobile number, username,
+  department, and roles. The personnel code is unique and may be
   corrected. Username is optional on creation; an omitted value becomes the
   personnel code. Username changes are independent of later personnel-code
   corrections and remain unique.

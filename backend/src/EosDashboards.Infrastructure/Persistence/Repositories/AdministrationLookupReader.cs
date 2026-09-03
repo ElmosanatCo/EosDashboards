@@ -7,7 +7,7 @@ public sealed class AdministrationLookupReader(EosDashboardDbContext context) : 
 {
     private IQueryable<AdministrationUserListItem> Users => context.Users.AsNoTracking()
             .OrderBy(user => user.LastName).ThenBy(user => user.FirstName).ThenBy(user => user.Id)
-            .Select(user => new AdministrationUserListItem(user.Id, user.OrganizationalId, user.AccountName,
+            .Select(user => new AdministrationUserListItem(user.Id, user.OrganizationalId,
                 user.FirstName, user.LastName, user.Username, user.MaskedMobileNumber, user.DepartmentId,
                 context.Departments.Where(department => department.Id == user.DepartmentId).Select(department => department.Name).Single(),
                 user.IsActive, user.MustChangePassword, user.UserRoles.Select(role => role.RoleId).ToArray(), user.RowVersion));
@@ -30,7 +30,6 @@ public sealed class AdministrationLookupReader(EosDashboardDbContext context) : 
             {
                 candidate.Id,
                 PersonnelCode = candidate.OrganizationalId,
-                candidate.AccountName,
                 candidate.FirstName,
                 candidate.LastName,
                 candidate.Username,
@@ -56,7 +55,6 @@ public sealed class AdministrationLookupReader(EosDashboardDbContext context) : 
         return new AdministrationUserListItem(
             user.Id,
             user.PersonnelCode,
-            user.AccountName,
             user.FirstName,
             user.LastName,
             user.Username,

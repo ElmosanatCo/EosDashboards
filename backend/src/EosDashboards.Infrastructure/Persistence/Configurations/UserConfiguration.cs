@@ -12,7 +12,6 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasKey(user => user.Id);
         builder.Property(user => user.Id).HasColumnType("bigint").UseIdentityColumn();
         builder.Property(user => user.OrganizationalId).HasMaxLength(256).IsRequired();
-        builder.Property(user => user.AccountName).HasMaxLength(256).IsRequired();
         builder.Property(user => user.Username).HasMaxLength(256);
         builder.Property(user => user.PasswordHash).HasMaxLength(1024);
         builder.Property(user => user.MustChangePassword).IsRequired().HasDefaultValue(false);
@@ -26,7 +25,6 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(user => user.DeactivatedAt).HasColumnType("datetime2(3)");
         builder.Property(user => user.RowVersion).IsRequired().IsRowVersion().HasColumnType("rowversion");
         builder.HasIndex(user => user.OrganizationalId).IsUnique();
-        builder.HasIndex(user => user.AccountName);
         builder.HasIndex(user => user.Username).IsUnique().HasFilter("[Username] IS NOT NULL");
         builder.HasIndex(user => user.IsActive);
         builder.HasIndex(user => user.DepartmentId);

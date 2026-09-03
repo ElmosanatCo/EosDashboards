@@ -26,7 +26,6 @@ import { useTabWorkspace } from "../navigation/TabWorkspaceProvider";
 
 const blank = {
   personnelCode: "",
-  accountName: "",
   firstName: "",
   lastName: "",
   username: "",
@@ -72,7 +71,6 @@ export function UserFormPage({
     mutationFn: async () => {
       const common: UserInput = {
         personnelCode: form.personnelCode.trim(),
-        accountName: form.accountName.trim(),
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         username: form.username.trim() || undefined,
@@ -137,7 +135,6 @@ export function UserFormPage({
     return <Typography color="error">دریافت اطلاعات فرم ممکن نشد.</Typography>;
   const valid = Boolean(
     form.personnelCode &&
-    form.accountName &&
     form.firstName &&
     form.lastName &&
     form.departmentId &&
@@ -192,12 +189,6 @@ export function UserFormPage({
             label="کد پرسنلی"
             value={form.personnelCode}
             onChange={(e) => update("personnelCode", e.target.value)}
-          />
-          <TextField
-            required
-            label="نام حساب"
-            value={form.accountName}
-            onChange={(e) => update("accountName", e.target.value)}
           />
           <TextField
             required
@@ -378,7 +369,6 @@ export function UserFormPage({
 function toForm(user: ManagedUser) {
   return {
     personnelCode: user.personnelCode,
-    accountName: user.accountName,
     firstName: user.firstName,
     lastName: user.lastName,
     username: user.username ?? "",

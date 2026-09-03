@@ -57,7 +57,7 @@ public static class AdministrationEndpoints
     private static async Task<IResult> CreateUserAsync(HttpContext context, CreateUserRequest request, ManageUsers users, CancellationToken token)
     {
         if (!TryActor(context, out var actor)) return Unauthorized(context);
-        var result = await users.CreateAsync(actor, new CreateUserCommand(request.PersonnelCode, request.AccountName, request.FirstName, request.LastName, request.Mobile, request.Username, request.TemporaryPassword, request.DepartmentId, request.RoleIds), token);
+        var result = await users.CreateAsync(actor, new CreateUserCommand(request.PersonnelCode, request.FirstName, request.LastName, request.Mobile, request.Username, request.TemporaryPassword, request.DepartmentId, request.RoleIds), token);
         return UserResult(context, result, created: true);
     }
 
@@ -65,7 +65,7 @@ public static class AdministrationEndpoints
     {
         if (!TryActor(context, out var actor)) return Unauthorized(context);
         if (!TryRowVersion(request.RowVersion, out var rowVersion)) return Invalid(context);
-        var result = await users.UpdateAsync(actor, new UpdateUserCommand(userId, request.PersonnelCode, request.AccountName, request.FirstName, request.LastName, request.ReplacementMobile, request.Username, request.DepartmentId, request.RoleIds, rowVersion), token);
+        var result = await users.UpdateAsync(actor, new UpdateUserCommand(userId, request.PersonnelCode, request.FirstName, request.LastName, request.ReplacementMobile, request.Username, request.DepartmentId, request.RoleIds, rowVersion), token);
         return UserResult(context, result, created: false);
     }
 
@@ -124,8 +124,8 @@ public static class AdministrationEndpoints
         _ => ApiResults.Problem(context, 400, "department_hierarchy_invalid", "The department hierarchy is invalid."),
     };
 
-    private static ManagedUserResponse User(User user) => new(user.Id, user.OrganizationalId, user.AccountName, user.FirstName, user.LastName, user.Username, user.MaskedMobileNumber, user.DepartmentId, null, user.IsActive, user.MustChangePassword, user.UserRoles.Select(item => item.RoleId).ToArray(), Convert.ToBase64String(user.RowVersion));
-    private static ManagedUserResponse User(AdministrationUserListItem user) => new(user.Id, user.PersonnelCode, user.AccountName, user.FirstName, user.LastName, user.Username, user.MaskedMobile, user.DepartmentId, user.DepartmentName, user.IsActive, user.MustChangePassword, user.RoleIds.ToArray(), Convert.ToBase64String(user.RowVersion));
+    private static ManagedUserResponse User(User user) => new(user.Id, user.OrganizationalId, user.FirstName, user.LastName, user.Username, user.MaskedMobileNumber, user.DepartmentId, null, user.IsActive, user.MustChangePassword, user.UserRoles.Select(item => item.RoleId).ToArray(), Convert.ToBase64String(user.RowVersion));
+    private static ManagedUserResponse User(AdministrationUserListItem user) => new(user.Id, user.PersonnelCode, user.FirstName, user.LastName, user.Username, user.MaskedMobile, user.DepartmentId, user.DepartmentName, user.IsActive, user.MustChangePassword, user.RoleIds.ToArray(), Convert.ToBase64String(user.RowVersion));
     private static ManagedDepartmentResponse Department(Department department) => new(department.Id, department.Name, department.ParentDepartmentId, Convert.ToBase64String(department.RowVersion));
     private static ManagedDepartmentResponse Department(DepartmentListItem department) => new(department.Id, department.Name, department.ParentDepartmentId, Convert.ToBase64String(department.RowVersion));
     private static AuditLogResponse Audit(AuditLogListItem audit) => new(audit.Id, audit.OccurredAt, audit.EventCode, audit.Succeeded, audit.ActorUserId, audit.ActorDisplayName, audit.SubjectUserId, audit.SubjectDisplayName, audit.ClientIpAddress, audit.ClientDeviceKind);

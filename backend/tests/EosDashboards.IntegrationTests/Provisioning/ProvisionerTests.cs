@@ -30,7 +30,6 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
             DataProtectionProvider.Create(keyRing.Path));
         var firstCommand = new ProvisionSystemAdministratorCommand(
             "  org-synthetic-integration  ",
-            "  domain\\synthetic.one  ",
             "local.integration.one",
             "first synthetic password",
             "SyntheticFirstOne",
@@ -38,7 +37,6 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
             "09120006789");
         var secondCommand = new ProvisionSystemAdministratorCommand(
             "ORG-SYNTHETIC-INTEGRATION",
-            "DOMAIN\\SYNTHETIC.TWO",
             "local.integration.two",
             "second synthetic password",
             "SyntheticFirstTwo",
@@ -66,7 +64,6 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
             await verificationContext.Roles.CountAsync(
                 item => item.Code == "SystemAdministrator"));
         Assert.True(persistedUser!.IsActive);
-        Assert.Equal("DOMAIN\\SYNTHETIC.TWO", persistedUser.AccountName);
         Assert.Equal("SyntheticFirstTwo", persistedUser.FirstName);
         Assert.Equal("SyntheticLastTwo", persistedUser.LastName);
         Assert.NotEqual("09350006789", persistedUser.ProtectedMobileNumber);
@@ -126,7 +123,6 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
             await ProvisionOnceAsync(
                 new ProvisionSystemAdministratorCommand(
                     "org-synthetic-google-integration",
-                    "domain\\synthetic.google.integration",
                     "local.google.integration",
                     "synthetic password",
                     "Synthetic",
@@ -184,7 +180,6 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
             () => sut.HandleAsync(
                 new ProvisionSystemAdministratorCommand(
                     "ORG-SYNTHETIC-ROLLBACK",
-                    "DOMAIN\\SYNTHETIC.ROLLBACK",
                     "local.rollback",
                     "synthetic password",
                     "Synthetic",
@@ -204,7 +199,6 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
     {
         const string storedRoleCode = "systemadministrator";
         const string organizationalId = "ORG-SYNTHETIC-ROLE-DRIFT";
-        const string accountName = "DOMAIN\\SYNTHETIC.ROLE-DRIFT";
         const string firstName = "SyntheticRoleDriftFirst";
         const string lastName = "SyntheticRoleDriftLast";
         const string mobile = "09120003333";
@@ -241,7 +235,6 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
                 () => sut.HandleAsync(
                     new ProvisionSystemAdministratorCommand(
                         organizationalId,
-                        accountName,
                         "local.role-drift",
                         "synthetic password",
                         firstName,
@@ -253,7 +246,6 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
             var diagnosticText = exception.Message;
             Assert.DoesNotContain(storedRoleCode, diagnosticText, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain(organizationalId, diagnosticText, StringComparison.OrdinalIgnoreCase);
-            Assert.DoesNotContain(accountName, diagnosticText, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain(firstName, diagnosticText, StringComparison.Ordinal);
             Assert.DoesNotContain(lastName, diagnosticText, StringComparison.Ordinal);
             Assert.DoesNotContain(mobile, diagnosticText, StringComparison.Ordinal);
@@ -286,7 +278,6 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
         var coordinator = new TwoParticipantReadCoordinator();
         var firstCommand = new ProvisionSystemAdministratorCommand(
             "org-synthetic-concurrent",
-            "domain\\synthetic.concurrent-one",
             "local.concurrent.one",
             "first synthetic password",
             "SyntheticConcurrentFirstOne",
@@ -294,7 +285,6 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
             "09120001111");
         var secondCommand = new ProvisionSystemAdministratorCommand(
             "ORG-SYNTHETIC-CONCURRENT",
-            "DOMAIN\\SYNTHETIC.CONCURRENT-TWO",
             "local.concurrent.two",
             "second synthetic password",
             "SyntheticConcurrentFirstTwo",
@@ -337,19 +327,16 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
             Assert.Equal(1, user.DepartmentId);
 
             var completeProfile = (
-                user.AccountName,
                 user.FirstName,
                 user.LastName,
                 Mobile: mobileProtector.Unprotect(user.ProtectedMobileNumber),
                 user.MaskedMobileNumber);
             var firstExpectedProfile = (
-                AccountName: "DOMAIN\\SYNTHETIC.CONCURRENT-ONE",
                 FirstName: "SyntheticConcurrentFirstOne",
                 LastName: "SyntheticConcurrentLastOne",
                 Mobile: "09120001111",
                 MaskedMobileNumber: "*******1111");
             var secondExpectedProfile = (
-                AccountName: "DOMAIN\\SYNTHETIC.CONCURRENT-TWO",
                 FirstName: "SyntheticConcurrentFirstTwo",
                 LastName: "SyntheticConcurrentLastTwo",
                 Mobile: "09350002222",
@@ -408,7 +395,6 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
         var console = new RecordingConsole(
             [
                 "org-synthetic-console",
-                "domain\\synthetic.console",
                 "local.console",
                 "Synthetic",
                 "Console",
@@ -435,7 +421,6 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
         var console = new RecordingConsole(
             [
                 "org-synthetic-google-console",
-                "domain\\synthetic.google.console",
                 "local.google.console",
                 "Synthetic",
                 "Google",
@@ -462,7 +447,6 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
         var console = new RecordingConsole(
             [
                 "org-synthetic-unicode",
-                "domain\\synthetic.unicode",
                 "local.unicode",
                 firstName,
                 lastName,
@@ -490,7 +474,6 @@ public sealed class ProvisionerTests(SqlServerDatabaseFixture database)
         var console = new RecordingConsole(
             [
                 "org-synthetic-console-cancel",
-                "domain\\synthetic.cancel",
                 "local.cancel",
                 "Synthetic",
                 "Cancel",

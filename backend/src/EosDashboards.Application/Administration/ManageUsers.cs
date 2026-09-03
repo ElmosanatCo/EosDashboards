@@ -24,7 +24,6 @@ public sealed record ManageUserResult(ManageUserStatus Status, User? User)
 
 public sealed record CreateUserCommand(
     string OrganizationalId,
-    string AccountName,
     string FirstName,
     string LastName,
     string Mobile,
@@ -39,7 +38,6 @@ public sealed record CreateUserCommand(
 public sealed record UpdateUserCommand(
     long UserId,
     string OrganizationalId,
-    string AccountName,
     string FirstName,
     string LastName,
     string? ReplacementMobile,
@@ -94,7 +92,7 @@ public sealed class ManageUsers(
         var username = NormalizeRequired(command.Username ?? organizationalId);
         var mobile = NormalizeMobile(command.Mobile);
         if (organizationalId is null || username is null || mobile is null ||
-            !TryNormalizeProfile(command.AccountName, command.FirstName, command.LastName, out var profile) ||
+            !TryNormalizeProfile(command.FirstName, command.LastName, out var profile) ||
             command.DepartmentId <= 0)
         {
             return Invalid();
@@ -127,7 +125,6 @@ public sealed class ManageUsers(
                 var now = clock.Now;
                 var user = User.Create(
                     organizationalId,
-                    profile.AccountName,
                     profile.FirstName,
                     profile.LastName,
                     mobileProtector.Protect(mobile),
@@ -162,7 +159,7 @@ public sealed class ManageUsers(
         var replacementMobile = command.ReplacementMobile is null ? null : NormalizeMobile(command.ReplacementMobile);
         if (organizationalId is null || username is null ||
             (command.ReplacementMobile is not null && replacementMobile is null) ||
-            !TryNormalizeProfile(command.AccountName, command.FirstName, command.LastName, out var profile) ||
+            !TryNormalizeProfile(command.FirstName, command.LastName, out var profile) ||
             command.DepartmentId <= 0)
         {
             return Invalid();
@@ -218,12 +215,12 @@ public sealed class ManageUsers(
                 var departmentChanged = user.DepartmentId != command.DepartmentId;
                 if (replacementMobile is null)
                 {
-                    user.UpdateProfile(profile.AccountName, profile.FirstName, profile.LastName,
+                    user.UpdateProfile(profile.FirstName, profile.LastName,
                         user.ProtectedMobileNumber, user.MaskedMobileNumber, now);
                 }
                 else
                 {
-                    user.UpdateProfile(profile.AccountName, profile.FirstName, profile.LastName,
+                    user.UpdateProfile(profile.FirstName, profile.LastName,
                         mobileProtector.Protect(replacementMobile), mobileProtector.Mask(replacementMobile), now);
                 }
 
@@ -445,15 +442,15 @@ public sealed class ManageUsers(
     private static string? NormalizeRequired(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim().ToUpperInvariant();
 
-    private static bool TryNormalizeProfile(string? accountName, string? firstName, string? lastName, out (string AccountName, string FirstName, string LastName) profile)
+    private static bool TryNormalizeProfile(string? firstName, string? lastName, out (string FirstName, string LastName) profile)
     {
         profile = default;
-        if (string.IsNullOrWhiteSpace(accountName) || string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName))
+        if (string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName))
         {
             return false;
         }
 
-        profile = (accountName.Trim(), firstName.Trim(), lastName.Trim());
+        profile = (firstName.Trim(), lastName.Trim());
         return true;
     }
 

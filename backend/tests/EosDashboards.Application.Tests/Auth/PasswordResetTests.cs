@@ -90,7 +90,7 @@ public sealed class PasswordResetTests
     {
         public PasswordResetContext()
         {
-            User = User.Create("stable", "account", "Test", "User", "protected-mobile", "masked-mobile", 1, Now);
+            User = User.Create("stable", "Test", "User", "protected-mobile", "masked-mobile", 1, Now);
             EntityId.Set(User, 11);
             User.SetLocalCredentials("LOCAL.USER", "old-password-hash", Now);
             Users.Users.Add(User);

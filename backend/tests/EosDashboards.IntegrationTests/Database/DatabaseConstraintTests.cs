@@ -167,7 +167,6 @@ public sealed class DatabaseConstraintTests(SqlServerDatabaseFixture database)
 
     private static User CreateUser(string organizationalId, string suffix) => User.Create(
         organizationalId,
-        $"account-{suffix}",
         "Test",
         "User",
         "protected-test-value",

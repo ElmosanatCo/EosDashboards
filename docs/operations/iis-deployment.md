@@ -72,9 +72,11 @@ command: an unset environment can target the base configuration instead of the
 development database used by IIS and falsely report that it is up to date.
 The publisher now refuses to switch IIS unless the expected migration is found
 in that development database's migration history.
-The System Administrator release specifically includes
-`20260903173032_AddSystemAdministrationAndAuditDashboard`; verify that this
-migration has been applied after the backup and before switching the API.
+The current System Administrator release includes
+`20260903173032_AddSystemAdministrationAndAuditDashboard`,
+`20260903190243_AddAuditRequestAttribution`, and
+`20260903200248_RemoveUserAccountName`; verify that the migrations required by
+the release have been applied after the backup and before switching the API.
 
 The current local installation is described in `docs/project/current-state.md`.
 Both UI loading, a synthetic refreshed UI route, and API liveness/readiness

@@ -18,7 +18,6 @@ public sealed class ProvisionSystemAdministratorTests
         var sut = dependencies.CreateSut();
         var firstCommand = new ProvisionSystemAdministratorCommand(
             "  org-synthetic-7  ",
-            "  domain\\synthetic.one  ",
             "  local.admin.one  ",
             "first synthetic password",
             "  SyntheticFirstOne  ",
@@ -26,7 +25,6 @@ public sealed class ProvisionSystemAdministratorTests
             "09120006789");
         var secondCommand = new ProvisionSystemAdministratorCommand(
             "ORG-SYNTHETIC-7",
-            "DOMAIN\\SYNTHETIC.TWO",
             "LOCAL.ADMIN.TWO",
             "second synthetic password",
             "  SyntheticFirstTwo  ",
@@ -41,7 +39,6 @@ public sealed class ProvisionSystemAdministratorTests
         var departmentManagerRole = Assert.Single(dependencies.Roles.Items, role => role.Code == "DepartmentManager");
         Assert.True(user.IsActive);
         Assert.Equal("ORG-SYNTHETIC-7", user.OrganizationalId);
-        Assert.Equal("DOMAIN\\SYNTHETIC.TWO", user.AccountName);
         Assert.Equal("LOCAL.ADMIN.TWO", user.Username);
         Assert.Equal("hash:second synthetic password", user.PasswordHash);
         Assert.Equal("SyntheticFirstTwo", user.FirstName);
@@ -112,7 +109,6 @@ public sealed class ProvisionSystemAdministratorTests
         dependencies.Roles.Items.Add(role);
         var user = User.Create(
             "ORG-SYNTHETIC-INACTIVE",
-            "DOMAIN\\SYNTHETIC.INACTIVE",
             "Previous",
             "Profile",
             "previous-protected-mobile",
@@ -127,7 +123,6 @@ public sealed class ProvisionSystemAdministratorTests
         await sut.HandleAsync(
             new ProvisionSystemAdministratorCommand(
                 "org-synthetic-inactive",
-                "domain\\synthetic.active",
                 "local.admin.active",
                 "synthetic password",
                 "Synthetic",
@@ -150,7 +145,6 @@ public sealed class ProvisionSystemAdministratorTests
         await sut.HandleAsync(
             new ProvisionSystemAdministratorCommand(
                 "org-synthetic-google",
-                "domain\\synthetic.google",
                 "local.google",
                 "synthetic password",
                 "Synthetic",
@@ -163,7 +157,6 @@ public sealed class ProvisionSystemAdministratorTests
         await sut.HandleAsync(
             new ProvisionSystemAdministratorCommand(
                 "org-synthetic-google",
-                "domain\\synthetic.google",
                 "local.google",
                 "synthetic password",
                 "Synthetic",
@@ -199,7 +192,6 @@ public sealed class ProvisionSystemAdministratorTests
         var sut = dependencies.CreateSut();
         var command = new ProvisionSystemAdministratorCommand(
             "org-synthetic-invalid",
-            "domain\\synthetic.invalid",
             "local.admin.invalid",
             "synthetic password",
             "Synthetic",
@@ -221,13 +213,11 @@ public sealed class ProvisionSystemAdministratorTests
     }
 
     [Theory]
-    [InlineData("", "DOMAIN\\SYNTHETIC", "Synthetic", "Person")]
-    [InlineData("ORG-SYNTHETIC", "", "Synthetic", "Person")]
-    [InlineData("ORG-SYNTHETIC", "DOMAIN\\SYNTHETIC", "", "Person")]
-    [InlineData("ORG-SYNTHETIC", "DOMAIN\\SYNTHETIC", "Synthetic", "")]
+    [InlineData("", "Synthetic", "Person")]
+    [InlineData("ORG-SYNTHETIC", "", "Person")]
+    [InlineData("ORG-SYNTHETIC", "Synthetic", "")]
     public async Task BlankIdentityOrNameIsRejectedBeforePersistence(
         string organizationalId,
-        string accountName,
         string firstName,
         string lastName)
     {
@@ -238,7 +228,6 @@ public sealed class ProvisionSystemAdministratorTests
             () => sut.HandleAsync(
                 new ProvisionSystemAdministratorCommand(
                     organizationalId,
-                    accountName,
                     "local.admin",
                     "synthetic password",
                     firstName,
@@ -265,7 +254,6 @@ public sealed class ProvisionSystemAdministratorTests
             () => sut.HandleAsync(
                 new ProvisionSystemAdministratorCommand(
                     "org-synthetic-role-check",
-                    "domain\\synthetic.rolecheck",
                     "local.admin.rolecheck",
                     "synthetic password",
                     "Synthetic",

@@ -276,7 +276,6 @@ public sealed class VerifyOtpTests
         {
             var user = User.Create(
                 "stable-user",
-                "DOMAIN\\user",
                 "Test",
                 "User",
                 "protected-mobile",

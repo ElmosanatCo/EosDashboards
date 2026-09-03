@@ -155,7 +155,6 @@ public sealed class SessionLifecycleTests
         {
             User = User.Create(
                 "stable-user",
-                "DOMAIN\\user",
                 "Test",
                 "User",
                 "protected-mobile",
