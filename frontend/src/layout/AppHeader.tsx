@@ -26,6 +26,8 @@ import { CommandSearch } from "./CommandSearch";
 
 const eosLogoUrl = `${import.meta.env.BASE_URL}generated-assets/brand/eos.svg`;
 
+export const appHeaderHeight = 58;
+
 export function AppHeader({
   onMenu,
   targets,
@@ -43,8 +45,20 @@ export function AppHeader({
   const [passwordBusy, setPasswordBusy] = useState(false);
   const [passwordError, setPasswordError] = useState<string>();
   return (
-    <AppBar position="static" component="header" elevation={0}>
-      <Toolbar sx={{ px: { xs: 1, sm: 2 }, gap: 0.5 }}>
+    <AppBar
+      position="static"
+      component="header"
+      elevation={0}
+      sx={{ height: appHeaderHeight, boxSizing: "border-box", flexShrink: 0 }}
+    >
+      <Toolbar
+        sx={{
+          height: "100%",
+          minHeight: "100% !important",
+          px: { xs: 1, sm: 2 },
+          gap: 0.5,
+        }}
+      >
         <IconButton
           color="inherit"
           edge="start"

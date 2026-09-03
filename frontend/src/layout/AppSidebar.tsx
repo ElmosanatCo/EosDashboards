@@ -10,6 +10,7 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import HomeIcon from "@mui/icons-material/Home";
 import type { WorkspaceTarget } from "../navigation/workspaceTargets";
+import { appHeaderHeight } from "./AppHeader";
 import { statusBarHeight } from "./StatusBar";
 
 export const sidebarWidth = 240;
@@ -37,18 +38,25 @@ export function AppSidebar({
       onClose={onClose}
       ModalProps={{
         keepMounted: true,
-        sx: temporary ? { bottom: statusBarHeight, top: 64 } : undefined,
+        sx: temporary
+          ? { bottom: statusBarHeight, top: appHeaderHeight }
+          : undefined,
+      }}
+      slotProps={{
+        paper: {
+          sx: {
+            width: { xs: "min(280px, 86vw)", md: sidebarWidth },
+            border: "none",
+            top: appHeaderHeight,
+            bottom: statusBarHeight,
+            height: "auto",
+            boxSizing: "border-box",
+          },
+        },
       }}
       sx={{
         width: temporary ? 0 : open ? sidebarWidth : 0,
         flexShrink: temporary ? undefined : 0,
-        "& .MuiDrawer-paper": {
-          width: { xs: "min(280px, 86vw)", md: sidebarWidth },
-          border: "none",
-          top: 64,
-          bottom: statusBarHeight,
-          boxSizing: "border-box",
-        },
       }}
     >
       <Toolbar

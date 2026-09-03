@@ -120,6 +120,25 @@ test("local credential OTP opens the authenticated shell and logout returns to s
   const statusBar = page.locator("footer");
   await expect(statusBar).toBeVisible();
   await expect(statusBar).toHaveJSProperty("offsetWidth", 1280);
+  const desktopDrawerLayout = await page.evaluate(() => {
+    const header = document.querySelector("header");
+    const drawer = document.querySelector(".MuiDrawer-docked .MuiDrawer-paper");
+    const statusBar = document.querySelector("footer");
+    if (!header || !drawer || !statusBar) {
+      throw new Error("Expected desktop shell elements are missing.");
+    }
+    return {
+      drawer: drawer.getBoundingClientRect().toJSON(),
+      header: header.getBoundingClientRect().toJSON(),
+      statusBar: statusBar.getBoundingClientRect().toJSON(),
+    };
+  });
+  expect(Math.round(desktopDrawerLayout.drawer.top)).toBe(
+    Math.round(desktopDrawerLayout.header.bottom),
+  );
+  expect(Math.round(desktopDrawerLayout.drawer.bottom)).toBe(
+    Math.round(desktopDrawerLayout.statusBar.top),
+  );
   rejectPreferenceUpdate = true;
   await page.getByRole("button", { name: "تغییر حالت نمایش" }).click();
   await expect(page.locator("body")).toHaveCSS(
@@ -148,6 +167,33 @@ test("local credential OTP opens the authenticated shell and logout returns to s
   await expect(
     page.getByRole("navigation", { name: "منوی اصلی" }),
   ).toBeVisible();
+  const mobileDrawerLayout = await page.evaluate(() => {
+    const header = document.querySelector("header");
+    const modal = document.querySelector(".MuiModal-root");
+    const drawer = modal?.querySelector(".MuiDrawer-paper");
+    const statusBar = document.querySelector("footer");
+    if (!header || !drawer || !modal || !statusBar) {
+      throw new Error("Expected mobile shell elements are missing.");
+    }
+    return {
+      drawer: drawer.getBoundingClientRect().toJSON(),
+      header: header.getBoundingClientRect().toJSON(),
+      modal: modal.getBoundingClientRect().toJSON(),
+      statusBar: statusBar.getBoundingClientRect().toJSON(),
+    };
+  });
+  expect(Math.round(mobileDrawerLayout.drawer.top)).toBe(
+    Math.round(mobileDrawerLayout.header.bottom),
+  );
+  expect(Math.round(mobileDrawerLayout.drawer.bottom)).toBe(
+    Math.round(mobileDrawerLayout.statusBar.top),
+  );
+  expect(Math.round(mobileDrawerLayout.modal.top)).toBe(
+    Math.round(mobileDrawerLayout.header.bottom),
+  );
+  expect(Math.round(mobileDrawerLayout.modal.bottom)).toBe(
+    Math.round(mobileDrawerLayout.statusBar.top),
+  );
   const drawerBounds = await page
     .getByRole("navigation", { name: "منوی اصلی" })
     .evaluate((element) => {
