@@ -196,6 +196,25 @@ public sealed class UserTests
             null));
     }
 
+    [Fact]
+    public void Audit_log_create_retains_direct_request_origin_without_raw_user_agent()
+    {
+        // Break caught: losing the approved coarse network/device attribution for a security event.
+        var audit = AuditLog.Create(
+            null,
+            7,
+            "AuthenticationSucceeded",
+            Now,
+            true,
+            "trace-id",
+            null,
+            "192.0.2.31",
+            "Desktop");
+
+        Assert.Equal("192.0.2.31", audit.ClientIpAddress);
+        Assert.Equal("Desktop", audit.ClientDeviceKind);
+    }
+
     private static User CreateUser()
     {
         return User.Create(

@@ -11,4 +11,6 @@ public sealed record AuditRecord(
     string EventCode,
     bool Succeeded,
     string TraceId,
-    IReadOnlyDictionary<string, string>? SafeMetadata);
+    IReadOnlyDictionary<string, string>? SafeMetadata,
+    string? ClientIpAddress = null,
+    string? ClientDeviceKind = null);

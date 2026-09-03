@@ -1,3 +1,5 @@
+using System.Net;
+
 namespace EosDashboards.Domain.Entities;
 
 public sealed class AuditLog
@@ -9,7 +11,9 @@ public sealed class AuditLog
         DateTime occurredAt,
         bool succeeded,
         string traceId,
-        string? safeMetadata)
+        string? safeMetadata,
+        string? clientIpAddress,
+        string? clientDeviceKind)
     {
         ActorUserId = actorUserId;
         SubjectUserId = subjectUserId;
@@ -18,6 +22,8 @@ public sealed class AuditLog
         Succeeded = succeeded;
         TraceId = traceId;
         SafeMetadata = safeMetadata;
+        ClientIpAddress = clientIpAddress;
+        ClientDeviceKind = clientDeviceKind;
     }
 
     public long Id { get; private set; }
@@ -36,6 +42,10 @@ public sealed class AuditLog
 
     public string? SafeMetadata { get; private set; }
 
+    public string? ClientIpAddress { get; private set; }
+
+    public string? ClientDeviceKind { get; private set; }
+
     public static AuditLog Create(
         long? actorUserId,
         long? subjectUserId,
@@ -43,7 +53,9 @@ public sealed class AuditLog
         DateTime occurredAt,
         bool succeeded,
         string traceId,
-        string? safeMetadata)
+        string? safeMetadata,
+        string? clientIpAddress = null,
+        string? clientDeviceKind = null)
     {
         if (actorUserId <= 0)
         {
@@ -65,6 +77,9 @@ public sealed class AuditLog
             throw new ArgumentException("A trace identifier is required.", nameof(traceId));
         }
 
+        var normalizedIpAddress = NormalizeIpAddress(clientIpAddress);
+        var normalizedDeviceKind = NormalizeDeviceKind(clientDeviceKind);
+
         return new AuditLog(
             actorUserId,
             subjectUserId,
@@ -72,6 +87,30 @@ public sealed class AuditLog
             occurredAt,
             succeeded,
             traceId,
-            safeMetadata);
+            safeMetadata,
+            normalizedIpAddress,
+            normalizedDeviceKind);
+    }
+
+    private static string? NormalizeIpAddress(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        var trimmed = value.Trim();
+        if (trimmed.Length > 45 || !IPAddress.TryParse(trimmed, out var address))
+        {
+            throw new ArgumentException("A valid IP address is required.", nameof(value));
+        }
+
+        return address.ToString();
+    }
+
+    private static string? NormalizeDeviceKind(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        return value.Trim() switch
+        {
+            "Desktop" or "Mobile" or "Tablet" or "Unknown" => value.Trim(),
+            _ => throw new ArgumentException("An approved device kind is required.", nameof(value)),
+        };
     }
 }
