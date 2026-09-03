@@ -26,11 +26,14 @@ export function StatusBar() {
         minHeight: statusBarHeight,
         boxSizing: "border-box",
         px: 2,
-        py: 0.75,
+        py: 0.5,
+        bgcolor: "background.paper",
         borderTop: 1,
         borderColor: "divider",
         display: "flex",
+        alignItems: "center",
         justifyContent: "space-between",
+        color: "text.secondary",
       }}
     >
       <Typography variant="caption">نسخه {__APP_VERSION__}</Typography>

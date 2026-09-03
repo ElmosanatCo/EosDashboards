@@ -4,20 +4,18 @@ namespace EosDashboards.Application.Preferences;
 
 public static class UserPreferencePalettes
 {
-    public const string ForestGreen = "forestGreen";
-    public const string NavyTeal = "navyTeal";
-    public const string Turquoise = "turquoise";
-    public const string Plum = "plum";
+    public const string Teal = "teal";
+    public const string Indigo = "indigo";
+    public const string Emerald = "emerald";
     public const string Amber = "amber";
-    public const string Burgundy = "burgundy";
+    public const string Rose = "rose";
 
     public static readonly FrozenSet<string> All =
     [
-        ForestGreen,
-        NavyTeal,
-        Turquoise,
-        Plum,
+        Teal,
+        Indigo,
+        Emerald,
         Amber,
-        Burgundy,
+        Rose,
     ];
 }

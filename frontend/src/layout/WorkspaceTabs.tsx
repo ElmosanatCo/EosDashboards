@@ -5,12 +5,24 @@ import { useTabWorkspace } from "../navigation/TabWorkspaceProvider";
 export function WorkspaceTabs() {
   const { tabs, activeKey, dispatch } = useTabWorkspace();
   return (
-    <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+    <Box
+      sx={{
+        bgcolor: "background.paper",
+        borderBottom: 1,
+        borderColor: "divider",
+        minHeight: 42,
+      }}
+    >
       <Tabs
         value={activeKey}
         variant="scrollable"
         scrollButtons="auto"
         aria-label="صفحه‌های باز"
+        sx={{
+          minHeight: 42,
+          "& .MuiTab-root": { color: "text.secondary" },
+          "& .Mui-selected": { color: "text.primary" },
+        }}
       >
         {tabs.map((tab) => (
           <Tab
@@ -18,7 +30,13 @@ export function WorkspaceTabs() {
             value={tab.key}
             onClick={() => dispatch({ type: "activate", key: tab.key })}
             label={
-              <span>
+              <span
+                style={{
+                  alignItems: "center",
+                  display: "inline-flex",
+                  gap: "4px",
+                }}
+              >
                 {tab.title}
                 {tab.closable ? (
                   <IconButton

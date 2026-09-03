@@ -95,7 +95,7 @@ The initial product language is Persian and the interface is RTL-first. The loca
 
 **Status:** Confirmed
 
-The application provides light, dark, and system appearance modes plus six selectable color palettes: forest green, navy, turquoise, plum, amber, and burgundy. Amber is the default; its dark variant uses a deep, restrained brown. The last applied appearance and palette are cached locally and rendered from the first sign-in-page paint, then synchronized with the authenticated user's server preference. The application shell has a fixed header, fixed status bar, a persistent desktop side menu, a temporary overlay side menu on phones, and a scrollable central content area.
+Manager-facing pages provide light, dark, and system appearance modes, defaulting to dark, plus selectable teal, indigo, emerald, amber, and rose interaction accents. The last applied appearance and palette are cached locally and rendered from the first sign-in-page paint, then synchronized with the authenticated user's server preference. The application shell has a fixed header, internal tab bar, and status bar; a persistent desktop side menu and temporary overlay side menu on phones; and a scrollable central workspace only.
 
 ### TC-007 — Typography and component foundation
 

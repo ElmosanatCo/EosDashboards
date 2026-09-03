@@ -10,7 +10,7 @@ import {
 function Probe() {
   const { mode, resolvedMode, palette, setMode } = useAppearance();
   return (
-    <Button onClick={() => setMode("dark")}>
+    <Button onClick={() => setMode("light")}>
       {mode}:{resolvedMode}:{palette}
     </Button>
   );
@@ -19,7 +19,7 @@ function Probe() {
 afterEach(() => cleanup());
 
 describe("AppThemeProvider", () => {
-  it("uses RTL, system default, and persists an explicit appearance", async () => {
+  it("uses RTL, the dark teal operational default, and persists an explicit appearance", async () => {
     localStorage.clear();
     render(
       <AppThemeProvider>
@@ -28,14 +28,14 @@ describe("AppThemeProvider", () => {
     );
 
     expect(document.documentElement.dir).toBe("rtl");
-    expect(screen.getByRole("button")).toHaveTextContent("system:light:amber");
+    expect(screen.getByRole("button")).toHaveTextContent("dark:dark:teal");
     await userEvent.click(screen.getByRole("button"));
-    expect(screen.getByRole("button")).toHaveTextContent("dark:dark:amber");
-    expect(localStorage.getItem("eos.appearance.anonymous")).toBe("dark");
-    expect(localStorage.getItem("eos.appearance.last-used")).toBe("dark");
+    expect(screen.getByRole("button")).toHaveTextContent("light:light:teal");
+    expect(localStorage.getItem("eos.appearance.anonymous")).toBe("light");
+    expect(localStorage.getItem("eos.appearance.last-used")).toBe("light");
   });
 
-  it("uses the last selected appearance and palette before the user signs in", () => {
+  it("uses the last selected appearance and maps a retired palette to teal before sign-in", () => {
     localStorage.clear();
     localStorage.setItem("eos.appearance.last-used", "dark");
     localStorage.setItem("eos.palette.last-used", "turquoise");
@@ -46,6 +46,6 @@ describe("AppThemeProvider", () => {
       </AppThemeProvider>,
     );
 
-    expect(screen.getByRole("button")).toHaveTextContent("dark:dark:turquoise");
+    expect(screen.getByRole("button")).toHaveTextContent("dark:dark:teal");
   });
 });

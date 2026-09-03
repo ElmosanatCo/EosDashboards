@@ -4,7 +4,7 @@ import type { PaletteId } from "../../theme/palettes";
 
 export type UserPreference = {
   appearanceMode: AppearanceMode;
-  palette: PaletteId;
+  palette: PaletteId | string;
   sidebarCollapsed: boolean;
 };
 

@@ -18,15 +18,68 @@ export function createAppTheme(mode: PaletteMode, palette: PaletteId) {
       typography: {
         fontFamily: 'Vazirmatn, "Segoe UI", sans-serif',
       },
-      shape: { borderRadius: 10 },
+      shape: { borderRadius: 6 },
+      transitions: {
+        duration: {
+          shortest: 150,
+          shorter: 150,
+          short: 175,
+          standard: 200,
+          complex: 200,
+          enteringScreen: 200,
+          leavingScreen: 175,
+        },
+      },
       components: {
+        MuiAppBar: {
+          styleOverrides: {
+            root: {
+              backgroundColor: paletteColors.background.paper,
+              borderBottom: `1px solid ${paletteColors.divider}`,
+              boxShadow: "none",
+              color: paletteColors.text.primary,
+            },
+          },
+        },
         MuiButton: {
           styleOverrides: {
             root: {
+              borderRadius: 4,
+              transition: "background-color 175ms ease, color 175ms ease",
               "&.MuiButton-contained.MuiButton-colorPrimary:hover": {
-                color: "#FFFFFF",
+                color: paletteColors.primary.contrastText,
               },
             },
+          },
+        },
+        MuiPaper: {
+          styleOverrides: {
+            root: {
+              backgroundImage: "none",
+              border: `1px solid ${paletteColors.divider}`,
+              boxShadow: "none",
+            },
+          },
+        },
+        MuiTab: {
+          styleOverrides: {
+            root: {
+              minHeight: 42,
+              minWidth: 72,
+              padding: "0 12px",
+              transition: "color 175ms ease, background-color 175ms ease",
+            },
+          },
+        },
+        MuiTabs: {
+          styleOverrides: {
+            root: { minHeight: 42 },
+            indicator: { height: 2, backgroundColor: "#E0A13A" },
+          },
+        },
+        MuiToolbar: {
+          styleOverrides: {
+            root: { minHeight: "56px !important" },
           },
         },
         MuiCssBaseline: {

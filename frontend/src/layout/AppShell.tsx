@@ -31,6 +31,7 @@ export function AppShell() {
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
+        bgcolor: "background.default",
       }}
     >
       <AppHeader onMenu={toggleSidebar} />

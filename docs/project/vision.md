@@ -1,6 +1,6 @@
 # Product Vision
 
-**Last updated:** 2026-09-02
+**Last updated:** 2026-09-03
 
 ## Confirmed purpose
 
@@ -11,8 +11,9 @@ EosDashboards is a company web application that will provide multiple dashboards
 - Department managers, who receive dashboards appropriate to the valuable data and responsibilities available in their departments.
 - The CEO, who monitors valuable company-wide information to support management decisions.
 - A system administrator, initially represented by one pre-provisioned account with full application access.
+- An HR Manager, whose detailed authorization assignment remains subject to dashboard discovery.
 
-Specific department roles, permissions, dashboard assignments, and audiences remain unresolved.
+Specific department roles, permissions, dashboard assignments, audiences, metrics, workflows, and data sources remain unresolved. The approved role-content defaults define the intended manager-facing interface direction; they do not themselves authorize access or select dashboard data.
 
 ## Expected outcome
 
@@ -23,7 +24,7 @@ The dashboards, metrics, source systems, update frequency, and success measures 
 ## Confirmed product qualities
 
 - Persian, RTL-first, consistent, accessible management experience.
-- Multiple selectable color palettes with light, dark, and system appearance modes.
+- A calm, technical, dense-but-readable workforce-operations workspace for manager-facing pages, with dark mode as the default and selectable interaction accents.
 - Desktop-first responsive behavior, with usable essential flows on tablets and phones.
 - Auditable, secure, maintainable, and suitable for IIS deployment inside the organization.
 - Living technical documentation plus formal Persian documentation suitable for printing and organizational archive.
