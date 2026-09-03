@@ -57,6 +57,7 @@ Initial authentication and application-shell implementation.
 - On 2026-09-04 the audit filters were made self-describing: event filtering now uses Persian event labels, while actor and subject filtering use user-name/personnel-code selectors and submit the internal user ID behind the scenes. This prevents administrators from having to guess opaque database IDs; system-generated events remain visible when the actor filter is left at «همه انجام‌دهندگان».
 - The audit workspace now keeps its title/filter panel and refresh action fixed within the page frame; only the audit table panel scrolls vertically, so long histories do not move the controls out of view. A mocked authenticated browser assertion covers the bounded scroll region.
 - The user confirmed on 2026-09-04 that this is a whole-application scroll rule: the shell header, internal tabs, and status bar remain fixed, the central workspace is the only page-level scroll area, and data-heavy pages may add a bounded inner data-panel scroll without moving their controls.
+- IIS release `20260904-002509` was published from the current `main` source (`aa25b62`) after paired API/UI artifact inspection. API liveness/readiness, UI entry, and an internal SPA refresh route each returned HTTPS HTTP 200; the deployed UI artifact was also checked for the Persian audit-filter labels.
 
 ## In progress
 
