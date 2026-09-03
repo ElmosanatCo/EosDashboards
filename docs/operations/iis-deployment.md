@@ -19,6 +19,7 @@ Copy `frontend/dist/` to a versioned UI directory. Point IIS to the versioned di
 - Grant the identity read/execute access to the API files, write access only to the configured key-ring directory, and the least SQL permission required.
 - Keep development-only database, SMS, and authentication settings in the tracked API `appsettings.Development.json`, as approved for this private repository. They are server-side API artifact settings; never place them in browser-delivered frontend configuration or documentation.
 - Enable Anonymous Authentication and disable Windows Authentication for the API application. Application endpoints enforce credential, OTP, JWT, refresh-cookie, origin/anti-forgery, rate-limit, and authorization boundaries.
+- Keep the API `web.config` WebDAV removals in place (`WebDAVModule` and `WebDAV` handler). IIS WebDAV otherwise intercepts `PUT` and `DELETE` before ASP.NET Core and returns `405.0`, so administration and preference writes never reach the API.
 - Health probes do not require an operating-system identity; successful `/health/live` and `/health/ready` responses return `200`.
 - Keep the IIS application configuration when switching versioned release directories. The development API artifact carries its tracked `appsettings.Development.json` values.
 
