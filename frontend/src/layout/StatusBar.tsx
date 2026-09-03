@@ -2,7 +2,7 @@ import { Box, Typography } from "@mui/material";
 import { memo, useEffect, useState } from "react";
 import { formatPersianDateTime } from "../lib/date/persianDateTime";
 
-export const statusBarHeight = 54;
+export const statusBarHeight = 38;
 
 const Clock = memo(function Clock() {
   const [now, setNow] = useState(() => new Date());
@@ -15,9 +15,10 @@ const Clock = memo(function Clock() {
     <Box
       sx={{
         display: "flex",
-        flexDirection: "column",
+        flexDirection: "row",
         alignItems: "flex-end",
-        gap: 0,
+        gap: 1.5,
+        whiteSpace: "nowrap",
       }}
     >
       <Typography aria-label="تاریخ سیستم" variant="caption">

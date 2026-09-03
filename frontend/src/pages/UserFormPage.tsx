@@ -35,7 +35,15 @@ const blank = {
   mobile: "",
   temporaryPassword: "",
 };
-export function UserFormPage({ userId }: { userId?: number }) {
+export function UserFormPage({
+  userId,
+  onClose,
+  onSaved,
+}: {
+  userId?: number;
+  onClose?: () => void;
+  onSaved?: () => void;
+}) {
   const details = useQuery({
     queryKey: ["administration", "user", userId],
     queryFn: () => administrationApi.user(userId!),
@@ -91,7 +99,8 @@ export function UserFormPage({ userId }: { userId?: number }) {
       void queryClient.invalidateQueries({
         queryKey: ["administration", "dashboard"],
       });
-      dispatch({ type: "markDirty", key: activeKey, dirty: false });
+      if (onSaved) onSaved();
+      else dispatch({ type: "markDirty", key: activeKey, dirty: false });
     },
   });
   const resetPassword = useMutation({
@@ -301,6 +310,7 @@ export function UserFormPage({ userId }: { userId?: number }) {
             type="button"
             disabled={save.isPending}
             onClick={() =>
+              onClose?.() ??
               dispatch({ type: "close", key: activeKey, confirmed: true })
             }
           >

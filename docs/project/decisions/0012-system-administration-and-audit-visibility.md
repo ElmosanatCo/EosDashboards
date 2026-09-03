@@ -29,7 +29,9 @@ when the two-level invariant remains true.
 
 The System Administrator receives an operational dashboard and an audit page.
 They expose immutable security and administration events without secret or full
-mobile data. Dashboard sign-in and security metrics cover the preceding 24
+mobile data. Request-originated records retain the direct inbound IP and a
+coarse desktop/mobile/tablet/unknown device kind; raw user-agent and forwarded
+headers are neither retained nor trusted. Dashboard sign-in and security metrics cover the preceding 24
 hours. The session count is explicitly labelled as users with active sessions,
 not live online users.
 
@@ -48,5 +50,6 @@ live presence.
   it may be corrected. An omitted username defaults to it but is later
   independent and editable.
 - Audit retention and non-administrator access remain unapproved.
+- All user-facing date-selection controls use the Persian calendar.
 - Google-link administration, custom roles, granular permissions, exports, and
   alerts remain excluded.

@@ -26,13 +26,14 @@ At the start of every new chat, automatically recall the project's prior agreeme
 - Hosting: the React UI and ASP.NET Core API are separate IIS sites/applications with separate application pools.
 - Architecture: lightweight clean layering; API -> Application -> Domain, with Infrastructure as the only database and external-system access layer.
 - Repository layout: independently openable `backend/` Visual Studio solution and `frontend/` VS Code workspace in one repository.
-- Authentication phase 1: local username/password sign-in followed by mandatory SMS OTP for every new eight-hour application session. System-administrator user/access management is approved but not yet implemented; the deployment tool remains the current account/password-management mechanism.
+- Authentication phase 1: local username/password sign-in followed by mandatory SMS OTP for every new eight-hour application session. System Administrators manage users, fixed-role assignments, and departments through the application; the deployment tool remains the bootstrap and Google-link mechanism.
 - An active, pre-linked user may alternatively enter through the approved
   server-owned Google OpenID Connect code flow. This never self-registers an
   account and remains disabled until its server-only client configuration is
   complete.
 - Initial access: one pre-provisioned database user has System Administrator and Department Manager roles in the `نرم افزار` department. The System Administrator will manage user accounts, fixed-role access assignments, and company departments; a department hierarchy permits only parent departments and their direct children. The approved System Administrator dashboard presents audited administration/security activity and truthful active-session/sign-in metrics; custom roles, granular permissions, Google-link management, audit retention, exports, and alerts remain unapproved.
 - Persisted application times use the local clock of the application server, are named without `Utc`, and have millisecond precision only. No UTC persistence or Tehran-time conversion is used for application time logic.
+- Display and select all user-facing dates with the Persian calendar and Persian digits. Keep date/time visually separate, using one non-wrapping row where space permits.
 - All principal application tables use auto-incrementing SQL Server `bigint` primary keys named `Id`, subject to the documented narrow exceptions.
 - Branding: company name is `علم و صنعت`; use the approved `resources/branding/eos.svg` unchanged. Do not recolor or substitute it.
 - Documentation: concise, plain English.

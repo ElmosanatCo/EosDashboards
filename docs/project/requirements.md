@@ -68,8 +68,9 @@ and company departments through the application. Accounts are activated or
 deactivated rather than deleted. The System Administrator also receives an
 operational dashboard and filtered audit history for administration and
 security actions, including sign-ins, failed attempts, password changes, and
-access changes. The dashboard's user-presence metric is active sessions, not
-live browser presence.
+access changes. Request-originated entries show a direct IP and coarse device
+kind, never a raw user-agent. The dashboard's user-presence metric is active
+sessions, not live browser presence.
 
 ### FR-006 — Tabbed SPA workspace
 
@@ -179,7 +180,7 @@ Reusable logos, fonts, icons, images, and document templates are managed from th
 
 **Status:** Confirmed
 
-Persist the application server's local date and time only, at millisecond precision, using SQL Server `datetime2(3)`. Persisted-time names must not contain `Utc` or underscore-based time suffixes. Store no UTC value or offset and perform no Tehran-time conversion in normal application logic. Display dates with the Persian calendar and Persian digits using applicable local system time unless a feature explicitly requires another representation.
+Persist the application server's local date and time only, at millisecond precision, using SQL Server `datetime2(3)`. Persisted-time names must not contain `Utc` or underscore-based time suffixes. Store no UTC value or offset and perform no Tehran-time conversion in normal application logic. Display and select dates with the Persian calendar and Persian digits using applicable local system time unless a feature explicitly requires another representation.
 
 ### TC-016 — Quality and operations
 

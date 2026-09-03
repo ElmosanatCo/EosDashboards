@@ -41,6 +41,8 @@ export type AuditLog = {
   actorDisplayName: string | null;
   subjectUserId: number | null;
   subjectDisplayName: string | null;
+  clientIpAddress: string | null;
+  clientDeviceKind: string | null;
 };
 
 export type AdministrationDashboard = {

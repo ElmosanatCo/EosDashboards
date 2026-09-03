@@ -20,6 +20,10 @@ import { useState } from "react";
 import { administrationApi } from "../features/administration/administrationApi";
 import { eventLabel } from "../features/administration/administrationUi";
 import { formatPersianDateTime } from "../lib/date/persianDateTime";
+import {
+  PersianDateTimePicker,
+  toLocalTimestamp,
+} from "../components/PersianDateTimePicker";
 
 type Range = "LastSevenDays" | "LastThirtyDays" | "Custom";
 export function SystemAuditPage() {
@@ -28,16 +32,16 @@ export function SystemAuditPage() {
   const [eventCode, setEventCode] = useState("");
   const [actorUserId, setActorUserId] = useState("");
   const [subjectUserId, setSubjectUserId] = useState("");
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
+  const [from, setFrom] = useState<Date | null>(null);
+  const [to, setTo] = useState<Date | null>(null);
   const query = new URLSearchParams({ range, pageSize: "50" });
   if (result) query.set("succeeded", result);
   if (eventCode.trim()) query.set("eventCode", eventCode.trim());
   if (actorUserId) query.set("actorUserId", actorUserId);
   if (subjectUserId) query.set("subjectUserId", subjectUserId);
   if (range === "Custom" && from && to) {
-    query.set("from", from);
-    query.set("to", to);
+    query.set("from", toLocalTimestamp(from));
+    query.set("to", toLocalTimestamp(to));
   }
   const audit = useQuery({
     queryKey: [
@@ -133,21 +137,15 @@ export function SystemAuditPage() {
             spacing={1.5}
             sx={{ mt: 1.5 }}
           >
-            <TextField
-              size="small"
-              type="datetime-local"
+            <PersianDateTimePicker
               label="از تاریخ و ساعت"
               value={from}
-              onChange={(event) => setFrom(event.target.value)}
-              slotProps={{ inputLabel: { shrink: true } }}
+              onChange={setFrom}
             />
-            <TextField
-              size="small"
-              type="datetime-local"
+            <PersianDateTimePicker
               label="تا تاریخ و ساعت"
               value={to}
-              onChange={(event) => setTo(event.target.value)}
-              slotProps={{ inputLabel: { shrink: true } }}
+              onChange={setTo}
             />
           </Stack>
         ) : null}
@@ -162,6 +160,8 @@ export function SystemAuditPage() {
               <TableCell>نتیجه</TableCell>
               <TableCell>تاریخ</TableCell>
               <TableCell>ساعت</TableCell>
+              <TableCell>IP</TableCell>
+              <TableCell>دستگاه</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -181,12 +181,16 @@ export function SystemAuditPage() {
                   </TableCell>
                   <TableCell>{occurred.date}</TableCell>
                   <TableCell>{occurred.time}</TableCell>
+                  <TableCell dir="ltr">
+                    {item.clientIpAddress ?? "ثبت نشده"}
+                  </TableCell>
+                  <TableCell>{deviceLabel(item.clientDeviceKind)}</TableCell>
                 </TableRow>
               );
             })}
             {!audit.isPending && audit.data?.items.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} align="center">
+                <TableCell colSpan={8} align="center">
                   رویدادی در این بازه وجود ندارد.
                 </TableCell>
               </TableRow>
@@ -204,5 +208,13 @@ export function SystemAuditPage() {
         تازه‌سازی
       </Button>
     </Stack>
+  );
+}
+
+function deviceLabel(value: string | null) {
+  return (
+    { Desktop: "رایانه", Mobile: "موبایل", Tablet: "تبلت", Unknown: "نامشخص" }[
+      value ?? ""
+    ] ?? "ثبت نشده"
   );
 }
