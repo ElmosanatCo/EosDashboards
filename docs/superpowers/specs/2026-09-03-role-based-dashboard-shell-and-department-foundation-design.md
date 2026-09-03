@@ -1,6 +1,6 @@
 # Role-based dashboard shell and department foundation design
 
-**Status:** Approved design; implementation plan prepared
+**Status:** Implemented; local IIS publication pending Windows administrator privileges
 
 **Date:** 2026-09-03
 
