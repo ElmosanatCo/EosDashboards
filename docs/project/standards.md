@@ -82,7 +82,7 @@ This is the canonical implementation standard for EosDashboards. Feature specifi
 - Enforce authorization on the server using roles and policies, least privilege, and deny-by-default behavior.
 - Never rely on hidden UI elements as authorization.
 - Rate-limit sign-in and other sensitive endpoints.
-- Keep production secrets outside source control and protect them per environment. By explicit user approval, the private repository may track local development SQL credentials, SMS endpoint settings, and API security keys in the API development configuration; never expose those values through logs, errors, documentation, or test output.
+- Keep production secrets outside source control and protect them per environment. By explicit user approval, the private repository may track local development SQL credentials, service endpoint settings, API security keys, and other server-side local settings in API/IIS configuration. Track public frontend endpoint settings where needed. Do not stop work or repeatedly request established local values; use the tracked configuration or the approved private-data directory as the fallback. Never expose values through logs, errors, documentation, or test output. Do not place server credentials or private keys in frontend build configuration because browser-delivered values are public at runtime.
 - Audit authentication, permission, administration, and sensitive export events without recording credentials, tokens, or sensitive payloads.
 - Address material dependency or security findings before merge, or record an explicitly approved exception.
 

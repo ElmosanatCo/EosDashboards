@@ -51,7 +51,7 @@ Before finishing a task, update the appropriate canonical document when a durabl
 - Integrate facts into the current source of truth; do not append raw chat logs.
 - Mark unapproved ideas as proposed or unresolved.
 - Add a decision record only for consequential choices whose rationale must remain auditable.
-- Never store personal data or production connection details. Under decision 0006, the user explicitly permits local development SQL credentials, SMS endpoint settings, and API security keys in the tracked API development configuration of this private repository; do not print those values in output or documentation.
+- Never store personal data or production connection details. Under decision 0006, the user explicitly permits local development SQL credentials, service endpoint settings, API security keys, and other server-side local settings in tracked API/IIS configuration in this private repository. Track public frontend endpoint settings where needed. Do not stop work or repeatedly request established local configuration values; use the tracked configuration or `D:\Workspaces\ChatGpt\Private Data For AI Projects\EosDashboards` as the fallback. Do not print values in output or documentation. Never put server credentials or private keys in frontend build configuration because browser-delivered values are public at runtime.
 - Keep `current-state.md` short and replace stale operational details.
 - Version documentation with the code it describes.
 
