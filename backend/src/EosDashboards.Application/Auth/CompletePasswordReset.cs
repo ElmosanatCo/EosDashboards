@@ -40,14 +40,14 @@ public sealed class CompletePasswordReset(
             return new PasswordResetResult(PasswordResetStatus.Invalid);
         }
 
-        var user = await users.GetByIdAsync(challenge.UserId, cancellationToken);
+        var user = await users.GetForUpdateAsync(challenge.UserId, cancellationToken);
         if (user is null || !user.IsActive || user.Username is null || !challenge.Verify(secretHasher.Hash(command.Code), now))
         {
             await WriteAuditAsync(challenge.UserId, "PasswordResetRejected", false, traceId, CancellationToken.None);
             return new PasswordResetResult(PasswordResetStatus.Invalid);
         }
 
-        user.SetLocalCredentials(user.Username, passwordHasher.Hash(command.NewPassword), now);
+        user.CompleteTemporaryPasswordChange(passwordHasher.Hash(command.NewPassword), now);
         var activeSessions = await sessions.GetActiveByUserIdAsync(user.Id, now, CancellationToken.None);
         foreach (var session in activeSessions)
         {
