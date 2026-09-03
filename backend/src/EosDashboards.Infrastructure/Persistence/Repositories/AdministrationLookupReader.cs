@@ -19,8 +19,55 @@ public sealed class AdministrationLookupReader(EosDashboardDbContext context) : 
         return new PagedResult<AdministrationUserListItem>(items, pageNumber, pageSize, totalCount);
     }
 
-    public async Task<AdministrationUserListItem?> GetUserAsync(long id, CancellationToken cancellationToken) =>
-        await Users.SingleOrDefaultAsync(user => user.Id == id, cancellationToken);
+    public async Task<AdministrationUserListItem?> GetUserAsync(long id, CancellationToken cancellationToken)
+    {
+        var user = await (
+            from candidate in context.Users.AsNoTracking()
+            join department in context.Departments.AsNoTracking()
+                on candidate.DepartmentId equals department.Id
+            where candidate.Id == id
+            select new
+            {
+                candidate.Id,
+                PersonnelCode = candidate.OrganizationalId,
+                candidate.AccountName,
+                candidate.FirstName,
+                candidate.LastName,
+                candidate.Username,
+                MaskedMobile = candidate.MaskedMobileNumber,
+                candidate.DepartmentId,
+                DepartmentName = department.Name,
+                candidate.IsActive,
+                candidate.MustChangePassword,
+                candidate.RowVersion
+            }).SingleOrDefaultAsync(cancellationToken);
+
+        if (user is null)
+        {
+            return null;
+        }
+
+        var roleIds = await context.UserRoles.AsNoTracking()
+            .Where(userRole => userRole.UserId == id)
+            .OrderBy(userRole => userRole.RoleId)
+            .Select(userRole => userRole.RoleId)
+            .ToArrayAsync(cancellationToken);
+
+        return new AdministrationUserListItem(
+            user.Id,
+            user.PersonnelCode,
+            user.AccountName,
+            user.FirstName,
+            user.LastName,
+            user.Username,
+            user.MaskedMobile,
+            user.DepartmentId,
+            user.DepartmentName,
+            user.IsActive,
+            user.MustChangePassword,
+            roleIds,
+            user.RowVersion);
+    }
 
     public async Task<IReadOnlyList<AdministrationRoleListItem>> GetRolesAsync(CancellationToken cancellationToken) =>
         await context.Roles.AsNoTracking().Where(role => role.IsActive && role.IsSystem).OrderBy(role => role.Code)
