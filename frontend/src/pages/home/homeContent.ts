@@ -10,11 +10,11 @@ const roleGuideText: Readonly<Record<HomeRoleCode, string>> = {
   SystemAdministrator:
     "در این فضا می‌توانید کاربران، واحدها و رویدادهای امنیتی سامانه را مدیریت کنید.",
   DepartmentManager:
-    "در این فضا شاخص‌ها و اطلاعات مرتبط با واحد شما نمایش داده می‌شود.",
+    "امکانات مدیریتی مرتبط با واحد شما پس از تصویب شاخص‌ها و اتصال منبع داده در این فضا تکمیل می‌شود.",
   HumanResourcesManager:
-    "در این فضا اطلاعات و داشبوردهای منابع انسانی در اختیار شما قرار می‌گیرد.",
+    "امکانات و داشبوردهای منابع انسانی پس از تصویب منبع داده در این فضا تکمیل می‌شوند.",
   ChiefExecutiveOfficer:
-    "در این فضا نمای کلی شاخص‌های مدیریتی سازمان در اختیار شما قرار می‌گیرد.",
+    "نمای مدیریتی سازمان پس از تصویب شاخص‌ها و اتصال منبع داده در این فضا تکمیل می‌شود.",
 };
 
 const roleGuideOrder: readonly HomeRoleCode[] = [
@@ -89,8 +89,27 @@ export type HomeAlert = {
 
 export const initialHomeAlerts: readonly HomeAlert[] = [];
 
+const systemAdministratorFormRouteIds = new Set([
+  "administration-user-create",
+  "administration-user-edit",
+  "department-form",
+]);
+
 export function selectRecentHomeTabs(
   tabs: readonly TabDescriptor[],
+  authorizedTargetRouteIds: readonly string[],
+  roleCodes: readonly string[],
 ): TabDescriptor[] {
-  return tabs.filter((tab) => tab.key !== "home").slice(0, 4);
+  const authorizedRouteIds = new Set(authorizedTargetRouteIds);
+  const isSystemAdministrator = roleCodes.includes("SystemAdministrator");
+
+  return tabs
+    .filter(
+      (tab) =>
+        tab.key !== "home" &&
+        (authorizedRouteIds.has(tab.routeId) ||
+          (isSystemAdministrator &&
+            systemAdministratorFormRouteIds.has(tab.routeId))),
+    )
+    .slice(0, 4);
 }

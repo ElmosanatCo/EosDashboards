@@ -128,7 +128,7 @@ describe("HomePageView", () => {
 
   it("uses providers to filter authorized targets and dispatch open and activate actions", async () => {
     const dispatch = vi.fn();
-    const recentTab: TabDescriptor = {
+    const unauthorizedRecentTab: TabDescriptor = {
       key: "administration-users",
       routeId: "administration-users",
       pathname: "/users",
@@ -136,10 +136,18 @@ describe("HomePageView", () => {
       title: "مدیریت کاربران",
       closable: true,
     };
+    const authorizedRecentTab: TabDescriptor = {
+      key: "department-dashboard",
+      routeId: "department-dashboard",
+      pathname: "/department-dashboard",
+      search: "",
+      title: "داشبورد بخش",
+      closable: true,
+    };
     const departmentManager = { ...user, roleCodes: ["DepartmentManager"] };
     useAuthMock.mockReturnValue({ user: departmentManager });
     useTabWorkspaceMock.mockReturnValue({
-      tabs: [homeTab, recentTab],
+      tabs: [homeTab, unauthorizedRecentTab, authorizedRecentTab],
       dispatch,
     });
 
@@ -151,6 +159,9 @@ describe("HomePageView", () => {
       ).getByText("داشبورد بخش"),
     ).toBeInTheDocument();
     expect(screen.queryByText("داشبورد مدیر سامانه")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "ادامه: مدیریت کاربران" }),
+    ).not.toBeInTheDocument();
     await userEvent.click(
       within(
         screen.getByRole("region", { name: "امکانات در اختیار شما" }),
@@ -165,11 +176,11 @@ describe("HomePageView", () => {
     });
 
     await userEvent.click(
-      screen.getByRole("button", { name: "ادامه: مدیریت کاربران" }),
+      screen.getByRole("button", { name: "ادامه: داشبورد بخش" }),
     );
     expect(dispatch).toHaveBeenNthCalledWith(2, {
       type: "activate",
-      key: "administration-users",
+      key: "department-dashboard",
     });
   });
 

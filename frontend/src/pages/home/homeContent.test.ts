@@ -22,6 +22,23 @@ describe("Home content model", () => {
     );
   });
 
+  it.each([
+    [
+      "DepartmentManager",
+      "امکانات مدیریتی مرتبط با واحد شما پس از تصویب شاخص‌ها و اتصال منبع داده در این فضا تکمیل می‌شود.",
+    ],
+    [
+      "HumanResourcesManager",
+      "امکانات و داشبوردهای منابع انسانی پس از تصویب منبع داده در این فضا تکمیل می‌شوند.",
+    ],
+    [
+      "ChiefExecutiveOfficer",
+      "نمای مدیریتی سازمان پس از تصویب شاخص‌ها و اتصال منبع داده در این فضا تکمیل می‌شود.",
+    ],
+  ])("uses truthful future-oriented guide copy for %s", (roleCode, guide) => {
+    expect(getHomeGuideText([roleCode])).toBe(guide);
+  });
+
   it("provides metadata for every current target", () => {
     for (const target of workspaceTargets) {
       expect(homeTargetMetadata[target.routeId]).toEqual({
@@ -42,7 +59,7 @@ describe("Home content model", () => {
     expect(initialHomeAlerts).toEqual([]);
   });
 
-  it("excludes Home, preserves order, limits to four, and leaves input unchanged", () => {
+  it("filters unauthorized tabs before the four-tab cap while preserving order", () => {
     const tabs: TabDescriptor[] = [
       {
         key: "home",
@@ -51,6 +68,14 @@ describe("Home content model", () => {
         search: "",
         title: "خانه",
         closable: false,
+      },
+      {
+        key: "stale-administration-users",
+        routeId: "administration-users",
+        pathname: "/users",
+        search: "",
+        title: "مدیریت کاربران",
+        closable: true,
       },
       ...["one", "two", "three", "four", "five"].map((key) => ({
         key,
@@ -63,12 +88,43 @@ describe("Home content model", () => {
     ];
     const originalTabs = [...tabs];
 
-    expect(selectRecentHomeTabs(tabs).map((tab) => tab.key)).toEqual([
-      "one",
-      "two",
-      "three",
-      "four",
-    ]);
+    expect(
+      selectRecentHomeTabs(
+        tabs,
+        ["one", "two", "three", "four", "five"],
+        ["DepartmentManager"],
+      ).map((tab) => tab.key),
+    ).toEqual(["one", "two", "three", "four"]);
     expect(tabs).toEqual(originalTabs);
+  });
+
+  it("preserves administrator form tabs only for System Administrators", () => {
+    const formTabs: TabDescriptor[] = [
+      "administration-user-create",
+      "administration-user-edit",
+      "department-form",
+    ].map((routeId) => ({
+      key: routeId,
+      routeId,
+      pathname: `/${routeId}`,
+      search: "",
+      title: routeId,
+      closable: true,
+    }));
+
+    expect(
+      selectRecentHomeTabs(
+        formTabs,
+        ["administration-users"],
+        ["SystemAdministrator"],
+      ),
+    ).toEqual(formTabs);
+    expect(
+      selectRecentHomeTabs(
+        formTabs,
+        ["department-dashboard"],
+        ["DepartmentManager"],
+      ),
+    ).toEqual([]);
   });
 });

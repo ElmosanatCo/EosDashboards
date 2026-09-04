@@ -49,10 +49,14 @@ export function HomePageView({
   onOpenTarget,
   onActivateTab,
 }: HomePageViewProps) {
-  const recentTabs = selectRecentHomeTabs(tabs);
   const roleCodes = new Set(user.roleCodes);
   const visibleTargets = targets.filter((target) =>
     target.requiredRoleCodes.some((roleCode) => roleCodes.has(roleCode)),
+  );
+  const recentTabs = selectRecentHomeTabs(
+    tabs,
+    visibleTargets.map((target) => target.routeId),
+    user.roleCodes,
   );
 
   return (
