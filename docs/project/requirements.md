@@ -200,7 +200,8 @@ actionable conflict in the form; the request must not fail silently and the
 entered form values remain available for correction. Deactivated catalog
 skills and tasks are hidden from the active view but can be shown with an
 inactive/all filter and reactivated by an authorized manager or Human Resources
-operator.
+operator. Reactivation is a consequential state change and therefore requires
+the same explicit Persian confirmation; cancelling it sends no mutation request.
 
 When resolving an imported value, the manager can choose any public skill or a
 skill specific to the target department, or create a new public or

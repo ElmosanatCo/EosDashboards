@@ -229,6 +229,9 @@ function PublicSkillCatalogDialog({
   });
   const [names, setNames] = useState<Record<number, string>>({});
   const [pendingDelete, setPendingDelete] = useState<PublicSkill | null>(null);
+  const [pendingActivate, setPendingActivate] = useState<PublicSkill | null>(
+    null,
+  );
   useEffect(() => {
     if (catalog.data)
       setNames(
@@ -256,10 +259,12 @@ function PublicSkillCatalogDialog({
   });
   const activate = useMutation({
     mutationFn: (id: number) => jobDescriptionsApi.activatePublicSkill(id),
-    onSuccess: () =>
+    onSuccess: () => {
+      setPendingActivate(null);
       void queryClient.invalidateQueries({
         queryKey: ["human-resources-catalog"],
-      }),
+      });
+    },
   });
   const visibleSkills =
     catalog.data?.filter((skill) =>
@@ -338,7 +343,7 @@ function PublicSkillCatalogDialog({
                   size="small"
                   startIcon={<CheckCircleOutlineOutlinedIcon />}
                   disabled={activate.isPending}
-                  onClick={() => activate.mutate(skill.id)}
+                  onClick={() => setPendingActivate(skill)}
                   aria-label={`فعال‌سازی مهارت ${skill.name}`}
                 >
                   فعال‌سازی
@@ -366,6 +371,22 @@ function PublicSkillCatalogDialog({
         onClose={() => setPendingDelete(null)}
         onConfirm={() => {
           if (pendingDelete) deactivate.mutate(pendingDelete.id);
+        }}
+      />
+      <ConfirmActionDialog
+        open={pendingActivate !== null}
+        title="تأیید فعال‌سازی"
+        message={
+          pendingActivate
+            ? `آیا از فعال‌سازی «${pendingActivate.name}» مطمئن هستید؟`
+            : ""
+        }
+        confirmLabel="تأیید فعال‌سازی"
+        confirmColor="success"
+        pending={activate.isPending}
+        onClose={() => setPendingActivate(null)}
+        onConfirm={() => {
+          if (pendingActivate) activate.mutate(pendingActivate.id);
         }}
       />
     </Dialog>

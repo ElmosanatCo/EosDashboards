@@ -53,6 +53,7 @@ type PendingDeactivation = {
   id: number;
   name: string;
 };
+type PendingActivation = PendingDeactivation;
 
 export function DepartmentCatalogPage({ kind }: { kind: CatalogKind }) {
   const { user } = useAuth();
@@ -75,6 +76,8 @@ export function DepartmentCatalogPage({ kind }: { kind: CatalogKind }) {
   >(null);
   const [pendingDeactivation, setPendingDeactivation] =
     useState<PendingDeactivation | null>(null);
+  const [pendingActivation, setPendingActivation] =
+    useState<PendingActivation | null>(null);
   const departments = useQuery({
     queryKey: ["managed-departments"],
     queryFn: jobDescriptionsApi.managedDepartments,
@@ -146,7 +149,10 @@ export function DepartmentCatalogPage({ kind }: { kind: CatalogKind }) {
   });
   const activateSkill = useMutation({
     mutationFn: (id: number) => jobDescriptionsApi.activateDepartmentSkill(id),
-    onSuccess: invalidateCatalog,
+    onSuccess: () => {
+      setPendingActivation(null);
+      invalidateCatalog();
+    },
   });
   const renamePublicSkill = useMutation({
     mutationFn: () =>
@@ -165,7 +171,10 @@ export function DepartmentCatalogPage({ kind }: { kind: CatalogKind }) {
   });
   const activatePublicSkill = useMutation({
     mutationFn: (id: number) => jobDescriptionsApi.activatePublicSkill(id),
-    onSuccess: invalidateCatalog,
+    onSuccess: () => {
+      setPendingActivation(null);
+      invalidateCatalog();
+    },
   });
   const deactivateTask = useMutation({
     mutationFn: (id: number) => jobDescriptionsApi.deactivateDepartmentTask(id),
@@ -176,7 +185,10 @@ export function DepartmentCatalogPage({ kind }: { kind: CatalogKind }) {
   });
   const activateTask = useMutation({
     mutationFn: (id: number) => jobDescriptionsApi.activateDepartmentTask(id),
-    onSuccess: invalidateCatalog,
+    onSuccess: () => {
+      setPendingActivation(null);
+      invalidateCatalog();
+    },
   });
   const saveRequiredSkills = useMutation({
     mutationFn: ({
@@ -495,12 +507,18 @@ export function DepartmentCatalogPage({ kind }: { kind: CatalogKind }) {
                             name: skill.name,
                           });
                         }}
-                        onActivate={() =>
-                          (item as JobDescriptionCatalog["skills"][number])
-                            .departmentId === null
-                            ? activatePublicSkill.mutate(item.id)
-                            : activateSkill.mutate(item.id)
-                        }
+                        onActivate={() => {
+                          const skill =
+                            item as JobDescriptionCatalog["skills"][number];
+                          setPendingActivation({
+                            kind:
+                              skill.departmentId === null
+                                ? "publicSkill"
+                                : "skill",
+                            id: skill.id,
+                            name: skill.name,
+                          });
+                        }}
                         departmentName={
                           departments.data?.find(
                             (department) =>
@@ -546,7 +564,15 @@ export function DepartmentCatalogPage({ kind }: { kind: CatalogKind }) {
                             ).title,
                           })
                         }
-                        onActivate={() => activateTask.mutate(item.id)}
+                        onActivate={() =>
+                          setPendingActivation({
+                            kind: "task",
+                            id: item.id,
+                            name: (
+                              item as JobDescriptionCatalog["tasks"][number]
+                            ).title,
+                          })
+                        }
                         onRequiredSkills={() =>
                           setRequiredSkillsTaskId(item.id)
                         }
@@ -630,6 +656,33 @@ export function DepartmentCatalogPage({ kind }: { kind: CatalogKind }) {
             deactivateSkill.mutate(pendingDeactivation.id);
           } else {
             deactivateTask.mutate(pendingDeactivation.id);
+          }
+        }}
+      />
+      <ConfirmActionDialog
+        open={pendingActivation !== null}
+        title="تأیید فعال‌سازی"
+        message={
+          pendingActivation
+            ? `آیا از فعال‌سازی «${pendingActivation.name}» مطمئن هستید؟`
+            : ""
+        }
+        confirmLabel="تأیید فعال‌سازی"
+        confirmColor="success"
+        pending={
+          activateSkill.isPending ||
+          activatePublicSkill.isPending ||
+          activateTask.isPending
+        }
+        onClose={() => setPendingActivation(null)}
+        onConfirm={() => {
+          if (!pendingActivation) return;
+          if (pendingActivation.kind === "publicSkill") {
+            activatePublicSkill.mutate(pendingActivation.id);
+          } else if (pendingActivation.kind === "skill") {
+            activateSkill.mutate(pendingActivation.id);
+          } else {
+            activateTask.mutate(pendingActivation.id);
           }
         }}
       />

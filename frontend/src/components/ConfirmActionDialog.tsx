@@ -1,5 +1,6 @@
 import {
   Button,
+  type ButtonProps,
   Dialog,
   DialogActions,
   DialogContent,
@@ -12,6 +13,7 @@ type ConfirmActionDialogProps = {
   title: string;
   message: string;
   confirmLabel?: string;
+  confirmColor?: ButtonProps["color"];
   pending?: boolean;
   onClose: () => void;
   onConfirm: () => void;
@@ -22,6 +24,7 @@ export function ConfirmActionDialog({
   title,
   message,
   confirmLabel = "تأیید حذف",
+  confirmColor = "error",
   pending = false,
   onClose,
   onConfirm,
@@ -43,7 +46,7 @@ export function ConfirmActionDialog({
           انصراف
         </Button>
         <Button
-          color="error"
+          color={confirmColor}
           variant="contained"
           onClick={onConfirm}
           disabled={pending}
