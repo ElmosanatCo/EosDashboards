@@ -61,6 +61,7 @@ Initial authentication and application-shell implementation.
 - The user confirmed on 2026-09-04 that this is a whole-application scroll rule: the shell header, internal tabs, and status bar remain fixed, the central workspace is the only page-level scroll area, and data-heavy pages may add a bounded inner data-panel scroll without moving their controls.
 - IIS release `20260904-002509` was published from the current `main` source (`aa25b62`) after paired API/UI artifact inspection. API liveness/readiness, UI entry, and an internal SPA refresh route each returned HTTPS HTTP 200; the deployed UI artifact was also checked for the Persian audit-filter labels.
 - IIS release `20260904-004357` was published from committed source `e71d431` with the mobile brand relocation. API liveness/readiness, UI entry, and an internal SPA refresh route returned HTTPS HTTP 200; the served UI was checked for its IIS base path, title, EOS asset, and company name. An authenticated IIS smoke flow remains unrecorded because no credential was supplied.
+- IIS release `20260904-081343` was published from committed source `b6c2cd0` with shared Persian user-facing number formatting. API liveness/readiness, UI entry, and an internal SPA refresh route returned HTTPS HTTP 200; the served UI was checked for its IIS base path, title, EOS asset, company name, and Persian-number logic. An authenticated IIS smoke flow remains unrecorded because no credential was supplied.
 
 ## In progress
 
