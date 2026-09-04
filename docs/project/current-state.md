@@ -75,6 +75,7 @@ Initial authentication and application-shell implementation.
 - Pre-publication verification on 2026-09-04 passed the full Release backend suite with the isolated `EosDashboard_IntegrationTests` catalog: 262 tests passed across Domain, Architecture, Application, and SQL-backed Integration suites. The first suite attempt correctly failed fast at the environment boundary because `ConnectionStrings__EosDashboardTests` was absent; the reusable remedy is recorded in `standards.md`. The configured primary local database was backed up to the approved local backup directory and verified, then `dotnet ef database update` ran with `ASPNETCORE_ENVIRONMENT=Development` and `--configuration Release`; no migrations were pending through `20260904135025_RepairPersistedPersianJobDescriptionDates`.
 - The integrated source was merged into `main` as `0eab5bb` and the API/UI Release artifacts were built from that exact commit. The first IIS publication attempt stopped at `administrator-check` because the invoking PowerShell session was not elevated; no IIS application path was switched. Rerun `scripts/Publish-LocalIisRelease.ps1` from an elevated PowerShell window with the inspected versioned artifacts after confirming the latest migration preflight.
 - A follow-up IIS publish attempt was run from `C:\Windows\system32`, so PowerShell resolved the relative `-File` and artifact paths outside the repository and stopped before IIS preflight. The durable remedy is to change directory to the repository root or pass absolute paths; the migration identifier must be supplied without an escape character before `_`. No IIS application path was switched.
+- Local IIS publication then completed successfully as release `20260904-192500` from the inspected API/UI artifacts built from `0eab5bb`. The publisher confirmed the latest migration preflight before switching the versioned API and UI paths; post-publication HTTPS checks for API liveness, API readiness, UI entry, and the SPA refresh probe each returned HTTP 200.
 - On 2026-09-04 the approved department-manager job-description foundation was implemented on the current feature branch: database-backed job-description records and versions, manager scope over direct child departments, workflow and quality statuses, department/task/skill catalogs, deterministic skill/task analysis primitives, dashboard metrics, HR review endpoints, role-aware pages, manual draft creation, multi-file `.xlsx` import with per-file results, generated standard Excel artifacts stored with the database version, secure scoped download, and revision-as-new-version behavior. A healthy/incomplete list calculation defect was corrected by loading the related tasks and skills before evaluating quality. Focused domain/application/integration tests and the full SQL-backed integration suite pass; frontend tests, typecheck, and formatting pass.
 - The manager catalog surface was refined on 2026-09-04: skills and tasks now have separate authorized workspace pages with searchable, paginated tables suitable for large catalogs. Task rows expose required-skill maintenance in a focused dialog, and department selectors show department names without principal/child annotations. The job-description page remains focused on personnel records and no longer embeds catalog management.
 - The combined department selector rule was aligned across the manager dashboard, job-description management, and both catalog pages on 2026-09-04: `همه بخش‌ها` is the first selectable option and is represented by an explicit all-value so the combined view is loaded reliably; named department selections continue to scope data to that department.
@@ -129,9 +130,10 @@ Initial authentication and application-shell implementation.
 
 ## Next agreed step
 
-Continue the department-manager job-description slice with the remaining UI
-surfaces and analysis presentation, then perform the approved local IIS
-publication flow. Do not deploy to company production servers in this slice.
+The department-manager job-description slice is integrated and published to
+the approved local IIS environment as release `20260904-192500`. Continue with
+the remaining UI surfaces and analysis presentation in a new reviewed slice;
+do not deploy to company production servers in this slice.
 
 ## Blockers
 
