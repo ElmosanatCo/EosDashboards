@@ -68,7 +68,7 @@ Initial authentication and application-shell implementation.
 
 ## In progress
 
-- Commit `37d0083` contains the integrated authentication-branding, search-typography, Persian-number, tooltip, and responsive-audit corrections and has been pushed to `origin/main`. Matching Release API/UI artifacts were built and inspected for IIS, but the local IIS switch remains pending because the approved publisher requires an elevated PowerShell session and the current execution context cannot elevate.
+- Commit `37d0083` contains the integrated authentication-branding, search-typography, Persian-number, tooltip, and responsive-audit corrections and has been pushed to `origin/main`. Matching Release API/UI artifacts were published as local IIS release `20260904-092214`; API liveness/readiness, UI entry, and the refreshed internal SPA route each returned HTTPS HTTP 200. The release was executed from an elevated PowerShell session after the non-elevated Codex execution context was unable to switch IIS directly.
 
 - A live 2026-09-03 correction traced failed department creation to writing a department identifier into the user-only audit subject foreign key, and the empty/erroring user directory to ordering a projected LINQ record that EF Core could not translate. Department audit events now keep their department identifier only as safe metadata with no user subject, and the directory orders users before projection. A focused red/green application regression test passed; the correction was merged/pushed as `0c04600` and locally published with API readiness, UI entry, and the users SPA route returning HTTPS 200.
 
