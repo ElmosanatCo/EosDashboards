@@ -40,6 +40,7 @@ import {
 import { useEffect, useState } from "react";
 import { useAuth } from "../app/providers/AuthProvider";
 import { ConfirmActionDialog } from "../components/ConfirmActionDialog";
+import { MutationErrorAlert } from "../components/MutationErrorAlert";
 import { PersianDateTimePicker } from "../components/PersianDateTimePicker";
 import { toPersianDigits } from "../lib/format/persianDigits";
 import {
@@ -149,6 +150,10 @@ export function DepartmentJobDescriptionsPage() {
           </Button>
         </Stack>
       </Stack>
+      {approve.isError ? <MutationErrorAlert error={approve.error} /> : null}
+      {importWorkbooks.isError ? (
+        <MutationErrorAlert error={importWorkbooks.error} />
+      ) : null}
       {departments.isSuccess && departments.data.length > 0 ? (
         <FormControl sx={{ minWidth: { xs: "100%", sm: 280 } }}>
           <InputLabel id="job-description-department-label">بخش هدف</InputLabel>
@@ -565,9 +570,7 @@ function ManualJobDescriptionDialog({
           </Button>
         </Stack>
         {createTask.isError ? (
-          <Typography color="error">
-            ثبت وظیفهٔ جدید ممکن نشد؛ عنوان را بررسی کنید.
-          </Typography>
+          <MutationErrorAlert error={createTask.error} />
         ) : null}
       </Stack>
     </Paper>
@@ -843,6 +846,9 @@ function ManualJobDescriptionDialog({
                           انصراف
                         </Button>
                       </Stack>
+                      {createSkill.isError ? (
+                        <MutationErrorAlert error={createSkill.error} />
+                      ) : null}
                     </Stack>
                   </Paper>
                 ) : null}
@@ -1095,9 +1101,7 @@ function ManualJobDescriptionDialog({
                   </Typography>
                 ) : null}
                 {create.isError ? (
-                  <Typography color="error">
-                    ثبت شرح وظیفه ممکن نشد؛ اطلاعات را بررسی کنید.
-                  </Typography>
+                  <MutationErrorAlert error={create.error} />
                 ) : null}
               </Stack>
             </AccordionDetails>

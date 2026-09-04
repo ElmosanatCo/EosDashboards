@@ -1,4 +1,5 @@
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
+import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
@@ -37,6 +38,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../app/providers/AuthProvider";
 import { ConfirmActionDialog } from "../components/ConfirmActionDialog";
+import { MutationErrorAlert } from "../components/MutationErrorAlert";
 import {
   jobDescriptionsApi,
   type JobDescriptionCatalog,
@@ -45,11 +47,13 @@ import {
 const pageSize = 25;
 
 type CatalogKind = "skills" | "tasks";
+type CatalogStatus = "active" | "inactive" | "all";
 type PendingDeactivation = {
   kind: "skill" | "publicSkill" | "task";
   id: number;
   name: string;
 };
+type PendingActivation = PendingDeactivation;
 
 export function DepartmentCatalogPage({ kind }: { kind: CatalogKind }) {
   const { user } = useAuth();
@@ -58,6 +62,7 @@ export function DepartmentCatalogPage({ kind }: { kind: CatalogKind }) {
     user.department.id,
   );
   const [search, setSearch] = useState("");
+  const [status, setStatus] = useState<CatalogStatus>("active");
   const [page, setPage] = useState(0);
   const [newName, setNewName] = useState("");
   const [newTaskIsProject, setNewTaskIsProject] = useState(false);
@@ -71,15 +76,18 @@ export function DepartmentCatalogPage({ kind }: { kind: CatalogKind }) {
   >(null);
   const [pendingDeactivation, setPendingDeactivation] =
     useState<PendingDeactivation | null>(null);
+  const [pendingActivation, setPendingActivation] =
+    useState<PendingActivation | null>(null);
   const departments = useQuery({
     queryKey: ["managed-departments"],
     queryFn: jobDescriptionsApi.managedDepartments,
   });
   const catalog = useQuery({
-    queryKey: ["job-description-catalog", departmentId],
+    queryKey: ["job-description-catalog", departmentId, status !== "active"],
     queryFn: () =>
       jobDescriptionsApi.catalog(
         departmentId === "all" ? undefined : departmentId,
+        status !== "active",
       ),
   });
   const invalidateCatalog = () =>
@@ -139,6 +147,13 @@ export function DepartmentCatalogPage({ kind }: { kind: CatalogKind }) {
       invalidateCatalog();
     },
   });
+  const activateSkill = useMutation({
+    mutationFn: (id: number) => jobDescriptionsApi.activateDepartmentSkill(id),
+    onSuccess: () => {
+      setPendingActivation(null);
+      invalidateCatalog();
+    },
+  });
   const renamePublicSkill = useMutation({
     mutationFn: () =>
       jobDescriptionsApi.renamePublicSkill(editingId!, editingName),
@@ -154,10 +169,24 @@ export function DepartmentCatalogPage({ kind }: { kind: CatalogKind }) {
       invalidateCatalog();
     },
   });
+  const activatePublicSkill = useMutation({
+    mutationFn: (id: number) => jobDescriptionsApi.activatePublicSkill(id),
+    onSuccess: () => {
+      setPendingActivation(null);
+      invalidateCatalog();
+    },
+  });
   const deactivateTask = useMutation({
     mutationFn: (id: number) => jobDescriptionsApi.deactivateDepartmentTask(id),
     onSuccess: () => {
       setPendingDeactivation(null);
+      invalidateCatalog();
+    },
+  });
+  const activateTask = useMutation({
+    mutationFn: (id: number) => jobDescriptionsApi.activateDepartmentTask(id),
+    onSuccess: () => {
+      setPendingActivation(null);
       invalidateCatalog();
     },
   });
@@ -178,17 +207,24 @@ export function DepartmentCatalogPage({ kind }: { kind: CatalogKind }) {
   const items = useMemo(() => {
     if (!catalog.data) return [];
     if (kind === "skills") {
-      return catalog.data.skills.filter((skill) =>
-        skillTab === "public"
-          ? skill.departmentId === null
-          : skill.departmentId !== null &&
-            (departmentId === "all" || skill.departmentId === departmentId),
+      return catalog.data.skills.filter(
+        (skill) =>
+          (skillTab === "public"
+            ? skill.departmentId === null
+            : skill.departmentId !== null &&
+              (departmentId === "all" ||
+                skill.departmentId === departmentId)) &&
+          (status === "all" ||
+            (status === "active" ? skill.isActive : !skill.isActive)),
       );
     }
     return catalog.data.tasks.filter(
-      (task) => departmentId === "all" || task.departmentId === departmentId,
+      (task) =>
+        (departmentId === "all" || task.departmentId === departmentId) &&
+        (status === "all" ||
+          (status === "active" ? task.isActive : !task.isActive)),
     );
-  }, [catalog.data, departmentId, kind, skillTab]);
+  }, [catalog.data, departmentId, kind, skillTab, status]);
   const filteredItems = useMemo(() => {
     const normalized = search.trim().toLocaleLowerCase();
     if (!normalized) return items;
@@ -296,6 +332,22 @@ export function DepartmentCatalogPage({ kind }: { kind: CatalogKind }) {
                 },
               }}
             />
+            <FormControl sx={{ minWidth: { xs: "100%", md: 160 } }}>
+              <InputLabel id={`${kind}-status-label`}>وضعیت</InputLabel>
+              <Select
+                labelId={`${kind}-status-label`}
+                value={status}
+                label="وضعیت"
+                onChange={(event) => {
+                  setStatus(event.target.value as CatalogStatus);
+                  setPage(0);
+                }}
+              >
+                <MenuItem value="active">فعال</MenuItem>
+                <MenuItem value="inactive">غیرفعال</MenuItem>
+                <MenuItem value="all">همه</MenuItem>
+              </Select>
+            </FormControl>
           </Stack>
           <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
             <TextField
@@ -346,6 +398,25 @@ export function DepartmentCatalogPage({ kind }: { kind: CatalogKind }) {
                 : "افزودن"}
             </Button>
           </Stack>
+          <MutationErrorAlert
+            error={
+              [
+                createSkill,
+                createPublicSkill,
+                createTask,
+                renameSkill,
+                renamePublicSkill,
+                renameTask,
+                deactivateSkill,
+                deactivatePublicSkill,
+                deactivateTask,
+                activateSkill,
+                activatePublicSkill,
+                activateTask,
+                saveRequiredSkills,
+              ].find((mutation) => mutation.isError)?.error
+            }
+          />
         </Stack>
       </Paper>
       {catalog.isPending ? (
@@ -373,6 +444,7 @@ export function DepartmentCatalogPage({ kind }: { kind: CatalogKind }) {
             sx={{ flex: 1, minHeight: 0, maxHeight: "none" }}
           >
             <Table
+              className="eos-management-table"
               stickyHeader
               aria-label={kind === "skills" ? "فهرست مهارت‌ها" : "فهرست وظایف"}
             >
@@ -436,6 +508,18 @@ export function DepartmentCatalogPage({ kind }: { kind: CatalogKind }) {
                             name: skill.name,
                           });
                         }}
+                        onActivate={() => {
+                          const skill =
+                            item as JobDescriptionCatalog["skills"][number];
+                          setPendingActivation({
+                            kind:
+                              skill.departmentId === null
+                                ? "publicSkill"
+                                : "skill",
+                            id: skill.id,
+                            name: skill.name,
+                          });
+                        }}
                         departmentName={
                           departments.data?.find(
                             (department) =>
@@ -450,6 +534,10 @@ export function DepartmentCatalogPage({ kind }: { kind: CatalogKind }) {
                         deactivating={
                           deactivateSkill.isPending ||
                           deactivatePublicSkill.isPending
+                        }
+                        activating={
+                          activateSkill.isPending ||
+                          activatePublicSkill.isPending
                         }
                       />
                     ) : (
@@ -477,11 +565,21 @@ export function DepartmentCatalogPage({ kind }: { kind: CatalogKind }) {
                             ).title,
                           })
                         }
+                        onActivate={() =>
+                          setPendingActivation({
+                            kind: "task",
+                            id: item.id,
+                            name: (
+                              item as JobDescriptionCatalog["tasks"][number]
+                            ).title,
+                          })
+                        }
                         onRequiredSkills={() =>
                           setRequiredSkillsTaskId(item.id)
                         }
                         saving={renameTask.isPending}
                         deactivating={deactivateTask.isPending}
+                        activating={activateTask.isPending}
                       />
                     ),
                   )
@@ -562,6 +660,33 @@ export function DepartmentCatalogPage({ kind }: { kind: CatalogKind }) {
           }
         }}
       />
+      <ConfirmActionDialog
+        open={pendingActivation !== null}
+        title="تأیید فعال‌سازی"
+        message={
+          pendingActivation
+            ? `آیا از فعال‌سازی «${pendingActivation.name}» مطمئن هستید؟`
+            : ""
+        }
+        confirmLabel="تأیید فعال‌سازی"
+        confirmColor="success"
+        pending={
+          activateSkill.isPending ||
+          activatePublicSkill.isPending ||
+          activateTask.isPending
+        }
+        onClose={() => setPendingActivation(null)}
+        onConfirm={() => {
+          if (!pendingActivation) return;
+          if (pendingActivation.kind === "publicSkill") {
+            activatePublicSkill.mutate(pendingActivation.id);
+          } else if (pendingActivation.kind === "skill") {
+            activateSkill.mutate(pendingActivation.id);
+          } else {
+            activateTask.mutate(pendingActivation.id);
+          }
+        }}
+      />
     </Stack>
   );
 }
@@ -575,9 +700,11 @@ function SkillRow({
   onSave,
   onCancel,
   onDeactivate,
+  onActivate,
   departmentName,
   saving,
   deactivating,
+  activating,
 }: {
   skill: JobDescriptionCatalog["skills"][number];
   editing: boolean;
@@ -587,13 +714,15 @@ function SkillRow({
   onSave: () => void;
   onCancel: () => void;
   onDeactivate: () => void;
+  onActivate: () => void;
   departmentName: string;
   saving: boolean;
   deactivating: boolean;
+  activating: boolean;
 }) {
   const departmentSkill = skill.departmentId !== null;
-  const canEdit = skill.canEdit;
-  const canDelete = skill.canDelete;
+  const canEdit = skill.isActive && skill.canEdit;
+  const canDelete = skill.isActive && skill.canDelete;
   return (
     <TableRow hover>
       <TableCell>
@@ -612,7 +741,21 @@ function SkillRow({
         {departmentSkill ? `اختصاصی - ${departmentName}` : "عمومی"}
       </TableCell>
       <TableCell align="left">
-        {canEdit || canDelete ? (
+        {!skill.isActive ? (
+          <Tooltip title="فعال‌سازی مهارت">
+            <span>
+              <IconButton
+                aria-label={`فعال‌سازی مهارت ${skill.name}`}
+                size="small"
+                color="success"
+                disabled={!skill.canEdit || activating}
+                onClick={onActivate}
+              >
+                <CheckCircleOutlineOutlinedIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+        ) : canEdit || canDelete ? (
           editing ? (
             <Stack
               direction="row"
@@ -684,9 +827,11 @@ function TaskRow({
   onSave,
   onCancel,
   onDeactivate,
+  onActivate,
   onRequiredSkills,
   saving,
   deactivating,
+  activating,
 }: {
   task: JobDescriptionCatalog["tasks"][number];
   editing: boolean;
@@ -696,9 +841,11 @@ function TaskRow({
   onSave: () => void;
   onCancel: () => void;
   onDeactivate: () => void;
+  onActivate: () => void;
   onRequiredSkills: () => void;
   saving: boolean;
   deactivating: boolean;
+  activating: boolean;
 }) {
   return (
     <TableRow hover>
@@ -740,26 +887,44 @@ function TaskRow({
           </Stack>
         ) : (
           <Stack direction="row" spacing={0.25}>
-            <Tooltip title="ویرایش وظیفه">
-              <IconButton
-                aria-label={`ویرایش وظیفه ${task.title}`}
-                size="small"
-                onClick={onStartEdit}
-              >
-                <EditOutlinedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="غیرفعال‌سازی وظیفه">
-              <IconButton
-                aria-label={`غیرفعال‌سازی وظیفه ${task.title}`}
-                size="small"
-                color="error"
-                disabled={deactivating}
-                onClick={onDeactivate}
-              >
-                <DeleteOutlineOutlinedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
+            {task.isActive ? (
+              <Tooltip title="ویرایش وظیفه">
+                <IconButton
+                  aria-label={`ویرایش وظیفه ${task.title}`}
+                  size="small"
+                  onClick={onStartEdit}
+                >
+                  <EditOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            ) : null}
+            {task.isActive ? (
+              <Tooltip title="غیرفعال‌سازی وظیفه">
+                <IconButton
+                  aria-label={`غیرفعال‌سازی وظیفه ${task.title}`}
+                  size="small"
+                  color="error"
+                  disabled={deactivating}
+                  onClick={onDeactivate}
+                >
+                  <DeleteOutlineOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            ) : (
+              <Tooltip title="فعال‌سازی وظیفه">
+                <span>
+                  <IconButton
+                    aria-label={`فعال‌سازی وظیفه ${task.title}`}
+                    size="small"
+                    color="success"
+                    disabled={activating}
+                    onClick={onActivate}
+                  >
+                    <CheckCircleOutlineOutlinedIcon fontSize="small" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            )}
           </Stack>
         )}
       </TableCell>

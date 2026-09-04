@@ -70,11 +70,25 @@ public interface IJobDescriptionCatalogReader
 
     Task<IReadOnlyList<SkillCatalogListItem>> ListSkillsAsync(
         IReadOnlyCollection<long> departmentIds,
+        bool includeInactive,
         CancellationToken cancellationToken);
 
     Task<IReadOnlyList<TaskCatalogListItem>> ListTasksAsync(
         IReadOnlyCollection<long> departmentIds,
         long? departmentId,
+        bool includeInactive,
+        CancellationToken cancellationToken);
+
+    Task<SkillCatalogItem?> FindSkillByNameAsync(
+        long? departmentId,
+        string name,
+        long? excludingId,
+        CancellationToken cancellationToken);
+
+    Task<TaskCatalogItem?> FindTaskByTitleAsync(
+        long departmentId,
+        string title,
+        long? excludingId,
         CancellationToken cancellationToken);
 
     Task<TaskCatalogItem?> GetTaskForUpdateAsync(long id, CancellationToken cancellationToken);
@@ -90,7 +104,7 @@ public interface IJobDescriptionCatalogReader
 
 public interface IHumanResourcesCatalogReader
 {
-    Task<IReadOnlyList<SkillCatalogListItem>> ListPublicSkillsAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<SkillCatalogListItem>> ListPublicSkillsAsync(bool includeInactive, CancellationToken cancellationToken);
     Task<SkillCatalogItem?> GetPublicSkillForUpdateAsync(long id, CancellationToken cancellationToken);
 }
 
@@ -99,9 +113,10 @@ public sealed record SkillCatalogListItem(
     long? DepartmentId,
     string Name,
     long? OwnerDepartmentId,
+    bool IsActive,
     IReadOnlyCollection<long> UsageDepartmentIds);
 
-public sealed record TaskCatalogListItem(long Id, long DepartmentId, string Title, bool IsProject, IReadOnlyCollection<long> RequiredSkillIds);
+public sealed record TaskCatalogListItem(long Id, long DepartmentId, string Title, bool IsProject, bool IsActive, IReadOnlyCollection<long> RequiredSkillIds);
 
 public sealed record ManagedDepartmentListItem(long Id, string Name, bool IsOwnDepartment);
 
@@ -113,7 +128,7 @@ public sealed record CreateTaskCommand(long DepartmentId, string Title, bool IsP
 
 public sealed record SetTaskRequiredSkillsCommand(long TaskId, IReadOnlyCollection<long> SkillIds);
 
-public enum CatalogOperationStatus { Succeeded, Invalid, NotFound, Forbidden, Conflict }
+public enum CatalogOperationStatus { Succeeded, Invalid, NotFound, Forbidden, Conflict, Duplicate, InactiveDuplicate }
 
 public sealed record CatalogOperationResult(CatalogOperationStatus Status, long? Id = null);
 

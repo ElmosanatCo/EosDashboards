@@ -96,6 +96,7 @@ public sealed class ManageJobDescriptions(
         long actorUserId,
         IReadOnlyCollection<long> managedDepartmentIds,
         long? departmentId,
+        bool includeInactive,
         CancellationToken cancellationToken)
     {
         if (actorUserId <= 0 || managedDepartmentIds.Count == 0 ||
@@ -107,8 +108,9 @@ public sealed class ManageJobDescriptions(
         return (
             await catalog.ListSkillsAsync(
                 departmentId is { } selectedDepartmentId ? [selectedDepartmentId] : managedDepartmentIds,
+                includeInactive,
                 cancellationToken),
-            await catalog.ListTasksAsync(managedDepartmentIds, departmentId, cancellationToken));
+            await catalog.ListTasksAsync(managedDepartmentIds, departmentId, includeInactive, cancellationToken));
     }
 
     public async Task<JobDescriptionOperationResult> CreateAsync(

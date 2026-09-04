@@ -28,10 +28,13 @@ public static class JobDescriptionEndpoints
         group.MapPut("/catalog/tasks/{taskId:long}/required-skills", SetRequiredSkillsAsync);
         group.MapPut("/catalog/public-skills/{skillId:long}", RenamePublicSkillAsync);
         group.MapDelete("/catalog/public-skills/{skillId:long}", DeactivatePublicSkillAsync);
+        group.MapPut("/catalog/public-skills/{skillId:long}/active", ActivatePublicSkillAsync);
         group.MapPut("/catalog/skills/{skillId:long}", RenameDepartmentSkillAsync);
         group.MapDelete("/catalog/skills/{skillId:long}", DeactivateDepartmentSkillAsync);
+        group.MapPut("/catalog/skills/{skillId:long}/active", ActivateDepartmentSkillAsync);
         group.MapPut("/catalog/tasks/{taskId:long}", RenameDepartmentTaskAsync);
         group.MapDelete("/catalog/tasks/{taskId:long}", DeactivateDepartmentTaskAsync);
+        group.MapPut("/catalog/tasks/{taskId:long}/active", ActivateDepartmentTaskAsync);
         group.MapPost("", CreateAsync);
         group.MapPost("/import", ImportAsync);
         group.MapPut("/{versionId:long}", ReviseAsync);
@@ -77,11 +80,12 @@ public static class JobDescriptionEndpoints
         ManageJobDescriptions manager,
         IJobDescriptionScope scope,
         long? departmentId = null,
+        bool includeInactive = false,
         CancellationToken token = default)
     {
         if (!TryActor(context, out var actor)) return Unauthorized(context);
         var managedDepartments = await scope.GetManagedDepartmentIdsAsync(actor, token);
-        var catalog = await manager.ListCatalogAsync(actor, managedDepartments, departmentId, token);
+        var catalog = await manager.ListCatalogAsync(actor, managedDepartments, departmentId, includeInactive, token);
         if (catalog is null)
             return Problem(context, 403, "department_scope_forbidden", "The selected department is outside your management scope.");
 
@@ -91,11 +95,12 @@ public static class JobDescriptionEndpoints
             skill.Name,
             skill.OwnerDepartmentId,
             skill.UsageDepartmentIds.Count,
+            skill.IsActive,
             CanManagerEditSkill(skill, managedDepartments),
             CanManagerEditSkill(skill, managedDepartments))).ToArray();
         return Results.Ok(new JobDescriptionCatalogResponse(
             skills,
-            catalog.Value.Tasks.Select(task => new TaskCatalogResponse(task.Id, task.DepartmentId, task.Title, task.IsProject, task.RequiredSkillIds)).ToArray()));
+            catalog.Value.Tasks.Select(task => new TaskCatalogResponse(task.Id, task.DepartmentId, task.Title, task.IsProject, task.IsActive, task.RequiredSkillIds)).ToArray()));
     }
 
     private static async Task<IResult> ManagedDepartmentsAsync(
@@ -121,15 +126,19 @@ public static class JobDescriptionEndpoints
                 Workflow(item.WorkflowStatus), Quality(item.QualityStatus), item.UpdatedAt)).ToArray());
     }
 
-    private static async Task<IResult> HumanResourcesCatalogAsync(HttpContext context, ManageCatalog catalog, CancellationToken token)
+    private static async Task<IResult> HumanResourcesCatalogAsync(
+        HttpContext context,
+        ManageCatalog catalog,
+        bool includeInactive = false,
+        CancellationToken token = default)
     {
         if (!TryActor(context, out var actor)) return Unauthorized(context);
-        var skills = await catalog.ListPublicSkillsAsync(actor, token);
+        var skills = await catalog.ListPublicSkillsAsync(actor, includeInactive, token);
         return skills is null
             ? Problem(context, 403, "human_resources_forbidden", "Human Resources catalog access is required.")
             : Results.Ok(skills.Select(skill => new SkillCatalogResponse(
                 skill.Id, skill.DepartmentId, skill.Name, skill.OwnerDepartmentId,
-                skill.UsageDepartmentIds.Count, true, true)).ToArray());
+                skill.UsageDepartmentIds.Count, skill.IsActive, true, true)).ToArray());
     }
 
     private static async Task<IResult> DetailAsync(long versionId, HttpContext context, ManageJobDescriptions manager, CancellationToken token)
@@ -199,6 +208,12 @@ public static class JobDescriptionEndpoints
         return CatalogResult(context, await catalog.DeactivatePublicSkillAsync(actor, skillId, token));
     }
 
+    private static async Task<IResult> ActivatePublicSkillAsync(long skillId, HttpContext context, ManageCatalog catalog, CancellationToken token)
+    {
+        if (!TryActor(context, out var actor)) return Unauthorized(context);
+        return CatalogResult(context, await catalog.ActivatePublicSkillAsync(actor, skillId, token));
+    }
+
     private static async Task<IResult> RenameDepartmentSkillAsync(long skillId, HttpContext context, UpdateCatalogNameRequest request, ManageCatalog catalog, CancellationToken token)
     {
         if (!TryActor(context, out var actor)) return Unauthorized(context);
@@ -209,6 +224,12 @@ public static class JobDescriptionEndpoints
     {
         if (!TryActor(context, out var actor)) return Unauthorized(context);
         return CatalogResult(context, await catalog.DeactivateDepartmentSkillAsync(actor, skillId, token));
+    }
+
+    private static async Task<IResult> ActivateDepartmentSkillAsync(long skillId, HttpContext context, ManageCatalog catalog, CancellationToken token)
+    {
+        if (!TryActor(context, out var actor)) return Unauthorized(context);
+        return CatalogResult(context, await catalog.ActivateDepartmentSkillAsync(actor, skillId, token));
     }
 
     private static async Task<IResult> RenameDepartmentTaskAsync(long taskId, HttpContext context, UpdateCatalogNameRequest request, ManageCatalog catalog, CancellationToken token)
@@ -223,11 +244,19 @@ public static class JobDescriptionEndpoints
         return CatalogResult(context, await catalog.DeactivateDepartmentTaskAsync(actor, taskId, token));
     }
 
+    private static async Task<IResult> ActivateDepartmentTaskAsync(long taskId, HttpContext context, ManageCatalog catalog, CancellationToken token)
+    {
+        if (!TryActor(context, out var actor)) return Unauthorized(context);
+        return CatalogResult(context, await catalog.ActivateDepartmentTaskAsync(actor, taskId, token));
+    }
+
     private static IResult CatalogResult(HttpContext context, CatalogOperationResult result) => result.Status switch
     {
         CatalogOperationStatus.Succeeded => Results.Ok(new { id = result.Id }),
         CatalogOperationStatus.NotFound => Problem(context, 404, "catalog_item_not_found", "The catalog item was not found."),
         CatalogOperationStatus.Forbidden => Problem(context, 403, "catalog_scope_forbidden", "You are not authorized for this department catalog."),
+        CatalogOperationStatus.Duplicate => Problem(context, 409, "catalog_duplicate", "The catalog name is already in use."),
+        CatalogOperationStatus.InactiveDuplicate => Problem(context, 409, "catalog_inactive_duplicate", "An inactive catalog item already uses this name."),
         CatalogOperationStatus.Conflict => Problem(context, 409, "catalog_conflict", "The catalog item has changed."),
         _ => Problem(context, 400, "invalid_catalog_request", "The catalog request is invalid."),
     };

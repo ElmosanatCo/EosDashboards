@@ -115,6 +115,15 @@ export function createAppTheme(mode: PaletteMode, palette: PaletteId) {
               fontFamily:
                 '"Sahel FD", Vazirmatn, "Segoe UI", sans-serif !important',
             },
+            ".eos-management-list-text": {
+              fontFamily: 'Vazirmatn, "Segoe UI", sans-serif',
+              fontSize: "0.875rem",
+              lineHeight: 1.43,
+            },
+            ".eos-management-table .MuiTableCell-root": {
+              paddingTop: 12,
+              paddingBottom: 12,
+            },
             body: { margin: 0, minWidth: 320 },
             "*, *::before, *::after": {
               scrollbarColor: `${paletteColors.primary.dark} ${paletteColors.background.default}`,

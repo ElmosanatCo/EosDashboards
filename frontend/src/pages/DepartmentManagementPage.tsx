@@ -160,14 +160,15 @@ function DepartmentNode({
           alignItems: "center",
           pr: depth * 4,
           pl: 1.5,
-          py: 1.25,
+          py: 1.5,
           borderBottom: 1,
           borderColor: "divider",
         }}
       >
         <AccountTreeOutlinedIcon color={depth === 0 ? "primary" : "action"} />
         <Typography
-          className="eos-persian-number"
+          className="eos-management-list-text"
+          variant="body2"
           sx={{ flex: 1, fontWeight: depth === 0 ? 650 : 400 }}
         >
           {item.name}

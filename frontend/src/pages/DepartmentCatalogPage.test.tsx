@@ -1,9 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AuthenticatedUser } from "../features/auth/authTypes";
-import { jobDescriptionsApi } from "../features/jobDescriptions/jobDescriptionsApi";
+import {
+  jobDescriptionsApi,
+  type JobDescriptionCatalog,
+} from "../features/jobDescriptions/jobDescriptionsApi";
 import { DepartmentCatalogPage } from "./DepartmentCatalogPage";
 
 vi.mock("../app/providers/AuthProvider", () => ({
@@ -20,6 +23,9 @@ vi.mock("../features/jobDescriptions/jobDescriptionsApi", async () => {
       ...actual.jobDescriptionsApi,
       managedDepartments: vi.fn(),
       catalog: vi.fn(),
+      createSkill: vi.fn(),
+      activateDepartmentSkill: vi.fn(),
+      activateDepartmentTask: vi.fn(),
       deactivateDepartmentSkill: vi.fn(),
       deactivatePublicSkill: vi.fn(),
       deactivateDepartmentTask: vi.fn(),
@@ -63,15 +69,27 @@ beforeEach(() => {
         name: "مهارت عمومی",
         ownerDepartmentId: 1,
         usageDepartmentCount: 1,
+        isActive: true,
         canEdit: true,
         canDelete: true,
       },
+      {
+        id: 200,
+        departmentId: 1,
+        name: "مهارت غیرفعال",
+        ownerDepartmentId: null,
+        usageDepartmentCount: 0,
+        canEdit: true,
+        canDelete: true,
+        isActive: false,
+      } as unknown as JobDescriptionCatalog["skills"][number],
       ...Array.from({ length: 30 }, (_, index) => ({
         id: index + 1,
         departmentId: index % 2 === 0 ? 1 : 2,
         name: `مهارت ${index + 1}`,
         ownerDepartmentId: null,
         usageDepartmentCount: 0,
+        isActive: true,
         canEdit: true,
         canDelete: true,
       })),
@@ -81,6 +99,7 @@ beforeEach(() => {
       departmentId: 1,
       title: `وظیفه ${index + 1}`,
       isProject: index % 2 === 0,
+      isActive: true,
       requiredSkillIds: index === 0 ? [1, 2] : [],
     })),
   });
@@ -169,6 +188,14 @@ describe("DepartmentCatalogPage", () => {
     });
   });
 
+  it("uses the shared management-table rhythm for catalog rows", async () => {
+    renderPage("skills");
+
+    expect(
+      await screen.findByRole("table", { name: "فهرست مهارت‌ها" }),
+    ).toHaveClass("eos-management-table");
+  });
+
   it("requires confirmation before deactivating a catalog task", async () => {
     const userActions = userEvent.setup();
     renderPage("tasks");
@@ -193,5 +220,104 @@ describe("DepartmentCatalogPage", () => {
       screen.getByRole("button", { name: "تأیید غیرفعال‌سازی" }),
     );
     expect(jobDescriptionsApi.deactivateDepartmentTask).toHaveBeenCalledWith(1);
+  });
+
+  it("shows a clear error when creating a duplicate skill fails", async () => {
+    const userActions = userEvent.setup();
+    vi.mocked(jobDescriptionsApi.createSkill).mockRejectedValueOnce({
+      code: "catalog_duplicate",
+      status: 409,
+    });
+    renderPage("skills");
+
+    await screen.findByRole("heading", { name: "کاتالوگ مهارت‌ها" });
+    await userActions.type(
+      screen.getByRole("textbox", { name: "مهارت اختصاصی جدید" }),
+      "مهارت تکراری",
+    );
+    await userActions.click(screen.getByRole("button", { name: "افزودن" }));
+
+    expect(
+      await screen.findByText("این نام قبلاً در کاتالوگ ثبت شده است."),
+    ).toBeInTheDocument();
+  });
+
+  it("filters inactive skills and offers reactivation", async () => {
+    const userActions = userEvent.setup();
+    renderPage("skills");
+
+    await screen.findByRole("heading", { name: "کاتالوگ مهارت‌ها" });
+    expect(screen.queryByText("مهارت غیرفعال")).not.toBeInTheDocument();
+
+    await userActions.click(screen.getByRole("combobox", { name: "وضعیت" }));
+    await userActions.click(
+      await screen.findByRole("option", { name: "غیرفعال" }),
+    );
+
+    expect(await screen.findByText("مهارت غیرفعال")).toBeInTheDocument();
+    await userActions.click(
+      screen.getByRole("button", { name: "فعال‌سازی مهارت مهارت غیرفعال" }),
+    );
+    expect(
+      await screen.findByRole("heading", { name: "تأیید فعال‌سازی" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("آیا از فعال‌سازی «مهارت غیرفعال» مطمئن هستید؟"),
+    ).toBeInTheDocument();
+    await userActions.click(screen.getByRole("button", { name: "انصراف" }));
+    expect(jobDescriptionsApi.activateDepartmentSkill).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("heading", { name: "تأیید فعال‌سازی" }),
+      ).not.toBeInTheDocument(),
+    );
+
+    await userActions.click(
+      screen.getByRole("button", { name: "فعال‌سازی مهارت مهارت غیرفعال" }),
+    );
+    await userActions.click(
+      screen.getByRole("button", { name: "تأیید فعال‌سازی" }),
+    );
+    expect(jobDescriptionsApi.activateDepartmentSkill).toHaveBeenCalledWith(
+      200,
+    );
+  });
+
+  it("requires confirmation before reactivating a catalog task", async () => {
+    const userActions = userEvent.setup();
+    const inactiveTaskCatalog: JobDescriptionCatalog = {
+      skills: [],
+      tasks: [
+        {
+          id: 300,
+          departmentId: 1,
+          title: "وظیفه غیرفعال",
+          isProject: false,
+          isActive: false,
+          requiredSkillIds: [],
+        },
+      ],
+    };
+    vi.mocked(jobDescriptionsApi.catalog)
+      .mockResolvedValueOnce(inactiveTaskCatalog)
+      .mockResolvedValueOnce(inactiveTaskCatalog);
+    renderPage("tasks");
+
+    await screen.findByRole("heading", { name: "کاتالوگ وظایف" });
+    await userActions.click(screen.getByRole("combobox", { name: "وضعیت" }));
+    await userActions.click(
+      await screen.findByRole("option", { name: "غیرفعال" }),
+    );
+    await userActions.click(
+      screen.getByRole("button", { name: "فعال‌سازی وظیفه وظیفه غیرفعال" }),
+    );
+
+    expect(
+      await screen.findByRole("heading", { name: "تأیید فعال‌سازی" }),
+    ).toBeInTheDocument();
+    await userActions.click(
+      screen.getByRole("button", { name: "تأیید فعال‌سازی" }),
+    );
+    expect(jobDescriptionsApi.activateDepartmentTask).toHaveBeenCalledWith(300);
   });
 });

@@ -105,8 +105,10 @@ public sealed class ManageJobDescriptionsTests
     private sealed class TestCatalog : IJobDescriptionCatalogReader
     {
         public Task<bool> AreValidSelectionsAsync(long departmentId, IReadOnlyCollection<long> skillIds, IReadOnlyCollection<long> taskCatalogItemIds, CancellationToken cancellationToken) => Task.FromResult(departmentId == 1 && skillIds.Contains(20) && taskCatalogItemIds.Contains(10));
-        public Task<IReadOnlyList<SkillCatalogListItem>> ListSkillsAsync(IReadOnlyCollection<long> departmentIds, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<SkillCatalogListItem>>([]);
-        public Task<IReadOnlyList<TaskCatalogListItem>> ListTasksAsync(IReadOnlyCollection<long> departmentIds, long? departmentId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<TaskCatalogListItem>>([]);
+        public Task<IReadOnlyList<SkillCatalogListItem>> ListSkillsAsync(IReadOnlyCollection<long> departmentIds, bool includeInactive, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<SkillCatalogListItem>>([]);
+        public Task<IReadOnlyList<TaskCatalogListItem>> ListTasksAsync(IReadOnlyCollection<long> departmentIds, long? departmentId, bool includeInactive, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<TaskCatalogListItem>>([]);
+        public Task<SkillCatalogItem?> FindSkillByNameAsync(long? departmentId, string name, long? excludingId, CancellationToken cancellationToken) => Task.FromResult<SkillCatalogItem?>(null);
+        public Task<TaskCatalogItem?> FindTaskByTitleAsync(long departmentId, string title, long? excludingId, CancellationToken cancellationToken) => Task.FromResult<TaskCatalogItem?>(null);
         public Task<TaskCatalogItem?> GetTaskForUpdateAsync(long id, CancellationToken cancellationToken) => Task.FromResult<TaskCatalogItem?>(null);
         public Task<SkillCatalogItem?> GetSkillForUpdateAsync(long id, CancellationToken cancellationToken) => Task.FromResult<SkillCatalogItem?>(null);
         public Task<IReadOnlyCollection<long>> GetSkillUsageDepartmentIdsAsync(long skillId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyCollection<long>>([]);
