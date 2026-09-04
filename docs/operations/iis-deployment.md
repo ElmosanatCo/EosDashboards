@@ -6,6 +6,11 @@ For the Persian production migration guide, including Migration Bundle creation,
 server execution, Connection String templates, and the safe release order, see
 [`production-database-migration-fa.md`](production-database-migration-fa.md).
 
+For the Persian multi-site production installation procedure, including IIS
+bindings, separate application pools, artifact directories, configuration,
+smoke tests, and rollback, see
+[`production-iis-installation-fa.md`](production-iis-installation-fa.md).
+
 ## Publish
 
 Run the publish commands from the repository root, or use absolute paths for
