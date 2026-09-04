@@ -73,6 +73,7 @@ Before finishing a task, update the appropriate canonical document when a durabl
 - Verify changes in proportion to risk and report what was checked.
 - Keep development and token use cost-conscious: use the smallest sufficient test set during implementation, avoid repeated full-suite runs, and reserve full verification for meaningful checkpoints such as task completion, integration, or publication. Read only task-relevant files, avoid redundant scans and repeated diagnostics, and do not rerun a successful command unless code, configuration, environment, or the claim being verified changed.
 - Do not use subagents, parallel review loops, or repeated independent reviews unless the user explicitly requests them or a concrete high-risk blocker cannot be resolved efficiently in the primary task.
+- Use Inline Execution as the default workflow for this project. Do not suggest Subagent-Driven execution unless the user explicitly requests it.
 - Prefer focused tests for changed behavior and critical security boundaries; do not add redundant, low-value, or coverage-only tests.
 - Keep files focused so future tasks can load only relevant context.
 - Treat Persian and every other non-ASCII value as Unicode end-to-end. At a cross-process, file, database, or web-service boundary, explicitly select UTF-8 or the destination's documented Unicode encoding; never depend on a Windows console code page or process default.

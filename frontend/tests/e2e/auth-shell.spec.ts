@@ -77,7 +77,77 @@ test("local credential OTP opens the authenticated shell and logout returns to s
   await page.getByRole("button", { name: "ورود و دریافت کد تأیید" }).click();
   await page.getByLabel("کد شش‌رقمی").fill("۱۲۳۴۵۶");
   await page.getByRole("button", { name: "تأیید کد" }).click();
-  await expect(page.getByText("داده‌ای برای نمایش وجود ندارد.")).toBeVisible();
+  const homeWorkspace = page.getByTestId("home-workspace");
+  for (const heading of [
+    "فضای کاری مدیریت",
+    "امکانات در اختیار شما",
+    "کارهایی که می‌توانید انجام دهید",
+    "هشدارها و کارهای نیازمند اقدام",
+    "ادامهٔ کار",
+    "امکانات آینده",
+  ]) {
+    await expect(
+      homeWorkspace.getByRole("heading", { name: heading, exact: true }),
+    ).toBeVisible();
+  }
+  await expect(
+    homeWorkspace.getByText("مدیر سامانه", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    homeWorkspace.getByText("واحد: نرم افزار", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    homeWorkspace.getByText(
+      "در این فضا می‌توانید کاربران، واحدها و رویدادهای امنیتی سامانه را مدیریت کنید.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(
+    homeWorkspace.getByText("برای جست‌وجوی سراسری، Ctrl+K را فشار دهید.", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  const capabilities = page.getByRole("region", {
+    name: "امکانات در اختیار شما",
+  });
+  for (const title of [
+    "داشبورد مدیر سامانه",
+    "مدیریت کاربران",
+    "مدیریت واحدها",
+    "ممیزی سامانه",
+  ]) {
+    const capabilityCard = capabilities
+      .locator(".eos-accent-card")
+      .filter({ hasText: title });
+    await expect(capabilityCard).toHaveCount(1);
+    await expect(capabilityCard.locator("p").first()).toHaveText(title);
+  }
+  const actions = page.getByRole("region", {
+    name: "کارهایی که می‌توانید انجام دهید",
+  });
+  for (const [title, action] of [
+    ["داشبورد مدیر سامانه", "مشاهده داشبورد"],
+    ["مدیریت کاربران", "مدیریت کاربران"],
+    ["مدیریت واحدها", "مدیریت واحدها"],
+    ["ممیزی سامانه", "مشاهده رویدادها"],
+  ]) {
+    await expect(
+      actions
+        .locator(".eos-accent-card")
+        .filter({ hasText: title })
+        .getByRole("button", { name: action }),
+    ).toBeVisible();
+  }
+  await expect(
+    page.getByText("در حال حاضر موردی برای پیگیری ثبت نشده است.", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("با فعال شدن قابلیت‌های جدید، این بخش تکمیل می‌شود.", {
+      exact: true,
+    }),
+  ).toBeVisible();
   await expect(page.locator("header").getByAltText("EOS")).toBeVisible();
   await expect(page.locator("header").getByText("علم و صنعت")).toBeVisible();
   await expect(
@@ -96,6 +166,22 @@ test("local credential OTP opens the authenticated shell and logout returns to s
   await searchResults.getByRole("button", { name: "داشبورد بخش" }).click();
   await expect(
     page.getByRole("heading", { name: "داشبورد بخش" }),
+  ).toBeVisible();
+  await page.getByRole("tab", { name: "خانه" }).click();
+  await capabilities.getByRole("button", { name: "مدیریت کاربران" }).click();
+  await expect(
+    page.getByRole("heading", { name: "مدیریت کاربران" }),
+  ).toBeVisible();
+  await page.getByRole("tab", { name: "خانه" }).click();
+  const continuation = page.getByRole("region", { name: "ادامهٔ کار" });
+  await expect(
+    continuation.getByRole("button", { name: "ادامه: مدیریت کاربران" }),
+  ).toBeVisible();
+  await continuation
+    .getByRole("button", { name: "ادامه: مدیریت کاربران" })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "مدیریت کاربران" }),
   ).toBeVisible();
   await page.getByRole("tab", { name: "خانه" }).click();
   const mainBounds = await page.locator("main").evaluate((element) => {
@@ -168,6 +254,81 @@ test("local credential OTP opens the authenticated shell and logout returns to s
     page.getByRole("navigation", { name: "منوی اصلی" }),
   ).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
+  await expect(homeWorkspace).toBeVisible();
+  const mobileHomeLayout = await homeWorkspace.evaluate((element) => {
+    const bounds = element.getBoundingClientRect();
+    const cards = Array.from(element.querySelectorAll(".eos-accent-card")).map(
+      (card) => {
+        const cardBounds = card.getBoundingClientRect();
+        return { left: cardBounds.left, right: cardBounds.right };
+      },
+    );
+    const actionButtons = Array.from(
+      element
+        .querySelector('section[aria-label="کارهایی که می‌توانید انجام دهید"]')
+        ?.querySelectorAll("button") ?? [],
+    ).map((button) => {
+      const buttonBounds = button.getBoundingClientRect();
+      return { left: buttonBounds.left, right: buttonBounds.right };
+    });
+    const capabilityCards = Array.from(
+      element
+        .querySelector('section[aria-label="امکانات در اختیار شما"]')
+        ?.querySelectorAll(".eos-accent-card") ?? [],
+    );
+    const actionCards = Array.from(
+      element
+        .querySelector('section[aria-label="کارهایی که می‌توانید انجام دهید"]')
+        ?.querySelectorAll(".eos-accent-card") ?? [],
+    );
+    const rowCount = (items: Element[]) =>
+      new Set(items.map((item) => Math.round(item.getBoundingClientRect().top)))
+        .size;
+    const actionsBelowTitles = actionCards.map((card) => {
+      const title = card.querySelector("p");
+      const button = card.querySelector("button");
+      if (!title || !button) return false;
+      return (
+        button.getBoundingClientRect().top >
+        title.getBoundingClientRect().bottom
+      );
+    });
+    return {
+      width: bounds.width,
+      scrollWidth: element.scrollWidth,
+      clientWidth: element.clientWidth,
+      cards,
+      actionButtons,
+      capabilityCardCount: capabilityCards.length,
+      capabilityRowCount: rowCount(capabilityCards),
+      actionCardCount: actionCards.length,
+      actionRowCount: rowCount(actionCards),
+      actionsBelowTitles,
+    };
+  });
+  const mobileDocumentLayout = await page.evaluate(() => ({
+    viewportWidth: window.innerWidth,
+    documentScrollWidth: document.documentElement.scrollWidth,
+    bodyScrollWidth: document.body.scrollWidth,
+  }));
+  expect(mobileDocumentLayout.viewportWidth).toBe(390);
+  expect(mobileDocumentLayout.documentScrollWidth).toBe(390);
+  expect(mobileDocumentLayout.bodyScrollWidth).toBe(390);
+  expect(mobileHomeLayout.width).toBeLessThanOrEqual(390);
+  expect(mobileHomeLayout.scrollWidth).toBe(mobileHomeLayout.clientWidth);
+  expect(mobileHomeLayout.capabilityCardCount).toBe(5);
+  expect(mobileHomeLayout.capabilityRowCount).toBeGreaterThan(1);
+  expect(mobileHomeLayout.actionCardCount).toBe(5);
+  expect(mobileHomeLayout.actionRowCount).toBeGreaterThan(1);
+  expect(mobileHomeLayout.actionsBelowTitles.every(Boolean)).toBe(true);
+  expect(
+    mobileHomeLayout.cards.every((card) => card.left >= 0 && card.right <= 390),
+  ).toBe(true);
+  expect(
+    mobileHomeLayout.actionButtons.every(
+      (button) => button.left >= 0 && button.right <= 390,
+    ),
+  ).toBe(true);
   await page.getByRole("button", { name: "باز و بسته کردن منو" }).click();
   await expect(
     page.getByRole("navigation", { name: "منوی اصلی" }),
@@ -349,7 +510,9 @@ test("a strict-mode bootstrap restores a session with one refresh request", asyn
 
   await page.goto("/");
 
-  await expect(page.getByText("داده‌ای برای نمایش وجود ندارد.")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "فضای کاری مدیریت" }),
+  ).toBeVisible();
   expect(refreshRequests).toBe(1);
 });
 
