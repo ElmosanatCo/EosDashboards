@@ -11,6 +11,9 @@ bindings, separate application pools, artifact directories, configuration,
 smoke tests, and rollback, see
 [`production-iis-installation-fa.md`](production-iis-installation-fa.md).
 
+The English version is available at
+[`production-iis-installation-en.md`](production-iis-installation-en.md).
+
 ## Publish
 
 Run the publish commands from the repository root, or use absolute paths for
