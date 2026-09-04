@@ -187,15 +187,29 @@ Deployment داده شود. Connection String اجرای Migration نیز در �
 Set-Location C:\EosDashboards\Deployments\<release-id>
 ```
 
-4. Connection String را از Secret Store یا سازوکار امن CI/CD دریافت کنید؛ آن
-   را در فایل، History ترمینال یا Log چاپ نکنید.
+4. Connection String را از فایل سروری
+   `appsettings.Production.json` بخوانید و آن را در فایل، History ترمینال یا
+   Log چاپ نکنید:
+
+```powershell
+$apiConfigPath = "D:\IIS\EosDashboards\Api\releases\<release-id>\appsettings.Production.json"
+$apiConfig = Get-Content $apiConfigPath -Raw | ConvertFrom-Json
+$dbConnection = $apiConfig.ConnectionStrings.EosDashboard
+```
+
 5. Bundle را اجرا کنید:
 
 ```powershell
 & .\EosDashboards.Migrations.exe --connection $dbConnection
 ```
 
-6. فقط در صورت موفقیت کامل، آخرین Migration ثبت‌شده در
+6. متغیرهای حاوی مقدار محرمانه را از حافظهٔ PowerShell پاک کنید:
+
+```powershell
+Remove-Variable dbConnection,apiConfig,apiConfigPath
+```
+
+7. فقط در صورت موفقیت کامل، آخرین Migration ثبت‌شده در
    `__EFMigrationsHistory` را بررسی کنید.
 
 جزئیات قالب Connection String و Bundle در

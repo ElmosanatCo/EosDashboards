@@ -37,7 +37,7 @@ owners:
 2. The certificate and its renewal owner.
 3. The IIS site, application, and pool names assigned to EosDashboards.
 4. The API Windows/service identity and the separate deployment identity.
-5. The secure location used for production secrets.
+5. The API release folder and ACL policy for `appsettings.Production.json`.
 6. The SQL Server and database name.
 7. The approved backup and restore procedure.
 8. The installed ASP.NET Core Hosting Bundle version.
@@ -190,8 +190,8 @@ for rollback. Do not overwrite the active release in place.
 ## 7. Where each secret belongs
 
 The API reads these configuration sections. The exact production values must be
-in a server-side Secret Store, protected configuration provider, or secure CI/CD
-secret variable. They must not be in Git or the browser-delivered UI artifact.
+in the server-side `appsettings.Production.json` file with a restrictive ACL.
+They must not be in Git or the browser-delivered UI artifact.
 
 | Configuration key | Used by | Store it in | Never put it in |
 | --- | --- | --- | --- |
@@ -222,9 +222,8 @@ ApiSecurity__AllowedOrigins__0=https://dashboards.<company-domain>
 
 The double underscore form above is only the ASP.NET Core environment-variable
 equivalent; it is not required for this deployment. The JSON appsettings file
-is the source of runtime configuration. If the company later uses a Secret
-Store, it may generate or protect that server-side file, but the API must still
-receive the same keys and sections shown in the tracked template.
+is the source of runtime configuration and must contain the same keys and
+sections shown in the tracked template.
 
 The repository contains the complete configuration template at
 `backend/src/EosDashboards.Api/appsettings.Production.template.json`. Before
@@ -275,19 +274,32 @@ fallback configuration before deployment.
 Set-Location D:\IIS\EosDashboards\Deployments\<release-id>
 ```
 
-3. Obtain the database connection from the approved Secret Store. Do not type
-   it into a source file or print it to the console.
-4. Run the migration bundle:
+3. Load the database connection from the API's server-side appsettings file
+   without printing it or putting it in a source file:
+
+```powershell
+$apiConfigPath = "D:\IIS\EosDashboards\Api\releases\<release-id>\appsettings.Production.json"
+$apiConfig = Get-Content $apiConfigPath -Raw | ConvertFrom-Json
+$dbConnection = $apiConfig.ConnectionStrings.EosDashboard
+```
+
+4. Run the migration bundle without echoing the command:
 
 ```powershell
 & .\EosDashboards.Migrations.exe --connection $dbConnection
 ```
 
-5. Verify that the command completed successfully and that the expected latest
-   migration exists in `__EFMigrationsHistory`.
-6. Only after migration success, point the API application to the new API
-   release and start the API pool.
-7. Point the UI application to the new UI release and start the UI pool.
+5. Clear the in-memory variables after the migration:
+
+```powershell
+Remove-Variable dbConnection,apiConfig,apiConfigPath
+```
+
+6. Verify that the command completed successfully and that the expected latest
+migration exists in `__EFMigrationsHistory`.
+7. Only after migration success, point the API application to the new API
+release and start the API pool.
+8. Point the UI application to the new UI release and start the UI pool.
 
 If migration fails, do not activate the new API. The API does not apply schema
 migrations at startup. A normal API rollback does not automatically undo a
@@ -333,11 +345,10 @@ If the new release fails:
 - [ ] UI `dist` output copied as a complete folder, including `index.html`,
       `assets`, and `web.config`.
 - [ ] API, UI, and Migration Bundle came from the same commit.
-- [ ] Production secrets are injected server-side and are absent from Git and UI.
+- [ ] Production values are in server-side `appsettings.Production.json` and absent from Git and UI.
 - [ ] Data Protection Key Ring is stable and outside the web root.
 - [ ] Database backup is verified.
 - [ ] Migration succeeded with the deployment identity.
 - [ ] API and UI use separate pools with least-privilege identities.
-- [ ] Health, UI load, internal-route refresh, login, OTP, refresh, and logout
-      checks passed.
-- [ ] Previous versioned release folders remain available for rollback.
+- [ ] Health, UI, route-refresh, login, OTP, refresh, and logout checks passed.
+- [ ] Previous release folders remain available for rollback.
