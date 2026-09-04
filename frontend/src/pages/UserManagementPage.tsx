@@ -82,7 +82,7 @@ export function UserManagementPage() {
             <CircularProgress aria-label="در حال دریافت کاربران" />
           </Box>
         ) : (
-          <Table aria-label="فهرست کاربران">
+          <Table className="eos-management-table" aria-label="فهرست کاربران">
             <TableHead>
               <TableRow>
                 <TableCell>نام و نام خانوادگی</TableCell>
@@ -97,10 +97,7 @@ export function UserManagementPage() {
             <TableBody>
               {users.data?.items.map((user) => (
                 <TableRow key={user.id} hover>
-                  <TableCell
-                    className="eos-persian-number"
-                    sx={{ fontWeight: 600 }}
-                  >
+                  <TableCell sx={{ fontWeight: 600 }}>
                     {user.firstName} {user.lastName}
                   </TableCell>
                   <TableCell className="eos-persian-number">
@@ -109,9 +106,7 @@ export function UserManagementPage() {
                   <TableCell className="eos-persian-number" dir="ltr">
                     {user.username ?? user.personnelCode}
                   </TableCell>
-                  <TableCell className="eos-persian-number">
-                    {user.departmentName ?? "—"}
-                  </TableCell>
+                  <TableCell>{user.departmentName ?? "—"}</TableCell>
                   <TableCell className="eos-persian-number" dir="ltr">
                     {user.maskedMobile}
                   </TableCell>

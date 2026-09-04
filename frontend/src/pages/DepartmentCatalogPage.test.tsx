@@ -188,6 +188,14 @@ describe("DepartmentCatalogPage", () => {
     });
   });
 
+  it("uses the shared management-table rhythm for catalog rows", async () => {
+    renderPage("skills");
+
+    expect(
+      await screen.findByRole("table", { name: "فهرست مهارت‌ها" }),
+    ).toHaveClass("eos-management-table");
+  });
+
   it("requires confirmation before deactivating a catalog task", async () => {
     const userActions = userEvent.setup();
     renderPage("tasks");

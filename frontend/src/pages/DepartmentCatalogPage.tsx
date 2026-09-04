@@ -444,6 +444,7 @@ export function DepartmentCatalogPage({ kind }: { kind: CatalogKind }) {
             sx={{ flex: 1, minHeight: 0, maxHeight: "none" }}
           >
             <Table
+              className="eos-management-table"
               stickyHeader
               aria-label={kind === "skills" ? "فهرست مهارت‌ها" : "فهرست وظایف"}
             >

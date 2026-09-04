@@ -229,11 +229,7 @@ export function UserFormPage({
               onChange={(e) => update("departmentId", e.target.value)}
             >
               {departments.data?.map((item) => (
-                <MenuItem
-                  key={item.id}
-                  value={String(item.id)}
-                  className="eos-persian-number"
-                >
+                <MenuItem key={item.id} value={String(item.id)}>
                   {item.name}
                 </MenuItem>
               ))}

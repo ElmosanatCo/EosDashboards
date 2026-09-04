@@ -48,6 +48,24 @@ describe("createAppTheme", () => {
     });
   });
 
+  it("defines the shared compact management-list rhythm", () => {
+    const theme = createAppTheme("dark", "teal");
+    const baseline = theme.components?.MuiCssBaseline?.styleOverrides as Record<
+      string,
+      Record<string, string | number>
+    >;
+
+    expect(baseline[".eos-management-list-text"]).toMatchObject({
+      fontFamily: 'Vazirmatn, "Segoe UI", sans-serif',
+      fontSize: "0.875rem",
+      lineHeight: 1.43,
+    });
+    expect(baseline[".eos-management-table .MuiTableCell-root"]).toMatchObject({
+      paddingTop: 12,
+      paddingBottom: 12,
+    });
+  });
+
   it("styles scrollbars from the active palette and appearance mode", () => {
     const darkTheme = createAppTheme("dark", "teal");
     const darkBaseline = darkTheme.components?.MuiCssBaseline
