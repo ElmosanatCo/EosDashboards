@@ -2,6 +2,10 @@
 
 The React UI and ASP.NET Core API must use separate IIS sites/applications and separate application pools. This document applies to the developer workstation only; company production deployment is out of scope.
 
+For the Persian production migration guide, including Migration Bundle creation,
+server execution, Connection String templates, and the safe release order, see
+[`production-database-migration-fa.md`](production-database-migration-fa.md).
+
 ## Publish
 
 Run the publish commands from the repository root, or use absolute paths for
