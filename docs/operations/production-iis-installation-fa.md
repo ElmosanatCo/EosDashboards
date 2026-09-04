@@ -141,8 +141,21 @@ Rollback لازم است.
 
 ## مرحلهٔ ۵ — تنظیمات production
 
-تنظیمات production باید فقط روی سرور یا Secret Store نگهداری شوند، نه در Git.
+تنظیمات production باید در فایل سروری
+`appsettings.Production.json` قرار بگیرند. این فایل واقعی نباید در Git قرار
+بگیرد؛ فقط قالب کامل و بدون مقدار محرمانه در Git نگهداری می‌شود.
 حداقل این موارد را تنظیم و بررسی کنید:
+
+قالب کامل کلیدها و بخش‌های تنظیمات در فایل
+`backend/src/EosDashboards.Api/appsettings.Production.template.json` در Git
+قرار دارد. در زمان انتشار، از روی آن فایل واقعی
+`appsettings.Production.json` را کنار `EosDashboards.Api.dll` در پوشهٔ Release
+API بسازید و با ACL محدود فقط در اختیار حساب API و حساب Deployment قرار دهید.
+فایل واقعی در `.gitignore` است و نباید به Git اضافه شود.
+محیط اجرای API را نیز روی `Production` تنظیم و بررسی کنید تا ASP.NET Core فایل
+`appsettings.Production.json` را بارگذاری کند؛ محیط نباید `Development` باشد.
+این فایل باید کنار فایل‌های منتشرشدهٔ API قرار بگیرد، مگر اینکه برنامه با یک
+Configuration Provider دیگر به‌صورت صریح توسعه داده شده باشد.
 
 - Connection String دیتابیس شرکت؛
 - تنظیمات SMS و Endpointهای خارجی؛
@@ -157,7 +170,9 @@ Session/Refresh Cookieها و داده‌های رمزگذاری‌شدهٔ مح
 استفاده نباشند.
 
 Runtime API نباید مجوز تغییر Schema داشته باشد. مجوز Schema فقط به حساب
-Deployment داده شود و Connection String آن از Secret امن خوانده شود.
+Deployment داده شود. Connection String اجرای Migration نیز در همان فایل
+سروری appsettings قرار می‌گیرد و نباید در خروجی، لاگ یا رابط کاربری نمایش داده
+شود.
 
 ## مرحلهٔ ۶ — Backup و اجرای Migration
 

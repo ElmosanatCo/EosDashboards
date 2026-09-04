@@ -195,18 +195,19 @@ secret variable. They must not be in Git or the browser-delivered UI artifact.
 
 | Configuration key | Used by | Store it in | Never put it in |
 | --- | --- | --- | --- |
-| `ConnectionStrings:EosDashboard` | API and migration runner | Deployment Secret Store; inject only at runtime | UI, Git, logs |
-| `AuthSecurity:HashingKey` | API password/recovery security | Protected API configuration | UI or source control |
-| `AuthSecurity:SigningKey` | API JWT signing | Protected API configuration | UI, logs, Git |
-| `AuthSecurity:Issuer` and `Audience` | API token validation | Production API configuration | UI secrets |
-| `AuthSecurity:KeyRingPath` | API Data Protection | Stable directory outside web root | Temporary release folder |
-| `Sms:Endpoint` and `Sms:Timeout` | API SMS provider | Protected API configuration | Frontend build variables |
-| `GoogleAuthentication:ClientSecret` | API Google OIDC, if enabled | Secret Store | UI or Git |
+| `ConnectionStrings:EosDashboard` | API and migration runner | Server-side `appsettings.Production.json` | UI, Git, logs |
+| `AuthSecurity:HashingKey` | API password/recovery security | Server-side `appsettings.Production.json` | UI or source control |
+| `AuthSecurity:SigningKey` | API JWT signing | Server-side `appsettings.Production.json` | UI, logs, Git |
+| `AuthSecurity:Issuer` and `Audience` | API token validation | Server-side `appsettings.Production.json` | UI secrets |
+| `AuthSecurity:KeyRingPath` | API Data Protection | `appsettings.Production.json` plus a stable directory outside web root | Temporary release folder |
+| `Sms:Endpoint` and `Sms:Timeout` | API SMS provider | Server-side `appsettings.Production.json` | Frontend build variables |
+| `GoogleAuthentication:ClientSecret` | API Google OIDC, if enabled | Server-side `appsettings.Production.json` | UI or Git |
 | `ApiSecurity:AllowedOrigins` | API CORS | Production API configuration | Wildcard origin |
 
 The production API configuration must be separate from development
-`appsettings.Development.json`. A safe conceptual configuration looks like
-this, with values supplied by the server secret mechanism:
+`appsettings.Development.json`. Put the complete production configuration in
+the server-side `appsettings.Production.json` file. A safe conceptual
+configuration looks like this:
 
 ```text
 ConnectionStrings__EosDashboard=<company-database-connection>
@@ -219,11 +220,25 @@ Sms__Endpoint=<company-sms-endpoint>
 ApiSecurity__AllowedOrigins__0=https://dashboards.<company-domain>
 ```
 
-The double underscore form is the ASP.NET Core environment-variable form of a
-nested configuration key. The deployment system should inject these values
-without printing them. Do not use `setx` with real secrets as a casual setup
-method because it creates persistent plaintext configuration. Use the company's
-approved Secret Store or protected service configuration.
+The double underscore form above is only the ASP.NET Core environment-variable
+equivalent; it is not required for this deployment. The JSON appsettings file
+is the source of runtime configuration. If the company later uses a Secret
+Store, it may generate or protect that server-side file, but the API must still
+receive the same keys and sections shown in the tracked template.
+
+The repository contains the complete configuration template at
+`backend/src/EosDashboards.Api/appsettings.Production.template.json`. Before
+starting the API, create the real `appsettings.Production.json` beside
+`EosDashboards.Api.dll` in the API release directory, fill it with approved
+production values, and apply a restrictive ACL for the API identity and the
+deployment identity. The real file is ignored by Git; the template is the file
+that belongs in Git. For every new release, copy or recreate this server-side
+file in the new API release directory without printing its contents.
+
+Set the API process environment to `Production` and verify that it is not
+`Development`; this makes ASP.NET Core load `appsettings.Production.json`.
+The file must be next to the published API files unless the application is
+explicitly extended with another configuration provider.
 
 The migration runner needs only the database connection at execution time. The
 API runtime identity must not receive schema-change permission. The deployment
