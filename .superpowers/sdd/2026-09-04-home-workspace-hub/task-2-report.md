@@ -87,3 +87,80 @@ The focused suite was rerun after final formatting with the same 14/14 result.
   alert data source exists yet.
 - End-to-end browser verification and canonical project-memory updates remain
   outside this Task 2 file scope and were not changed.
+
+## Task 2 review-fix report
+
+### Findings addressed
+
+- Added a provider-backed `HomePage` test with mocked `useAuth` and
+  `useTabWorkspace` hooks. It verifies that the authenticated role is passed
+  through `authorizedWorkspaceTargets` and that capability and continuation
+  actions dispatch the required `open`/`activate` actions.
+- The presentational target test now passes an explicitly unauthorized target
+  alongside the authorized targets. `HomePageView` defensively filters target
+  cards and actions by the supplied user's role codes, so an unauthorized item
+  cannot render if an incorrect target list reaches the view.
+- Replaced the root-only layout assertion with a deterministic 320px mobile
+  viewport test. It checks the viewport and workspace scroll widths, fluid
+  `minWidth`/`maxWidth` constraints, and the continuation empty state.
+
+### Review-fix TDD evidence
+
+Red command:
+
+```text
+npm test -- --run src/pages/HomePage.test.tsx
+```
+
+Result before the role guard and fluid root constraints:
+
+```text
+Test Files  1 failed (1)
+Tests       2 failed | 7 passed (9)
+```
+
+The failures were the explicit unauthorized target being rendered and the
+missing fluid root layout contract.
+
+Green command:
+
+```text
+npm test -- --run src/pages/HomePage.test.tsx
+```
+
+Result:
+
+```text
+Test Files  1 passed (1)
+Tests       9 passed (9)
+```
+
+### Final fix verification
+
+```text
+npm test -- --run src/pages/home/homeContent.test.ts src/pages/HomePage.test.tsx
+```
+
+```text
+Test Files  2 passed (2)
+Tests       15 passed (15)
+```
+
+```text
+npm run typecheck
+```
+
+```text
+exit 0
+```
+
+```text
+npm run format:check
+```
+
+```text
+All matched files use Prettier code style!
+```
+
+No E2E files or other documentation files were changed in this fix round;
+this required report append is the only report-file update.

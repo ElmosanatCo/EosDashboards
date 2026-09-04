@@ -50,9 +50,17 @@ export function HomePageView({
   onActivateTab,
 }: HomePageViewProps) {
   const recentTabs = selectRecentHomeTabs(tabs);
+  const roleCodes = new Set(user.roleCodes);
+  const visibleTargets = targets.filter((target) =>
+    target.requiredRoleCodes.some((roleCode) => roleCodes.has(roleCode)),
+  );
 
   return (
-    <Stack data-testid="home-workspace" spacing={{ xs: 2, md: 2.5 }}>
+    <Stack
+      data-testid="home-workspace"
+      spacing={{ xs: 2, md: 2.5 }}
+      sx={{ minWidth: 0, maxWidth: "100%" }}
+    >
       <Paper
         variant="outlined"
         className="eos-accent-card"
@@ -91,12 +99,12 @@ export function HomePageView({
       </Paper>
 
       <HomeSection title="امکانات در اختیار شما">
-        <TargetGrid targets={targets} onOpenTarget={onOpenTarget} />
+        <TargetGrid targets={visibleTargets} onOpenTarget={onOpenTarget} />
       </HomeSection>
 
       <HomeSection title="کارهایی که می‌توانید انجام دهید">
         <Stack spacing={1.25}>
-          {targets.map((target) => (
+          {visibleTargets.map((target) => (
             <ActionCard
               key={target.routeId}
               target={target}
