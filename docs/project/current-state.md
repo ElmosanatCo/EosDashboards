@@ -20,6 +20,7 @@ Initial authentication and application-shell implementation.
 - The first implementation slice was approved: separate backend/frontend foundations, pre-provisioned system administrator, local username/password sign-in, mandatory SMS OTP, session management, and the initial SPA shell.
 - Company branding, footer version/date/time, and closable internal workspace tabs were approved.
 - On phone-sized layouts, the approved EOS logo and company name move from the fixed header into the temporary navigation menu; desktop layouts keep the brand in the header. Shared brand rendering and focused responsive component coverage are in place.
+- User-facing numeric values now use a shared Persian formatter with Persian digits and grouping; identifiers, credentials, versions, URL/API values, and other technical fields remain in their required LTR/ASCII form. The dashboard, audit count, OTP countdown, and Persian date picker use the shared display formatter.
 - The initial authentication and tabbed-shell design was reviewed and approved.
 - A task-by-task, test-driven implementation plan was prepared.
 - The user selected inline plan execution with review checkpoints.

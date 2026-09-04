@@ -9,6 +9,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
+import { toPersianDigits } from "../../lib/format/persianDigits";
 
 type Props = {
   purpose: "signIn" | "passwordReset";
@@ -206,8 +207,4 @@ function normalizeDigits(value: string) {
   return value.replace(/[۰-۹]/g, (digit) =>
     String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)),
   );
-}
-
-function toPersianDigits(value: number) {
-  return value.toLocaleString("fa-IR", { useGrouping: false });
 }

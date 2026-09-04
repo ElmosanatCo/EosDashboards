@@ -12,6 +12,7 @@ import {
   Button,
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
+import { toPersianDigits } from "../lib/format/persianDigits";
 
 const formatter = new Intl.DateTimeFormat("fa-IR-u-ca-persian-nu-latn", {
   year: "numeric",
@@ -41,9 +42,6 @@ const weekDays = [
   "پنجشنبه",
   "جمعه",
 ];
-const toPersianDigits = (value: number) =>
-  value.toLocaleString("fa-IR", { useGrouping: false });
-
 function parts(value: Date) {
   const values = formatter
     .formatToParts(value)

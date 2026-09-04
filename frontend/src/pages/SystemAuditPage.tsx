@@ -22,6 +22,7 @@ import {
   eventOptions,
 } from "../features/administration/administrationUi";
 import { formatPersianDateTime } from "../lib/date/persianDateTime";
+import { formatPersianNumber } from "../lib/format/persianDigits";
 import {
   PersianDateTimePicker,
   toLocalTimestamp,
@@ -163,7 +164,7 @@ export function SystemAuditPage() {
           </FormControl>
           <Typography variant="body2" color="text.secondary">
             {audit.data
-              ? `${audit.data.totalCount.toLocaleString("fa-IR")} رویداد`
+              ? `${formatPersianNumber(audit.data.totalCount)} رویداد`
               : ""}
           </Typography>
         </Stack>

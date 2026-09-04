@@ -15,6 +15,7 @@ import {
 import { administrationApi } from "../features/administration/administrationApi";
 import { eventLabel } from "../features/administration/administrationUi";
 import { formatPersianDateTime } from "../lib/date/persianDateTime";
+import { formatPersianNumber } from "../lib/format/persianDigits";
 import { useTabWorkspace } from "../navigation/TabWorkspaceProvider";
 import {
   createWorkspaceTab,
@@ -88,7 +89,7 @@ export function SystemAdministrationDashboardPage() {
             >
               <Icon color="primary" />
               <Typography variant="h4" sx={{ fontWeight: 760 }}>
-                {data[key]}
+                {formatPersianNumber(data[key])}
               </Typography>
             </Stack>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>

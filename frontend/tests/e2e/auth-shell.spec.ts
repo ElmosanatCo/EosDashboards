@@ -420,6 +420,7 @@ test("a System Administrator can open the operational dashboard", async ({
   await expect(
     page.getByRole("heading", { name: "داشبورد مدیر سامانه" }),
   ).toBeVisible();
+  await expect(page.getByText("۱۲", { exact: true })).toBeVisible();
   await expect(page.getByText("کاربران دارای نشست فعال")).toBeVisible();
   await expect(page.getByText("کاربر ایجاد شد")).toBeVisible();
   await expect(page.getByLabel("تاریخ سیستم")).toHaveCount(1);
