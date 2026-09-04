@@ -29,7 +29,7 @@ public sealed class ModelMappingTests
             .ToArray();
 
         Assert.Equal(
-            ["AuditLogs", "Departments", "ExternalIdentityLinks", "OtpChallenges", "Roles", "UserPreferences", "UserRoles", "UserSessions", "Users"],
+            ["AuditLogs", "Departments", "ExternalIdentityLinks", "JobDescriptionRecords", "JobDescriptionTasks", "JobDescriptionVersionSkills", "JobDescriptionVersionUnresolvedSkills", "JobDescriptionVersionUnresolvedTasks", "JobDescriptionVersions", "OtpChallenges", "Roles", "SkillCatalogItems", "TaskCatalogItems", "TaskCatalogRequiredSkills", "UserPreferences", "UserRoles", "UserSessions", "Users"],
             tableNames);
     }
 
@@ -46,6 +46,11 @@ public sealed class ModelMappingTests
             typeof(UserPreference),
             typeof(AuditLog),
             typeof(ExternalIdentityLink),
+            typeof(JobDescriptionRecord),
+            typeof(JobDescriptionVersion),
+            typeof(JobDescriptionTask),
+            typeof(SkillCatalogItem),
+            typeof(TaskCatalogItem),
         };
 
         foreach (var principalType in principalTypes)
@@ -84,6 +89,18 @@ public sealed class ModelMappingTests
             nameof(ExternalIdentityLink.Provider),
             nameof(ExternalIdentityLink.NormalizedEmail));
         AssertUniqueIndex<Department>(nameof(Department.Name));
+        AssertCompositeUniqueIndex<SkillCatalogItem>(nameof(SkillCatalogItem.DepartmentId), nameof(SkillCatalogItem.Name));
+        AssertCompositeUniqueIndex<TaskCatalogItem>(nameof(TaskCatalogItem.DepartmentId), nameof(TaskCatalogItem.Title));
+    }
+
+    [Fact]
+    public void JobDescriptionVersionSkills_UsesApprovedCompositeKey()
+    {
+        var keyNames = RequiredEntity(typeof(JobDescriptionVersionSkill)).FindPrimaryKey()!.Properties
+            .Select(property => property.Name)
+            .ToArray();
+
+        Assert.Equal(["JobDescriptionVersionId", "SkillCatalogItemId"], keyNames);
     }
 
     [Fact]
@@ -177,6 +194,15 @@ public sealed class ModelMappingTests
         Assert.All(
             RequiredEntity(typeof(ExternalIdentityLink)).GetForeignKeys(),
             foreignKey => Assert.Equal(DeleteBehavior.Restrict, foreignKey.DeleteBehavior));
+    }
+
+    [Fact]
+    public void Job_description_dates_and_artifact_are_mapped_as_approved_types()
+    {
+        Assert.Equal("date", RequiredProperty<JobDescriptionTask>(nameof(JobDescriptionTask.StartDate)).GetColumnType());
+        Assert.Equal("date", RequiredProperty<JobDescriptionTask>(nameof(JobDescriptionTask.EndDate)).GetColumnType());
+        Assert.Equal("varbinary(max)", RequiredProperty<JobDescriptionVersion>(nameof(JobDescriptionVersion.ExcelArtifact)).GetColumnType());
+        Assert.True(RequiredProperty<JobDescriptionVersion>(nameof(JobDescriptionVersion.ExcelArtifact)).IsNullable);
     }
 
     private void AssertUniqueIndex<TEntity>(string propertyName)

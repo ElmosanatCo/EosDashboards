@@ -23,6 +23,24 @@ public sealed class EosDashboardDbContext(DbContextOptions<EosDashboardDbContext
 
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
+    public DbSet<JobDescriptionVersion> JobDescriptionVersions => Set<JobDescriptionVersion>();
+
+    public DbSet<JobDescriptionRecord> JobDescriptionRecords => Set<JobDescriptionRecord>();
+
+    public DbSet<JobDescriptionTask> JobDescriptionTasks => Set<JobDescriptionTask>();
+
+    public DbSet<JobDescriptionVersionSkill> JobDescriptionVersionSkills => Set<JobDescriptionVersionSkill>();
+
+    public DbSet<JobDescriptionVersionUnresolvedSkill> JobDescriptionVersionUnresolvedSkills => Set<JobDescriptionVersionUnresolvedSkill>();
+
+    public DbSet<JobDescriptionVersionUnresolvedTask> JobDescriptionVersionUnresolvedTasks => Set<JobDescriptionVersionUnresolvedTask>();
+
+    public DbSet<SkillCatalogItem> SkillCatalogItems => Set<SkillCatalogItem>();
+
+    public DbSet<TaskCatalogItem> TaskCatalogItems => Set<TaskCatalogItem>();
+
+    public DbSet<TaskCatalogRequiredSkill> TaskCatalogRequiredSkills => Set<TaskCatalogRequiredSkill>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(EosDashboardDbContext).Assembly);

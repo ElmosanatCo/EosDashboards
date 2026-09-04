@@ -2,6 +2,9 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 import packageJson from "./package.json" with { type: "json" };
 
+const apiProxyTarget = process.env.VITE_API_PROXY_TARGET ?? "https://localhost";
+const apiProxyUsesIisPrefix = apiProxyTarget === "https://localhost";
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
@@ -9,10 +12,11 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://localhost",
+        target: apiProxyTarget,
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => `/EosDashboardsApi${path}`,
+        rewrite: (path) =>
+          apiProxyUsesIisPrefix ? `/EosDashboardsApi${path}` : path,
         configure: (proxy) => {
           proxy.on("proxyReq", (proxyRequest) => {
             proxyRequest.setHeader("origin", "https://localhost");

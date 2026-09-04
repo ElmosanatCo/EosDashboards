@@ -47,4 +47,28 @@ describe("createAppTheme", () => {
       "&:hover": { borderTopColor: "#E0A13A" },
     });
   });
+
+  it("styles scrollbars from the active palette and appearance mode", () => {
+    const darkTheme = createAppTheme("dark", "teal");
+    const darkBaseline = darkTheme.components?.MuiCssBaseline
+      ?.styleOverrides as Record<string, Record<string, string>>;
+
+    expect(darkBaseline["*, *::before, *::after"]).toMatchObject({
+      scrollbarColor: "#238C82 #0D1113",
+      scrollbarWidth: "thin",
+    });
+    expect(darkBaseline["*::-webkit-scrollbar-thumb"]).toMatchObject({
+      backgroundColor: "#238C82",
+      border: "2px solid #0D1113",
+    });
+
+    const lightTheme = createAppTheme("light", "rose");
+    const lightBaseline = lightTheme.components?.MuiCssBaseline
+      ?.styleOverrides as Record<string, Record<string, string>>;
+
+    expect(lightBaseline["*::-webkit-scrollbar-thumb"]).toMatchObject({
+      backgroundColor: "#77263F",
+      border: "2px solid #F2F5F3",
+    });
+  });
 });

@@ -61,9 +61,25 @@ export const homeTargetMetadata: Readonly<Record<string, HomeTargetMetadata>> =
       summary: "شاخص‌ها و اطلاعات مرتبط با واحد شما را ببینید.",
       actionLabel: "مشاهده داشبورد",
     },
+    "department-job-descriptions": {
+      summary: "شرح وظایف پرسنل را ثبت، بررسی و برای منابع انسانی ارسال کنید.",
+      actionLabel: "مدیریت شرح وظایف",
+    },
+    "department-skill-catalog": {
+      summary: "مهارت‌های عمومی و اختصاصی بخش‌ها را یکسان‌سازی کنید.",
+      actionLabel: "کاتالوگ مهارت‌ها",
+    },
+    "department-task-catalog": {
+      summary: "وظایف استاندارد بخش را تعریف و مهارت‌های لازم آن‌ها را تعیین کنید.",
+      actionLabel: "کاتالوگ وظایف",
+    },
     "human-resources-dashboard": {
       summary: "اطلاعات و داشبوردهای منابع انسانی را ببینید.",
       actionLabel: "مشاهده داشبورد",
+    },
+    "human-resources-job-description-review": {
+      summary: "شرح وظایف ارسال‌شده را بازبینی و تأیید یا با دلیل رد کنید.",
+      actionLabel: "بازبینی شرح وظایف",
     },
     "chief-executive-dashboard": {
       summary: "نمای کلی شاخص‌های مدیریتی سازمان را ببینید.",

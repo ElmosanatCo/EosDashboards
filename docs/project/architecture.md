@@ -123,6 +123,19 @@ The supplied EOS logo and company name `علم و صنعت` appear on sign-in an
 
 Persisted application times are local wall-clock values produced by the application server clock and truncated to millisecond precision. Domain and Application properties use names such as `CreatedAt` and `ExpiresAt`; Infrastructure maps them to SQL Server `datetime2(3)`. No persisted property or API contract uses a `Utc` name, no database timestamp stores an offset, and normal application logic does not perform an Asia/Tehran conversion. External protocol adapters may create a transient protocol-required representation without changing this local persistence boundary.
 
+### Department job-description boundary
+
+Job descriptions are persisted as structured records and immutable revisions. The
+Application layer owns scope, workflow, revision, quality, and catalog rules;
+Infrastructure owns Excel parsing, standard-workbook generation, EF persistence,
+and artifact storage. Import creates a manager draft from normalized data and
+returns an independent result for each file. A generated workbook is derived from
+the saved database revision and stored with that revision; dashboards and quality
+queries read structured database data directly and never parse the workbook.
+Past-ended task rows remain in revision history but are omitted from the current
+generated workbook. The API exposes only scoped detail, revision, import, and
+download operations.
+
 - Central exception handling returns safe standard error objects with trace identifiers.
 - Transport and background adapters provide the current correlation identifier through an Application port; every audit record created by one operation uses that same identifier.
 - Structured logging, audit records, liveness, readiness, metrics, and alerting support operations.

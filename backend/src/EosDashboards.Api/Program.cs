@@ -4,11 +4,13 @@ using EosDashboards.Api.Auth;
 using EosDashboards.Api.Administration;
 using EosDashboards.Api.Errors;
 using EosDashboards.Api.Preferences;
+using EosDashboards.Api.JobDescriptions;
 using EosDashboards.Api.Security;
 using EosDashboards.Application.Abstractions;
 using EosDashboards.Application.Administration;
 using EosDashboards.Application.Auth;
 using EosDashboards.Application.Preferences;
+using EosDashboards.Application.JobDescriptions;
 using EosDashboards.Infrastructure;
 using EosDashboards.Infrastructure.Persistence;
 using EosDashboards.Infrastructure.Sms;
@@ -55,6 +57,11 @@ builder.Services.AddScoped<GetAuditHistory>();
 builder.Services.AddScoped<Logout>();
 builder.Services.AddScoped<GetMyPreferences>();
 builder.Services.AddScoped<UpdateMyPreferences>();
+builder.Services.AddScoped<ManageJobDescriptions>();
+builder.Services.AddScoped<ImportJobDescriptions>();
+builder.Services.AddScoped<AnalyzeJobDescription>();
+builder.Services.AddScoped<GetDepartmentDashboard>();
+builder.Services.AddScoped<ManageCatalog>();
 builder.Services.AddScoped<IAuthorizationHandler, SessionAuthorizationHandler>();
 
 var authentication = builder.Services
@@ -173,6 +180,7 @@ app.MapGet("/health/ready", async (
 app.MapAuthEndpoints();
 app.MapPreferenceEndpoints();
 app.MapAdministrationEndpoints();
+app.MapJobDescriptionEndpoints();
 
 app.Run();
 

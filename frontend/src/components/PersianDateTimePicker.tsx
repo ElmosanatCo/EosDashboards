@@ -91,10 +91,12 @@ export function PersianDateTimePicker({
   label,
   value,
   onChange,
+  includeTime = true,
 }: {
   label: string;
   value: Date | null;
   onChange: (value: Date | null) => void;
+  includeTime?: boolean;
 }) {
   const selected = value ? parts(value) : parts(new Date());
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -124,7 +126,12 @@ export function PersianDateTimePicker({
   }, [view]);
 
   const chooseDate = (day: number) => {
-    const next = toDate(view.year, view.month, day, time);
+    const next = toDate(
+      view.year,
+      view.month,
+      day,
+      includeTime ? time : "00:00",
+    );
     if (next) onChange(next);
     setAnchorEl(null);
   };
@@ -152,24 +159,26 @@ export function PersianDateTimePicker({
           },
         }}
       />
-      <TextField
-        size="small"
-        className="eos-persian-number"
-        type="time"
-        label="ساعت"
-        value={time}
-        onChange={(event) => {
-          const next = toDate(
-            selected.year,
-            selected.month,
-            selected.day,
-            event.target.value,
-          );
-          if (next) onChange(next);
-        }}
-        slotProps={{ inputLabel: { shrink: true } }}
-        sx={{ minWidth: { sm: 120 } }}
-      />
+      {includeTime ? (
+        <TextField
+          size="small"
+          className="eos-persian-number"
+          type="time"
+          label="ساعت"
+          value={time}
+          onChange={(event) => {
+            const next = toDate(
+              selected.year,
+              selected.month,
+              selected.day,
+              event.target.value,
+            );
+            if (next) onChange(next);
+          }}
+          slotProps={{ inputLabel: { shrink: true } }}
+          sx={{ minWidth: { sm: 120 } }}
+        />
+      ) : null}
       <Popover
         open={Boolean(anchorEl)}
         anchorEl={anchorEl}

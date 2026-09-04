@@ -116,6 +116,28 @@ export function createAppTheme(mode: PaletteMode, palette: PaletteId) {
                 '"Sahel FD", Vazirmatn, "Segoe UI", sans-serif !important',
             },
             body: { margin: 0, minWidth: 320 },
+            "*, *::before, *::after": {
+              scrollbarColor: `${paletteColors.primary.dark} ${paletteColors.background.default}`,
+              scrollbarWidth: "thin",
+            },
+            "*::-webkit-scrollbar": {
+              width: "10px",
+              height: "10px",
+            },
+            "*::-webkit-scrollbar-track": {
+              backgroundColor: paletteColors.background.default,
+            },
+            "*::-webkit-scrollbar-thumb": {
+              backgroundColor: paletteColors.primary.dark,
+              border: `2px solid ${paletteColors.background.default}`,
+              borderRadius: "8px",
+            },
+            "*::-webkit-scrollbar-thumb:hover": {
+              backgroundColor: paletteColors.primary.main,
+            },
+            "*::-webkit-scrollbar-corner": {
+              backgroundColor: paletteColors.background.default,
+            },
             "input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus, input:-webkit-autofill:active":
               {
                 WebkitBoxShadow: `0 0 0 1000px ${paletteColors.background.paper} inset !important`,

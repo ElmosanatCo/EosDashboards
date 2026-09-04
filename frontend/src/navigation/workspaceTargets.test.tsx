@@ -20,14 +20,27 @@ describe("workspace targets", () => {
       authorizedWorkspaceTargets(["DepartmentManager"]).map(
         (target) => target.title,
       ),
-    ).toEqual(["داشبورد بخش"]);
+    ).toEqual([
+      "داشبورد بخش",
+      "مدیریت شرح وظایف",
+      "کاتالوگ مهارت‌ها",
+      "کاتالوگ وظایف",
+    ]);
     expect(
       authorizedWorkspaceTargets([
         "DepartmentManager",
         "HumanResourcesManager",
         "ChiefExecutiveOfficer",
       ]).map((target) => target.title),
-    ).toEqual(["داشبورد بخش", "داشبورد منابع انسانی", "داشبورد مدیرعامل"]);
+    ).toEqual([
+      "داشبورد بخش",
+      "مدیریت شرح وظایف",
+      "کاتالوگ مهارت‌ها",
+      "کاتالوگ وظایف",
+      "داشبورد منابع انسانی",
+      "بازبینی شرح وظایف",
+      "داشبورد مدیرعامل",
+    ]);
   });
 
   it("creates a closable workspace tab for an authorized target", () => {

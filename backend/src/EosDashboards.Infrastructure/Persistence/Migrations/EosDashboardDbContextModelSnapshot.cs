@@ -166,6 +166,239 @@ namespace EosDashboards.Infrastructure.Persistence.Migrations
                     b.ToTable("ExternalIdentityLinks", (string)null);
                 });
 
+            modelBuilder.Entity("EosDashboards.Domain.Entities.JobDescriptionRecord", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<long>("DepartmentId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("PersonName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DepartmentId", "PersonName");
+
+                    b.ToTable("JobDescriptionRecords", (string)null);
+                });
+
+            modelBuilder.Entity("EosDashboards.Domain.Entities.JobDescriptionTask", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(8000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<long>("JobDescriptionVersionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly?>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<long>("TaskCatalogItemId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<decimal?>("WeeklyHours")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TaskCatalogItemId");
+
+                    b.HasIndex("JobDescriptionVersionId", "SortOrder")
+                        .IsUnique();
+
+                    b.ToTable("JobDescriptionTasks", (string)null);
+                });
+
+            modelBuilder.Entity("EosDashboards.Domain.Entities.JobDescriptionVersion", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<DateTime?>("DepartmentApprovedAt")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<long>("DepartmentId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Education")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<byte[]>("ExcelArtifact")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("ExcelFileName")
+                        .HasMaxLength(260)
+                        .HasColumnType("nvarchar(260)");
+
+                    b.Property<string>("FieldOfStudy")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime?>("HumanResourcesReviewedAt")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<long?>("JobDescriptionRecordId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("MinimumExperience")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("PersonName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("PersonnelCode")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("WorkflowStatus")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobDescriptionRecordId");
+
+                    b.HasIndex("WorkflowStatus");
+
+                    b.HasIndex("DepartmentId", "PersonName");
+
+                    b.ToTable("JobDescriptionVersions", (string)null);
+                });
+
+            modelBuilder.Entity("EosDashboards.Domain.Entities.JobDescriptionVersionSkill", b =>
+                {
+                    b.Property<long>("JobDescriptionVersionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("SkillCatalogItemId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("JobDescriptionVersionId", "SkillCatalogItemId");
+
+                    b.HasIndex("SkillCatalogItemId");
+
+                    b.ToTable("JobDescriptionVersionSkills", (string)null);
+                });
+
+            modelBuilder.Entity("EosDashboards.Domain.Entities.JobDescriptionVersionUnresolvedSkill", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("JobDescriptionVersionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("RawName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobDescriptionVersionId", "SortOrder")
+                        .IsUnique();
+
+                    b.ToTable("JobDescriptionVersionUnresolvedSkills", (string)null);
+                });
+
+            modelBuilder.Entity("EosDashboards.Domain.Entities.JobDescriptionVersionUnresolvedTask", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(8000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<long>("JobDescriptionVersionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("RawTitle")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly?>("StartDate")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobDescriptionVersionId", "SortOrder")
+                        .IsUnique();
+
+                    b.ToTable("JobDescriptionVersionUnresolvedTasks", (string)null);
+                });
+
             modelBuilder.Entity("EosDashboards.Domain.Entities.OtpChallenge", b =>
                 {
                     b.Property<long>("Id")
@@ -265,6 +498,104 @@ namespace EosDashboards.Infrastructure.Persistence.Migrations
                     b.HasIndex("IsActive");
 
                     b.ToTable("Roles", (string)null);
+                });
+
+            modelBuilder.Entity("EosDashboards.Domain.Entities.SkillCatalogItem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<long?>("DepartmentId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<long?>("OwnerDepartmentId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DepartmentId");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasFilter("[DepartmentId] IS NULL");
+
+                    b.HasIndex("OwnerDepartmentId");
+
+                    b.HasIndex("DepartmentId", "Name")
+                        .IsUnique()
+                        .HasFilter("[DepartmentId] IS NOT NULL");
+
+                    b.ToTable("SkillCatalogItems", (string)null);
+                });
+
+            modelBuilder.Entity("EosDashboards.Domain.Entities.TaskCatalogItem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<long>("DepartmentId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsProject")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DepartmentId");
+
+                    b.HasIndex("DepartmentId", "Title")
+                        .IsUnique();
+
+                    b.ToTable("TaskCatalogItems", (string)null);
+                });
+
+            modelBuilder.Entity("EosDashboards.Domain.Entities.TaskCatalogRequiredSkill", b =>
+                {
+                    b.Property<long>("TaskCatalogItemId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("SkillCatalogItemId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("TaskCatalogItemId", "SkillCatalogItemId");
+
+                    b.HasIndex("SkillCatalogItemId");
+
+                    b.ToTable("TaskCatalogRequiredSkills", (string)null);
                 });
 
             modelBuilder.Entity("EosDashboards.Domain.Entities.User", b =>
@@ -483,6 +814,83 @@ namespace EosDashboards.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("EosDashboards.Domain.Entities.JobDescriptionRecord", b =>
+                {
+                    b.HasOne("EosDashboards.Domain.Entities.Department", null)
+                        .WithMany()
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EosDashboards.Domain.Entities.JobDescriptionTask", b =>
+                {
+                    b.HasOne("EosDashboards.Domain.Entities.JobDescriptionVersion", null)
+                        .WithMany("Tasks")
+                        .HasForeignKey("JobDescriptionVersionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EosDashboards.Domain.Entities.TaskCatalogItem", null)
+                        .WithMany()
+                        .HasForeignKey("TaskCatalogItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EosDashboards.Domain.Entities.JobDescriptionVersion", b =>
+                {
+                    b.HasOne("EosDashboards.Domain.Entities.Department", null)
+                        .WithMany()
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EosDashboards.Domain.Entities.JobDescriptionRecord", "JobDescriptionRecord")
+                        .WithMany("Versions")
+                        .HasForeignKey("JobDescriptionRecordId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("JobDescriptionRecord");
+                });
+
+            modelBuilder.Entity("EosDashboards.Domain.Entities.JobDescriptionVersionSkill", b =>
+                {
+                    b.HasOne("EosDashboards.Domain.Entities.JobDescriptionVersion", "JobDescriptionVersion")
+                        .WithMany("Skills")
+                        .HasForeignKey("JobDescriptionVersionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EosDashboards.Domain.Entities.SkillCatalogItem", "SkillCatalogItem")
+                        .WithMany()
+                        .HasForeignKey("SkillCatalogItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("JobDescriptionVersion");
+
+                    b.Navigation("SkillCatalogItem");
+                });
+
+            modelBuilder.Entity("EosDashboards.Domain.Entities.JobDescriptionVersionUnresolvedSkill", b =>
+                {
+                    b.HasOne("EosDashboards.Domain.Entities.JobDescriptionVersion", null)
+                        .WithMany("UnresolvedSkills")
+                        .HasForeignKey("JobDescriptionVersionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EosDashboards.Domain.Entities.JobDescriptionVersionUnresolvedTask", b =>
+                {
+                    b.HasOne("EosDashboards.Domain.Entities.JobDescriptionVersion", null)
+                        .WithMany("UnresolvedTasks")
+                        .HasForeignKey("JobDescriptionVersionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("EosDashboards.Domain.Entities.OtpChallenge", b =>
                 {
                     b.HasOne("EosDashboards.Domain.Entities.User", null)
@@ -490,6 +898,47 @@ namespace EosDashboards.Infrastructure.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("EosDashboards.Domain.Entities.SkillCatalogItem", b =>
+                {
+                    b.HasOne("EosDashboards.Domain.Entities.Department", null)
+                        .WithMany()
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("EosDashboards.Domain.Entities.Department", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerDepartmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("EosDashboards.Domain.Entities.TaskCatalogItem", b =>
+                {
+                    b.HasOne("EosDashboards.Domain.Entities.Department", null)
+                        .WithMany()
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EosDashboards.Domain.Entities.TaskCatalogRequiredSkill", b =>
+                {
+                    b.HasOne("EosDashboards.Domain.Entities.SkillCatalogItem", "SkillCatalogItem")
+                        .WithMany()
+                        .HasForeignKey("SkillCatalogItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EosDashboards.Domain.Entities.TaskCatalogItem", "TaskCatalogItem")
+                        .WithMany("RequiredSkills")
+                        .HasForeignKey("TaskCatalogItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SkillCatalogItem");
+
+                    b.Navigation("TaskCatalogItem");
                 });
 
             modelBuilder.Entity("EosDashboards.Domain.Entities.User", b =>
@@ -532,6 +981,27 @@ namespace EosDashboards.Infrastructure.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("EosDashboards.Domain.Entities.JobDescriptionRecord", b =>
+                {
+                    b.Navigation("Versions");
+                });
+
+            modelBuilder.Entity("EosDashboards.Domain.Entities.JobDescriptionVersion", b =>
+                {
+                    b.Navigation("Skills");
+
+                    b.Navigation("Tasks");
+
+                    b.Navigation("UnresolvedSkills");
+
+                    b.Navigation("UnresolvedTasks");
+                });
+
+            modelBuilder.Entity("EosDashboards.Domain.Entities.TaskCatalogItem", b =>
+                {
+                    b.Navigation("RequiredSkills");
                 });
 
             modelBuilder.Entity("EosDashboards.Domain.Entities.User", b =>

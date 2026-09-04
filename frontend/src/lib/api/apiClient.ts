@@ -42,7 +42,11 @@ export async function apiFetch<T>(
   const headers = new Headers(init.headers);
   const token = authTokenStore.get();
   if (token) headers.set("Authorization", `Bearer ${token}`);
-  if (init.body && !headers.has("Content-Type"))
+  if (
+    init.body &&
+    !(init.body instanceof FormData) &&
+    !headers.has("Content-Type")
+  )
     headers.set("Content-Type", "application/json");
 
   const response = await fetch(
@@ -60,6 +64,27 @@ export async function apiFetch<T>(
     if (await refreshPromise) return apiFetch<T>(path, init, false);
   }
   return parseResponse<T>(response);
+}
+
+export async function apiDownload(path: string, retryAfterRefresh = true) {
+  const headers = new Headers();
+  const token = authTokenStore.get();
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  const response = await fetch(
+    `${import.meta.env.VITE_API_BASE_URL ?? ""}${path}`,
+    {
+      headers,
+      credentials: "include",
+    },
+  );
+  if (response.status === 401 && retryAfterRefresh && refreshHandler) {
+    refreshPromise ??= refreshHandler().finally(() => {
+      refreshPromise = null;
+    });
+    if (await refreshPromise) return apiDownload(path, false);
+  }
+  if (!response.ok) await parseResponse(response);
+  return response.blob();
 }
 
 export function readCookie(name: string) {

@@ -3,6 +3,8 @@ import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
 import SpaceDashboardOutlinedIcon from "@mui/icons-material/SpaceDashboardOutlined";
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
 import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
+import PsychologyOutlinedIcon from "@mui/icons-material/PsychologyOutlined";
+import TaskAltOutlinedIcon from "@mui/icons-material/TaskAltOutlined";
 import type { SvgIconComponent } from "@mui/icons-material";
 import type { ReactNode } from "react";
 import type { TabDescriptor } from "./tabTypes";
@@ -13,6 +15,9 @@ import { SystemAdministrationDashboardPage } from "../pages/SystemAdministration
 import { SystemAuditPage } from "../pages/SystemAuditPage";
 import { UserManagementPage } from "../pages/UserManagementPage";
 import { DepartmentManagementPage } from "../pages/DepartmentManagementPage";
+import { DepartmentJobDescriptionsPage } from "../pages/DepartmentJobDescriptionsPage";
+import { DepartmentCatalogPage } from "../pages/DepartmentCatalogPage";
+import { HumanResourcesJobDescriptionReviewPage } from "../pages/HumanResourcesJobDescriptionReviewPage";
 
 export type WorkspaceTarget = {
   routeId: string;
@@ -71,6 +76,33 @@ export const workspaceTargets: readonly WorkspaceTarget[] = [
     render: () => <DepartmentDashboardPage />,
   },
   {
+    routeId: "department-job-descriptions",
+    pathname: "/department-job-descriptions",
+    title: "مدیریت شرح وظایف",
+    keywords: ["شرح وظایف", "پرسنل", "مهارت", "مدیر بخش"],
+    requiredRoleCodes: ["DepartmentManager"],
+    Icon: GroupsOutlinedIcon,
+    render: () => <DepartmentJobDescriptionsPage />,
+  },
+  {
+    routeId: "department-skill-catalog",
+    pathname: "/department-skill-catalog",
+    title: "کاتالوگ مهارت‌ها",
+    keywords: ["کاتالوگ", "مهارت", "تخصص", "مدیر بخش"],
+    requiredRoleCodes: ["DepartmentManager"],
+    Icon: PsychologyOutlinedIcon,
+    render: () => <DepartmentCatalogPage kind="skills" />,
+  },
+  {
+    routeId: "department-task-catalog",
+    pathname: "/department-task-catalog",
+    title: "کاتالوگ وظایف",
+    keywords: ["کاتالوگ", "وظیفه", "کار", "مدیر بخش"],
+    requiredRoleCodes: ["DepartmentManager"],
+    Icon: TaskAltOutlinedIcon,
+    render: () => <DepartmentCatalogPage kind="tasks" />,
+  },
+  {
     routeId: "human-resources-dashboard",
     pathname: "/human-resources-dashboard",
     title: "داشبورد منابع انسانی",
@@ -78,6 +110,15 @@ export const workspaceTargets: readonly WorkspaceTarget[] = [
     requiredRoleCodes: ["HumanResourcesManager"],
     Icon: GroupsOutlinedIcon,
     render: () => <HumanResourcesDashboardPage />,
+  },
+  {
+    routeId: "human-resources-job-description-review",
+    pathname: "/human-resources-job-description-review",
+    title: "بازبینی شرح وظایف",
+    keywords: ["منابع انسانی", "شرح وظایف", "بازبینی", "تأیید"],
+    requiredRoleCodes: ["HumanResourcesManager"],
+    Icon: GroupsOutlinedIcon,
+    render: () => <HumanResourcesJobDescriptionReviewPage />,
   },
   {
     routeId: "chief-executive-dashboard",

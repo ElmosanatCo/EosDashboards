@@ -13,6 +13,7 @@ import {
   type WorkspaceTarget,
 } from "../navigation/workspaceTargets";
 import { AppHeader } from "./AppHeader";
+import { PageHelpFrame } from "../components/PageHelpFrame";
 import { ChangePasswordDialog } from "../features/auth/ChangePasswordDialog";
 import { AppSidebar, sidebarWidth } from "./AppSidebar";
 import { StatusBar } from "./StatusBar";
@@ -118,14 +119,19 @@ export function AppShell() {
           }}
         >
           <WorkspaceTabs />
-          <Box component="main" sx={{ flex: 1, overflow: "auto", p: 2 }}>
-            {active.routeId === "home" ||
-            targetForRouteId(active.routeId) ||
-            active.routeId === "administration-user-create" ||
-            active.routeId === "administration-user-edit" ||
-            active.routeId === "department-form"
-              ? renderTab(active)
-              : renderTab(tabs[0])}
+          <Box
+            component="main"
+            sx={{ flex: 1, minHeight: 0, overflow: "auto", p: 2 }}
+          >
+            <PageHelpFrame routeId={active.routeId}>
+              {active.routeId === "home" ||
+              targetForRouteId(active.routeId) ||
+              active.routeId === "administration-user-create" ||
+              active.routeId === "administration-user-edit" ||
+              active.routeId === "department-form"
+                ? renderTab(active)
+                : renderTab(tabs[0])}
+            </PageHelpFrame>
           </Box>
         </Box>
       </Box>

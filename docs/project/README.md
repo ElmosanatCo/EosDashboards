@@ -2,6 +2,8 @@
 
 This directory is the canonical, compact memory for EosDashboards. Update existing sources of truth instead of recording chat transcripts or repeating the same fact in several files.
 
+Startup order for every task is mandatory: read `current-state.md`, this `README.md`, and `standards.md` first; then read only the task-relevant canonical documents. The standards document defines the cost-conscious verification rule and the required recording of durable environmental remedies.
+
 | Document | Read when | Update when |
 | --- | --- | --- |
 | `current-state.md` | Every task | Phase, completed work, blocker, immediate question, or next step changes |

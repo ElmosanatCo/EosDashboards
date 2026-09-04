@@ -5,6 +5,7 @@
 **/bin/
 **/obj/
 backend/artifacts/api-local-credential/
+backend/artifacts/
 *.user
 *.suo
 
@@ -15,6 +16,7 @@ frontend/coverage/
 frontend/playwright-report/
 frontend/test-results/
 frontend/public/generated-assets/
+test-results/
 
 # Local configuration and secrets
 *.local

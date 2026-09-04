@@ -1,6 +1,6 @@
 # Requirements
 
-**Last updated:** 2026-09-03
+**Last updated:** 2026-09-04
 
 ## Confirmed functional requirements
 
@@ -83,6 +83,130 @@ User and department create/edit operations open as responsive dialogs above
 their management page rather than as extra workspace tabs. The form surface
 fills the dialog content width so desktop layouts do not introduce an
 unintentional side gutter; entered values remain visible when a save fails.
+
+### FR-011 — Department job-description management and quality analysis
+
+**Status:** Confirmed for the initial department-manager design
+
+Department Managers manage job-description drafts for personnel within their
+authorized department scope, including all of their child departments. They can
+list personnel and description status, view, edit, download, create manually,
+and upload one or more Excel files. Excel input is normalized into the approved
+standard format and reports independent success or failure for each file. After
+standardization, the normalized structured data is also persisted in the
+database first. The standard Excel file is then generated from the persisted
+database version and the resulting file is stored in the database, linked to
+that same version for display and download. The structured database data is the
+sole source for search, statistics, quality analysis, and approval workflow;
+the generated Excel artifact is never re-read as the source of dashboard
+statistics.
+
+When creating or editing a description, the manager selects the target
+department from their own department and child departments. The manager has
+full job-description management authority within that scope. The department
+dashboard provides an all-managed-departments view and a view filtered to any
+one department in that scope.
+
+Every manager-facing department selector that supports a combined view must
+show `همه بخش‌ها` as its first selectable option and represent that choice with
+an explicit all-value, not an empty value. Selecting it loads the combined view;
+selecting a named department loads only that department.
+
+The first department dashboard reads its statistics from the structured
+database and includes personnel counts, active and archived personnel counts,
+healthy and incomplete description counts, workflow-status counts, skill and
+task counts, skill coverage and identified gaps, department breakdowns, and
+manager actions such as approving descriptions and following up incomplete
+records. The parent Department Manager owns the child-department workflow;
+child departments do not have separate job-description approval inboxes.
+
+The dashboard also includes active project counts and the number of active
+people working on each project. Project statistics come from active database
+assignments, not generated Excel artifacts.
+
+Missing optional values do not fail an import. An explicitly supplied
+department outside the manager's authorized scope fails that file with a
+clear reason. Empty or explanatory rows may be ignored, useful extra columns
+are appended to the related task description, and task numbering is normalized
+in the generated standard draft.
+
+The task start date is optional, but an empty date makes the data-quality
+status `ناقص`. A personnel code is required for a manager-created or revised
+record and must be entered before it can be saved from the form. It is not part
+of the Excel format; an imported workbook may be retained as `ناقص` until the
+manager supplies the missing code. Excel sheet names and source-column names are not contractual;
+the importer identifies supported content and common labels from the workbook.
+Manager create and edit forms select the authorized target department before
+catalog choices are made; newly created department-scoped skills and tasks use
+that target, while a checked public skill is available across departments.
+Task dates in these forms are selected as dates without a time component. When
+an imported skill is mapped to a catalog skill, that catalog skill is shown as
+selected in the skill list; changing the mapping removes the previous visual
+selection and selects the new catalog skill.
+
+Every change creates retained version history that can be compared and
+reported. A version comparison identifies changed profile fields, selected
+skills, task titles, task dates, and free-text descriptions.
+
+Each catalog task may be marked as a project. A project task can be assigned to
+multiple personnel, allowing the dashboard to count active projects and the
+people working on each project. Each personnel-task record may have an optional
+start date and optional end date. A missing end date means the task is active;
+an end date in the past makes it inactive. Inactive ended tasks remain in the
+database and version history but are omitted from the current generated Excel
+artifact. Each database task assignment also stores the required average weekly
+workload in hours for future workload-pressure and available-capacity analysis;
+this internal field is not part of the Excel format or generated workbook.
+
+The approval workflow status is separate from data quality status. A newly
+created or revised complete record is `منتظر تأیید` until the Department
+Manager reviews and confirms it. Any record with quality status `ناقص` instead
+has workflow status `منتظر رفع نقص` and cannot be sent for approval. After the
+manager resolves all missing or unlinked information, it returns to `منتظر
+تأیید` for an explicit manager review. A record sent onward is `در حال بررسی`
+while it awaits Human Resources review. A record is `تأیید شده` and active only
+after both the Department Manager and Human Resources have approved it. Human
+Resources may return a record as `رد شده` with a reason; the manager can revise
+and resubmit it. A departed person's approved record may be `آرشیو شده`
+without deleting its history.
+
+Independently, the data quality status is `سالم` when the required information
+is present and all imported skills and tasks are linked to catalog values, and
+`ناقص` when one or more required fields are empty or an imported skill/task is
+still unlinked. A record may be visible to managers and Human Resources while
+`ناقص`, but it cannot pass the manager approval action or enter Human Resources
+review until it becomes `سالم`.
+
+Skills and task titles are catalog values and must be unique within their
+approved department scope. Each department has its own task catalog; a task
+title is not a global organization-wide value and a task from one department
+is not automatically available in another. Only task descriptions are free
+text. The standard Excel file
+contains the person's selected skills but does not contain required skills for
+each task. Managers maintain task-to-required-skill relationships in the
+database. Within each department in the manager's own and child-department
+scope, the Department Manager owns that department's task catalog and may
+define task titles and accept or reject task suggestions. Manual skill or task
+values may become reviewable catalog suggestions; they are not silently added.
+The manager can select or remove authorized public and department-specific
+skills in manual and edit forms. Public skills are visible to all managers;
+their final edit/delete authority remains with Human Resources once another
+department uses them. The department manager who registers a public skill may
+edit or deactivate it while its usage remains within that manager's department;
+the API must enforce this ownership and usage boundary.
+
+When resolving an imported value, the manager can choose any public skill or a
+skill specific to the target department, or create a new public or
+department-specific skill. A new task can be marked as a project during the
+same resolution flow; an existing task's project state is shown when selected.
+
+The system may analyze a description against the skill and task catalogs for
+missing, unsupported, incomplete, or conflicting entries. Initial analysis is
+deterministic: catalog tasks explicitly map to required skills, and the system
+compares those requirements with the person's selected skills. Findings are
+evidence-linked review suggestions and never automatically change a record,
+catalog, or approval status. No external AI service is required or assumed for
+this initial capability.
 
 ### FR-006 — Tabbed SPA workspace
 
@@ -224,6 +348,9 @@ The logical development database name is `EosDashboard`.
 
 ## Unresolved requirements
 
+- Any final visual/layout details of the standard workbook template.
+- Exact duplicate-matching and suggestion presentation details for the
+  department task catalog.
 - Dashboard catalogue, metrics, filters, and drill-down behavior beyond the
   approved System Administrator dashboard.
 - Detailed access policies beyond the four fixed initial roles, and whether later access assignments include granular permissions.

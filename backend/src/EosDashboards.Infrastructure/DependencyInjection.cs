@@ -1,7 +1,9 @@
 using EosDashboards.Application.Abstractions;
 using EosDashboards.Application.Administration;
+using EosDashboards.Application.JobDescriptions;
 using EosDashboards.Infrastructure.Persistence;
 using EosDashboards.Infrastructure.Persistence.Repositories;
+using EosDashboards.Infrastructure.JobDescriptions;
 using EosDashboards.Infrastructure.Security;
 using EosDashboards.Infrastructure.Sms;
 using Microsoft.AspNetCore.DataProtection;
@@ -48,6 +50,20 @@ public static class DependencyInjection
         services.AddScoped<ISystemAdministrationMetricsReader, SystemAdministrationMetricsReader>();
         services.AddScoped<IAuditLogReader, AuditLogReader>();
         services.AddScoped<IAdministrationLookupReader, AdministrationLookupReader>();
+        services.AddScoped<JobDescriptionRepository>();
+        services.AddScoped<IJobDescriptionRepository>(serviceProvider =>
+            serviceProvider.GetRequiredService<JobDescriptionRepository>());
+        services.AddScoped<IJobDescriptionCatalogReader>(serviceProvider =>
+            serviceProvider.GetRequiredService<JobDescriptionRepository>());
+        services.AddScoped<IHumanResourcesCatalogReader>(serviceProvider =>
+            serviceProvider.GetRequiredService<JobDescriptionRepository>());
+        services.AddScoped<IJobDescriptionScope, JobDescriptionScopeReader>();
+        services.AddScoped<IJobDescriptionDepartmentReader, JobDescriptionDepartmentReader>();
+        services.AddScoped<IJobDescriptionAnalysisReader, JobDescriptionAnalysisReader>();
+        services.AddScoped<IJobDescriptionImportReader, JobDescriptionImportReader>();
+        services.AddScoped<IJobDescriptionWorkbookParser, ExcelJobDescriptionWorkbookParser>();
+        services.AddScoped<IJobDescriptionWorkbookGenerator, ExcelJobDescriptionWorkbookGenerator>();
+        services.AddScoped<IDepartmentDashboardReader, DepartmentDashboardReader>();
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         return services;
     }

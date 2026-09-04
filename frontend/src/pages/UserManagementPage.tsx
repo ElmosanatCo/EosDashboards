@@ -21,6 +21,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import { ConfirmActionDialog } from "../components/ConfirmActionDialog";
 import {
   administrationApi,
   type ManagedUser,
@@ -35,13 +36,17 @@ export function UserManagementPage() {
   });
   const queryClient = useQueryClient();
   const [selectedUserId, setSelectedUserId] = useState<number | null>();
+  const [pendingDeactivation, setPendingDeactivation] =
+    useState<ManagedUser | null>(null);
   const changeStatus = useMutation({
     mutationFn: (user: ManagedUser) =>
       administrationApi.setUserActive(user.id, !user.isActive, user.rowVersion),
-    onSuccess: () =>
+    onSuccess: () => {
+      setPendingDeactivation(null);
       void queryClient.invalidateQueries({
         queryKey: ["administration", "users"],
-      }),
+      });
+    },
   });
   const openForm = (id?: number) => setSelectedUserId(id ?? null);
   return (
@@ -147,7 +152,10 @@ export function UserManagementPage() {
                             "aria-label": `${user.isActive ? "غیرفعال کردن" : "فعال کردن"} ${user.firstName} ${user.lastName}`,
                           },
                         }}
-                        onChange={() => changeStatus.mutate(user)}
+                        onChange={() => {
+                          if (user.isActive) setPendingDeactivation(user);
+                          else changeStatus.mutate(user);
+                        }}
                       />
                     </Tooltip>
                   </TableCell>
@@ -186,6 +194,21 @@ export function UserManagementPage() {
           />
         ) : null}
       </Dialog>
+      <ConfirmActionDialog
+        open={pendingDeactivation !== null}
+        title="تأیید غیرفعال‌سازی کاربر"
+        message={
+          pendingDeactivation
+            ? `آیا از غیرفعال‌سازی کاربر «${pendingDeactivation.firstName} ${pendingDeactivation.lastName}» مطمئن هستید؟`
+            : ""
+        }
+        confirmLabel="تأیید غیرفعال‌سازی"
+        pending={changeStatus.isPending}
+        onClose={() => setPendingDeactivation(null)}
+        onConfirm={() => {
+          if (pendingDeactivation) changeStatus.mutate(pendingDeactivation);
+        }}
+      />
     </Stack>
   );
 }

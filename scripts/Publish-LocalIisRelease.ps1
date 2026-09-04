@@ -6,7 +6,7 @@ param(
 
     [string]$ReleaseId = (Get-Date -Format 'yyyyMMdd-HHmmss'),
 
-    [string]$ExpectedMigration = '20260903190243_AddAuditRequestAttribution',
+    [string]$ExpectedMigration = '20260904135025_RepairPersistedPersianJobDescriptionDates',
 
     [string]$StatusFile = (Join-Path $env:LOCALAPPDATA 'Temp\EosDashboards-local-publish-status.txt')
 )

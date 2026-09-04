@@ -14,6 +14,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import { ConfirmActionDialog } from "../components/ConfirmActionDialog";
 import {
   administrationApi,
   type ManagedDepartment,
@@ -31,13 +32,18 @@ export function DepartmentManagementPage() {
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<
     number | null
   >();
+  const [pendingDelete, setPendingDelete] = useState<ManagedDepartment | null>(
+    null,
+  );
   const remove = useMutation({
     mutationFn: (item: ManagedDepartment) =>
       administrationApi.deleteDepartment(item.id, item.rowVersion),
-    onSuccess: () =>
+    onSuccess: () => {
+      setPendingDelete(null);
       void queryClient.invalidateQueries({
         queryKey: ["administration", "departments"],
-      }),
+      });
+    },
   });
   const openForm = (id?: number) => setSelectedDepartmentId(id ?? null);
   const roots =
@@ -85,7 +91,7 @@ export function DepartmentManagementPage() {
                 depth={0}
                 children={childrenOf(root.id)}
                 onEdit={openForm}
-                onDelete={(item) => remove.mutate(item)}
+                onDelete={(item) => setPendingDelete(item)}
               />
             ))}
             {!departments.isError && roots.length === 0 ? (
@@ -116,6 +122,18 @@ export function DepartmentManagementPage() {
           />
         ) : null}
       </Dialog>
+      <ConfirmActionDialog
+        open={pendingDelete !== null}
+        title="تأیید حذف واحد"
+        message={
+          pendingDelete ? `آیا از حذف «${pendingDelete.name}» مطمئن هستید؟` : ""
+        }
+        pending={remove.isPending}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={() => {
+          if (pendingDelete) remove.mutate(pendingDelete);
+        }}
+      />
     </Stack>
   );
 }

@@ -1,0 +1,99 @@
+using EosDashboards.Domain.Enums;
+
+namespace EosDashboards.Api.JobDescriptions;
+
+public sealed record CreateJobDescriptionRequest(
+    string PersonName,
+    long DepartmentId,
+    string PersonnelCode,
+    string Education,
+    string FieldOfStudy,
+    string MinimumExperience,
+    long[] SkillIds,
+    JobDescriptionTaskRequest[] Tasks);
+
+public sealed record JobDescriptionTaskRequest(
+    long TaskCatalogItemId,
+    string Title,
+    string Description,
+    DateOnly? StartDate,
+    DateOnly? EndDate,
+    int SortOrder,
+    decimal? WeeklyHours = null);
+
+public sealed record RejectJobDescriptionRequest(string Reason);
+
+public sealed record JobDescriptionListResponse(
+    long Id,
+    long DepartmentId,
+    string PersonName,
+    string WorkflowStatus,
+    string QualityStatus,
+    DateTime UpdatedAt);
+
+public sealed record JobDescriptionOperationResponse(
+    long Id,
+    string WorkflowStatus,
+    string QualityStatus,
+    string? RejectionReason);
+
+public sealed record JobDescriptionDetailResponse(
+    long Id,
+    long DepartmentId,
+    string PersonName,
+    string? PersonnelCode,
+    string Education,
+    string FieldOfStudy,
+    string MinimumExperience,
+    IReadOnlyCollection<long> SkillIds,
+    IReadOnlyCollection<JobDescriptionTaskResponse> Tasks,
+    IReadOnlyCollection<JobDescriptionUnresolvedSkillResponse> UnresolvedSkills,
+    IReadOnlyCollection<JobDescriptionUnresolvedTaskResponse> UnresolvedTasks,
+    string WorkflowStatus,
+    string QualityStatus,
+    string? RejectionReason);
+
+public sealed record JobDescriptionTaskResponse(
+    long TaskCatalogItemId,
+    string Title,
+    string Description,
+    DateOnly? StartDate,
+    DateOnly? EndDate,
+    int SortOrder,
+    decimal? WeeklyHours);
+
+public sealed record JobDescriptionUnresolvedSkillResponse(string RawName, int SortOrder);
+
+public sealed record JobDescriptionUnresolvedTaskResponse(
+    string RawTitle,
+    string Description,
+    DateOnly? StartDate,
+    DateOnly? EndDate,
+    int SortOrder);
+
+public sealed record JobDescriptionCatalogResponse(
+    IReadOnlyList<SkillCatalogResponse> Skills,
+    IReadOnlyList<TaskCatalogResponse> Tasks);
+
+public sealed record SkillCatalogResponse(
+    long Id,
+    long? DepartmentId,
+    string Name,
+    long? OwnerDepartmentId,
+    int UsageDepartmentCount,
+    bool CanEdit,
+    bool CanDelete);
+
+public sealed record TaskCatalogResponse(long Id, long DepartmentId, string Title, bool IsProject, IReadOnlyCollection<long> RequiredSkillIds);
+
+public sealed record CreateSkillRequest(long DepartmentId, string Name);
+
+public sealed record CreatePublicSkillRequest(long OwnerDepartmentId, string Name);
+
+public sealed record CreateTaskRequest(long DepartmentId, string Title, bool IsProject);
+
+public sealed record SetTaskRequiredSkillsRequest(long[] SkillIds);
+
+public sealed record UpdatePublicSkillRequest(string Name);
+
+public sealed record UpdateCatalogNameRequest(string Name);

@@ -1,7 +1,9 @@
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { PersianDateTimePicker } from "./PersianDateTimePicker";
+
+afterEach(cleanup);
 
 describe("PersianDateTimePicker", () => {
   it("uses one Persian date field instead of separate year/month/day selects", () => {
@@ -33,5 +35,21 @@ describe("PersianDateTimePicker", () => {
     await user.click(screen.getByRole("textbox", { name: "تا تاریخ و ساعت" }));
     expect(screen.getByRole("grid")).toBeInTheDocument();
     expect(screen.getByRole("gridcell", { name: "۴" })).toBeInTheDocument();
+  });
+
+  it("can be used as a date-only picker", () => {
+    render(
+      <PersianDateTimePicker
+        label="تاریخ شروع"
+        value={null}
+        includeTime={false}
+        onChange={() => undefined}
+      />,
+    );
+
+    expect(
+      screen.getByRole("textbox", { name: "تاریخ شروع" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText("ساعت")).not.toBeInTheDocument();
   });
 });
