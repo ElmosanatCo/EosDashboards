@@ -81,12 +81,21 @@ export function SystemAuditPage() {
         className="eos-accent-card"
         sx={{ p: 2, borderTop: 3, borderTopColor: "primary.main" }}
       >
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={1.5}
-          sx={{ alignItems: { sm: "center" } }}
+        <Box
+          data-testid="audit-filters"
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "minmax(0, 1fr)",
+              sm: "repeat(2, minmax(0, 1fr))",
+              lg: "repeat(3, minmax(0, 1fr))",
+              xl: "repeat(5, minmax(0, 1fr))",
+            },
+            gap: 1.5,
+            alignItems: "center",
+          }}
         >
-          <FormControl size="small" sx={{ minWidth: 190 }}>
+          <FormControl size="small" sx={{ minWidth: 0 }}>
             <InputLabel id="range-label">بازه زمانی</InputLabel>
             <Select
               labelId="range-label"
@@ -99,7 +108,7 @@ export function SystemAuditPage() {
               <MenuItem value="Custom">بازه سفارشی</MenuItem>
             </Select>
           </FormControl>
-          <FormControl size="small" sx={{ minWidth: 220 }}>
+          <FormControl size="small" sx={{ minWidth: 0 }}>
             <InputLabel id="event-label">کد رویداد</InputLabel>
             <Select
               labelId="event-label"
@@ -115,7 +124,7 @@ export function SystemAuditPage() {
               ))}
             </Select>
           </FormControl>
-          <FormControl size="small" sx={{ minWidth: 220 }}>
+          <FormControl size="small" sx={{ minWidth: 0 }}>
             <InputLabel id="actor-label">انجام‌دهنده</InputLabel>
             <Select
               labelId="actor-label"
@@ -126,13 +135,17 @@ export function SystemAuditPage() {
             >
               <MenuItem value="">همه انجام‌دهندگان</MenuItem>
               {users.data?.items.map((user) => (
-                <MenuItem key={user.id} value={String(user.id)}>
+                <MenuItem
+                  key={user.id}
+                  value={String(user.id)}
+                  className="eos-persian-number"
+                >
                   {userDisplayName(user)}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
-          <FormControl size="small" sx={{ minWidth: 220 }}>
+          <FormControl size="small" sx={{ minWidth: 0 }}>
             <InputLabel id="subject-label">کاربر هدف</InputLabel>
             <Select
               labelId="subject-label"
@@ -143,13 +156,17 @@ export function SystemAuditPage() {
             >
               <MenuItem value="">همه کاربران هدف</MenuItem>
               {users.data?.items.map((user) => (
-                <MenuItem key={user.id} value={String(user.id)}>
+                <MenuItem
+                  key={user.id}
+                  value={String(user.id)}
+                  className="eos-persian-number"
+                >
                   {userDisplayName(user)}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
-          <FormControl size="small" sx={{ minWidth: 150 }}>
+          <FormControl size="small" sx={{ minWidth: 0 }}>
             <InputLabel id="result-label">نتیجه</InputLabel>
             <Select
               labelId="result-label"
@@ -162,12 +179,17 @@ export function SystemAuditPage() {
               <MenuItem value="false">ناموفق</MenuItem>
             </Select>
           </FormControl>
-          <Typography variant="body2" color="text.secondary">
+          <Typography
+            className="eos-persian-number"
+            variant="body2"
+            color="text.secondary"
+            sx={{ minWidth: 0 }}
+          >
             {audit.data
               ? `${formatPersianNumber(audit.data.totalCount)} رویداد`
               : ""}
           </Typography>
-        </Stack>
+        </Box>
         {range === "Custom" ? (
           <Stack
             direction={{ xs: "column", sm: "row" }}
@@ -217,9 +239,15 @@ export function SystemAuditPage() {
               const occurred = formatPersianDateTime(new Date(item.occurredAt));
               return (
                 <TableRow key={item.id}>
-                  <TableCell>{eventLabel(item.eventCode)}</TableCell>
-                  <TableCell>{item.actorDisplayName ?? "سامانه"}</TableCell>
-                  <TableCell>{item.subjectDisplayName ?? "—"}</TableCell>
+                  <TableCell className="eos-persian-number">
+                    {eventLabel(item.eventCode)}
+                  </TableCell>
+                  <TableCell className="eos-persian-number">
+                    {item.actorDisplayName ?? "سامانه"}
+                  </TableCell>
+                  <TableCell className="eos-persian-number">
+                    {item.subjectDisplayName ?? "—"}
+                  </TableCell>
                   <TableCell
                     sx={{
                       color: item.succeeded ? "success.main" : "error.main",
@@ -227,9 +255,13 @@ export function SystemAuditPage() {
                   >
                     {item.succeeded ? "موفق" : "ناموفق"}
                   </TableCell>
-                  <TableCell>{occurred.date}</TableCell>
-                  <TableCell>{occurred.time}</TableCell>
-                  <TableCell dir="ltr">
+                  <TableCell className="eos-persian-number">
+                    {occurred.date}
+                  </TableCell>
+                  <TableCell className="eos-persian-number">
+                    {occurred.time}
+                  </TableCell>
+                  <TableCell className="eos-persian-number" dir="ltr">
                     {item.clientIpAddress ?? "ثبت نشده"}
                   </TableCell>
                   <TableCell>{deviceLabel(item.clientDeviceKind)}</TableCell>

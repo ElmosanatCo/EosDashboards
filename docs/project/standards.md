@@ -110,7 +110,7 @@ This is the canonical implementation standard for EosDashboards. Feature specifi
 
 - Use Material UI as the component foundation. Paid MUI X features require explicit approval.
 - Design manager-facing pages as one consistent Persian RTL workforce-operations workspace. The visual direction is calm, technical, authoritative, and suited to serious industrial management work; it is not a generic AI or consumer SaaS dashboard.
-- Use Vazirmatn as the primary font. Use full RTL layout and Persian content, Persian numerals where appropriate, and deliberate LTR formatting for identifiers, technical terms, dates, and numerical data. Preserve an internationalization foundation for future English LTR.
+- Use Vazirmatn as the primary font. Use full RTL layout and Persian content, and render every user-visible number with Persian digits, including identifiers and technical values when they are shown to users. Preserve deliberate LTR direction and ASCII values at protocol/API boundaries and in internal identifiers. Preserve an internationalization foundation for future English LTR.
 - Use a compact, desktop-first operational workspace with responsive mobile behavior. Do not use gradients, glassmorphism, floating panels, oversized rounded cards, excessive whitespace, generic hero sections, or consumer-SaaS visual patterns.
 - Use one coherent design system for spacing, typography, elevation, shape, color, focus, motion, forms, feedback, data visualization, and tables.
 - Treat visual quality, order, and harmony as core acceptance criteria. Before implementing a UI change, define its hierarchy, spacing, typography, color, responsive behavior, states, and RTL implications; review the rendered result and refine it until it is professionally cohesive. Do not assemble interfaces from disconnected defaults, rushed layouts, or placeholder visual decisions.
@@ -131,7 +131,7 @@ This is the canonical implementation standard for EosDashboards. Feature specifi
 
 ## 10. Typography and shared resources
 
-- Vazirmatn is the primary application, chart, form, and printable-output typeface.
+- Vazirmatn is the primary application, chart, form, and printable-output typeface. The locally hosted Sahel Farsi-Digits variant may be applied to numeric-bearing controls and values so visible digits remain Persian without changing submitted values.
 - Self-host optimized web font files; do not require internet access for typography.
 - Store authoritative shared resources under:
 

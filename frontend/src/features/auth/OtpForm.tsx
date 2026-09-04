@@ -7,6 +7,7 @@ import {
   Stack,
   TextField,
   Typography,
+  Tooltip,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { toPersianDigits } from "../../lib/format/persianDigits";
@@ -71,6 +72,7 @@ export function OtpForm({
             کد ارسال‌شده به{" "}
             <Box
               component="bdi"
+              className="eos-persian-number"
               data-testid="masked-mobile"
               dir="ltr"
               sx={{
@@ -88,6 +90,7 @@ export function OtpForm({
       </Typography>
       <TextField
         autoFocus
+        className="eos-persian-number"
         label="کد شش‌رقمی"
         value={code}
         disabled={busy || codeExpired}
@@ -116,6 +119,7 @@ export function OtpForm({
         <>
           <TextField
             autoComplete="new-password"
+            className="eos-persian-number"
             label="رمز عبور جدید"
             type={showPassword ? "text" : "password"}
             value={newPassword}
@@ -130,15 +134,23 @@ export function OtpForm({
               input: {
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton
-                      aria-label={
+                    <Tooltip
+                      title={
                         showPassword ? "پنهان کردن رمز جدید" : "نمایش رمز جدید"
                       }
-                      edge="end"
-                      onClick={() => setShowPassword((value) => !value)}
                     >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
+                      <IconButton
+                        aria-label={
+                          showPassword
+                            ? "پنهان کردن رمز جدید"
+                            : "نمایش رمز جدید"
+                        }
+                        edge="end"
+                        onClick={() => setShowPassword((value) => !value)}
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </Tooltip>
                   </InputAdornment>
                 ),
               },
@@ -148,6 +160,7 @@ export function OtpForm({
           />
           <TextField
             autoComplete="new-password"
+            className="eos-persian-number"
             label="تکرار رمز عبور جدید"
             type={showPassword ? "text" : "password"}
             value={confirmPassword}

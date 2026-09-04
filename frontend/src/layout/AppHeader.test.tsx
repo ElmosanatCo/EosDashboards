@@ -36,6 +36,24 @@ describe("AppHeader", () => {
     expect(screen.getByText("علم و صنعت")).toBeInTheDocument();
   });
 
+  it("provides hover hints for header icon controls", () => {
+    render(
+      <AppHeader
+        onMenu={vi.fn()}
+        targets={[]}
+        onOpenTarget={vi.fn()}
+        showBrand
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "باز و بسته کردن منو" }),
+    ).toHaveAccessibleName("باز و بسته کردن منو");
+    expect(
+      screen.getByRole("button", { name: "منوی کاربر" }),
+    ).toHaveAccessibleName("منوی کاربر");
+  });
+
   it("hides the brand when the compact mobile layout is active", () => {
     render(
       <AppHeader

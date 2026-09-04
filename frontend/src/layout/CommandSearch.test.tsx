@@ -17,6 +17,8 @@ describe("command search", () => {
 
     const input = screen.getByRole("textbox", { name: "جست‌وجوی سراسری" });
     expect(input).toHaveFocus();
+    expect(input).toHaveClass("eos-persian-number");
+    expect(screen.getByText("Ctrl+K")).toBeVisible();
     expect(
       screen.getByRole("button", { name: "داشبورد بخش" }),
     ).toBeInTheDocument();

@@ -26,6 +26,7 @@ export function PasswordRecoveryForm({ busy, onSubmit, onBack }: Props) {
       <TextField
         autoFocus
         autoComplete="username"
+        className="eos-persian-number"
         disabled={busy}
         fullWidth
         label="نام کاربری"

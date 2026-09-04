@@ -1,4 +1,6 @@
 import {
+  Box,
+  InputAdornment,
   List,
   ListItemButton,
   ListItemIcon,
@@ -6,6 +8,7 @@ import {
   Paper,
   Popper,
   TextField,
+  Tooltip,
 } from "@mui/material";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { WorkspaceTarget } from "../navigation/workspaceTargets";
@@ -55,7 +58,42 @@ export function CommandSearch({
         onBlur={() => window.setTimeout(() => setOpen(false), 120)}
         placeholder="جست‌وجو در عملیات و صفحه‌های مجاز…"
         size="small"
-        slotProps={{ htmlInput: { "aria-label": "جست‌وجوی سراسری" } }}
+        slotProps={{
+          htmlInput: {
+            "aria-label": "جست‌وجوی سراسری",
+            className: "eos-persian-number",
+          },
+          input: {
+            endAdornment: (
+              <InputAdornment position="end">
+                <Tooltip
+                  title="باز کردن جست‌وجو با میانبر Ctrl+K"
+                  placement="top"
+                >
+                  <Box
+                    component="kbd"
+                    aria-label="میانبر Ctrl+K"
+                    dir="ltr"
+                    sx={{
+                      px: 0.75,
+                      py: 0.25,
+                      border: "1px solid",
+                      borderColor: "divider",
+                      borderRadius: 0.75,
+                      color: "text.secondary",
+                      fontFamily: 'Vazirmatn, "Segoe UI", sans-serif',
+                      fontSize: "0.7rem",
+                      lineHeight: 1.2,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Ctrl+K
+                  </Box>
+                </Tooltip>
+              </InputAdornment>
+            ),
+          },
+        }}
         sx={{ width: "min(410px, 38vw)", minWidth: 150 }}
       />
       <Popper

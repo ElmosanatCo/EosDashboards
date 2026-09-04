@@ -7,6 +7,7 @@ import {
   ListItemIcon,
   ListItemText,
   Toolbar,
+  Tooltip,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import HomeIcon from "@mui/icons-material/Home";
@@ -82,9 +83,11 @@ export function AppSidebar({
           minHeight: "56px!important",
         }}
       >
-        <IconButton aria-label="بستن منو" onClick={onClose}>
-          <CloseIcon />
-        </IconButton>
+        <Tooltip title="بستن منو">
+          <IconButton aria-label="بستن منو" onClick={onClose}>
+            <CloseIcon />
+          </IconButton>
+        </Tooltip>
       </Toolbar>
       <Toolbar
         sx={{ display: { xs: "none", sm: "block" }, minHeight: "0!important" }}

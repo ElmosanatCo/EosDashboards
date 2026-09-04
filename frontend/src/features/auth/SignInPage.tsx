@@ -1,4 +1,3 @@
-import { LockOutlined } from "@mui/icons-material";
 import {
   Alert,
   Box,
@@ -144,22 +143,30 @@ export function SignInPage({
         >
           <Stack spacing={3}>
             <Stack
-              direction="row"
+              direction="column"
               spacing={1.25}
-              sx={{ display: { md: "none" }, alignItems: "center" }}
+              sx={{
+                display: { xs: "flex", md: "none" },
+                alignItems: "flex-start",
+                width: "100%",
+              }}
             >
               <Box
+                component="span"
+                data-testid="sign-in-card-brand"
                 sx={{
-                  bgcolor: "primary.dark",
-                  color: "#fff",
-                  width: 36,
-                  height: 36,
-                  borderRadius: 1.5,
+                  width: 48,
+                  height: 48,
                   display: "grid",
                   placeItems: "center",
                 }}
               >
-                <LockOutlined fontSize="small" />
+                <Box
+                  component="img"
+                  src={eosLogoUrl}
+                  alt="EOS"
+                  sx={{ width: 48, height: 48, display: "block" }}
+                />
               </Box>
               <Typography sx={{ fontWeight: 700 }}>علم و صنعت</Typography>
             </Stack>

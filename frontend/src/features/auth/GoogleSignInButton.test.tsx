@@ -14,6 +14,7 @@ describe("GoogleSignInButton", () => {
     await user.click(screen.getByRole("button", { name: "ورود با Google" }));
 
     expect(onStart).toHaveBeenCalledOnce();
+    expect(screen.getByTestId("google-brand-g")).toBeInTheDocument();
   });
 
   it("does not render when Google sign-in is unavailable", () => {

@@ -148,7 +148,10 @@ function DepartmentNode({
         }}
       >
         <AccountTreeOutlinedIcon color={depth === 0 ? "primary" : "action"} />
-        <Typography sx={{ flex: 1, fontWeight: depth === 0 ? 650 : 400 }}>
+        <Typography
+          className="eos-persian-number"
+          sx={{ flex: 1, fontWeight: depth === 0 ? 650 : 400 }}
+        >
           {item.name}
         </Typography>
         {depth === 0 ? (

@@ -66,6 +66,10 @@ test("local credential OTP opens the authenticated shell and logout returns to s
     "href",
     "/generated-assets/brand/eos.svg",
   );
+  await expect(page.getByTestId("sign-in-card-brand")).not.toBeVisible();
+  await expect(
+    page.locator("aside").getByAltText("EOS").locator("xpath=.."),
+  ).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   await page.getByLabel("نام کاربری").fill("synthetic-admin");
   await page
     .getByRole("textbox", { name: "رمز عبور" })
@@ -233,6 +237,33 @@ test("local credential OTP opens the authenticated shell and logout returns to s
   await expect(
     page.getByRole("button", { name: "ورود و دریافت کد تأیید" }),
   ).toBeVisible();
+  await expect(page.getByTestId("sign-in-card-brand")).toBeVisible();
+  await expect(
+    page.getByTestId("sign-in-card-brand").getByAltText("EOS"),
+  ).toHaveAttribute("src", "/generated-assets/brand/eos.svg");
+  const mobileSignInBrand = await page
+    .getByTestId("sign-in-card-brand")
+    .evaluate((element) => {
+      const card = element.closest(".MuiPaper-root");
+      const title = card?.querySelector("h2");
+      if (!card || !title) throw new Error("Sign-in card bounds are missing.");
+      const brandBounds = element.getBoundingClientRect();
+      const cardBounds = card.getBoundingClientRect();
+      const titleBounds = title.getBoundingClientRect();
+      return {
+        brandRight: brandBounds.right,
+        cardRight: cardBounds.right,
+        brandTop: brandBounds.top,
+        titleTop: titleBounds.top,
+      };
+    });
+  expect(mobileSignInBrand.brandRight).toBeLessThanOrEqual(
+    mobileSignInBrand.cardRight,
+  );
+  expect(mobileSignInBrand.brandRight).toBeGreaterThan(
+    mobileSignInBrand.cardRight - 100,
+  );
+  expect(mobileSignInBrand.brandTop).toBeLessThan(mobileSignInBrand.titleTop);
 });
 
 test("sign-in respects a saved dark appearance", async ({ page }) => {
@@ -258,10 +289,9 @@ test("sign-in respects a saved dark appearance", async ({ page }) => {
     "color",
     "rgb(56, 184, 170)",
   );
-  await expect(page.getByAltText("EOS").locator("xpath=..")).toHaveCSS(
-    "background-color",
-    "rgba(0, 0, 0, 0)",
-  );
+  await expect(
+    page.locator("aside").getByAltText("EOS").locator("xpath=.."),
+  ).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   await expect(page.locator("aside")).toHaveCSS(
     "background-image",
     /auth-background\.jpg/,
@@ -421,6 +451,13 @@ test("a System Administrator can open the operational dashboard", async ({
     page.getByRole("heading", { name: "داشبورد مدیر سامانه" }),
   ).toBeVisible();
   await expect(page.getByText("۱۲", { exact: true })).toBeVisible();
+  await expect(page.getByText("۱۲", { exact: true })).toHaveCSS(
+    "font-family",
+    /Sahel FD/,
+  );
+  await expect
+    .poll(() => page.evaluate(() => document.fonts.check('16px "Sahel FD"')))
+    .toBe(true);
   await expect(page.getByText("کاربران دارای نشست فعال")).toBeVisible();
   await expect(page.getByText("کاربر ایجاد شد")).toBeVisible();
   await expect(page.getByLabel("تاریخ سیستم")).toHaveCount(1);
@@ -461,6 +498,25 @@ test("a System Administrator can open the operational dashboard", async ({
   await page.getByRole("combobox", { name: "انجام‌دهنده" }).click();
   await expect(page.getByRole("option", { name: /مدیر سامانه/ })).toBeVisible();
   await page.keyboard.press("Escape");
+  await page.setViewportSize({ width: 390, height: 844 });
+  const mobileAuditFilters = await page
+    .getByTestId("audit-filters")
+    .evaluate((element) => ({
+      scrollWidth: element.scrollWidth,
+      clientWidth: element.clientWidth,
+      controls: Array.from(element.querySelectorAll('[role="combobox"]')).map(
+        (control) => {
+          const bounds = control.getBoundingClientRect();
+          return { left: bounds.left, right: bounds.right };
+        },
+      ),
+    }));
+  expect(mobileAuditFilters.scrollWidth).toBe(mobileAuditFilters.clientWidth);
+  expect(
+    mobileAuditFilters.controls.every(
+      (control) => control.left >= 0 && control.right <= 390,
+    ),
+  ).toBe(true);
   const auditLayout = await page.locator("table").evaluate((table) => {
     const main = table.closest("main");
     const tablePanel = table.closest(".MuiPaper-root");

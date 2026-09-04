@@ -2,6 +2,9 @@ import {
   AppBar,
   Box,
   IconButton,
+  Divider,
+  ListItemIcon,
+  ListItemText,
   Menu,
   MenuItem,
   Stack,
@@ -60,55 +63,92 @@ export function AppHeader({
           gap: 0.5,
         }}
       >
-        <IconButton
-          color="inherit"
-          edge="start"
-          aria-label="باز و بسته کردن منو"
-          onClick={onMenu}
-        >
-          <MenuIcon />
-        </IconButton>
+        <Tooltip title="باز و بسته کردن منو">
+          <IconButton
+            color="inherit"
+            edge="start"
+            aria-label="باز و بسته کردن منو"
+            onClick={onMenu}
+          >
+            <MenuIcon />
+          </IconButton>
+        </Tooltip>
         {showBrand && <AppBrand />}
         <Box
           sx={{ flexGrow: 1, display: "flex", justifyContent: "center", px: 1 }}
         >
           <CommandSearch targets={targets} onSelect={onOpenTarget} />
         </Box>
-        <IconButton
-          color="inherit"
-          aria-label="منوی کاربر"
-          onClick={(event) => setAnchorEl(event.currentTarget)}
-        >
-          <AccountCircleIcon />
-        </IconButton>
-        <IconButton
-          color="inherit"
-          aria-label="تغییر حالت نمایش"
-          onClick={toggleAppearance}
-        >
-          {resolvedAppearanceMode === "dark" ? (
-            <LightModeIcon />
-          ) : (
-            <DarkModeIcon />
-          )}
-        </IconButton>
+        <Tooltip title="منوی کاربر">
+          <IconButton
+            color="inherit"
+            aria-label="منوی کاربر"
+            onClick={(event) => setAnchorEl(event.currentTarget)}
+          >
+            <AccountCircleIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="تغییر حالت نمایش">
+          <IconButton
+            color="inherit"
+            aria-label="تغییر حالت نمایش"
+            onClick={toggleAppearance}
+          >
+            {resolvedAppearanceMode === "dark" ? (
+              <LightModeIcon />
+            ) : (
+              <DarkModeIcon />
+            )}
+          </IconButton>
+        </Tooltip>
         <Menu
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
           onClose={() => setAnchorEl(null)}
+          slotProps={{
+            paper: {
+              sx: {
+                mt: 1,
+                minWidth: 248,
+                border: "1px solid",
+                borderColor: "divider",
+              },
+            },
+          }}
         >
-          <MenuItem disabled>
-            {user.firstName} {user.lastName}
-          </MenuItem>
+          <Box sx={{ px: 2, py: 1.5, bgcolor: "action.hover" }}>
+            <Stack direction="row" spacing={1.25} sx={{ alignItems: "center" }}>
+              <AccountCircleIcon color="primary" />
+              <Box>
+                <Typography
+                  className="eos-persian-number"
+                  sx={{ fontWeight: 700 }}
+                >
+                  {user.firstName} {user.lastName}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  حساب کاربری
+                </Typography>
+              </Box>
+            </Stack>
+          </Box>
+          <Divider />
           <MenuItem
             onClick={() => {
               setAnchorEl(null);
               setPasswordDialogOpen(true);
             }}
+            sx={{ gap: 1.25, py: 1.25 }}
           >
-            <PasswordIcon fontSize="small" sx={{ ml: 1 }} />
-            تغییر رمز
+            <ListItemIcon sx={{ minWidth: 32 }}>
+              <PasswordIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText
+              primary="تغییر رمز"
+              secondary="به‌روزرسانی رمز ورود"
+            />
           </MenuItem>
+          <Divider />
           <Box component="li" sx={{ listStyle: "none", px: 2, py: 1.25 }}>
             <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
               <PaletteIcon fontSize="small" />
@@ -149,9 +189,11 @@ export function AppHeader({
               ))}
             </Box>
           </Box>
-          <MenuItem onClick={() => void logout()}>
-            <LogoutIcon fontSize="small" sx={{ ml: 1 }} />
-            خروج
+          <MenuItem onClick={() => void logout()} sx={{ gap: 1.25, py: 1.25 }}>
+            <ListItemIcon sx={{ minWidth: 32 }}>
+              <LogoutIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="خروج" secondary="پایان نشست کاربری" />
           </MenuItem>
         </Menu>
         <ChangePasswordDialog

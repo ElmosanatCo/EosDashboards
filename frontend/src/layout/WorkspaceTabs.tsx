@@ -1,5 +1,5 @@
 import CloseIcon from "@mui/icons-material/Close";
-import { Box, IconButton, Tab, Tabs } from "@mui/material";
+import { Box, IconButton, Tab, Tabs, Tooltip } from "@mui/material";
 import { useTabWorkspace } from "../navigation/TabWorkspaceProvider";
 
 export function WorkspaceTabs() {
@@ -39,17 +39,19 @@ export function WorkspaceTabs() {
               >
                 {tab.title}
                 {tab.closable ? (
-                  <IconButton
-                    component="span"
-                    size="small"
-                    aria-label={`بستن ${tab.title}`}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      dispatch({ type: "close", key: tab.key });
-                    }}
-                  >
-                    <CloseIcon fontSize="small" />
-                  </IconButton>
+                  <Tooltip title={`بستن ${tab.title}`}>
+                    <IconButton
+                      component="span"
+                      size="small"
+                      aria-label={`بستن ${tab.title}`}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        dispatch({ type: "close", key: tab.key });
+                      }}
+                    >
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
                 ) : null}
               </span>
             }

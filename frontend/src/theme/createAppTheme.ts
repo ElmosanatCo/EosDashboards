@@ -88,12 +88,32 @@ export function createAppTheme(mode: PaletteMode, palette: PaletteId) {
         },
         MuiCssBaseline: {
           styleOverrides: {
-            "@font-face": {
-              fontFamily: "Vazirmatn",
-              fontStyle: "normal",
-              fontDisplay: "swap",
-              fontWeight: "100 900",
-              src: `url('${generatedAssetsBaseUrl}fonts/Vazirmatn[wght].woff2') format('woff2')`,
+            "@font-face": [
+              {
+                fontFamily: "Vazirmatn",
+                fontStyle: "normal",
+                fontDisplay: "swap",
+                fontWeight: "100 900",
+                src: `url('${generatedAssetsBaseUrl}fonts/Vazirmatn[wght].woff2') format('woff2')`,
+              },
+              {
+                fontFamily: "Sahel FD",
+                fontStyle: "normal",
+                fontDisplay: "swap",
+                fontWeight: 400,
+                src: `url('${generatedAssetsBaseUrl}fonts/Sahel-FD.woff2') format('woff2')`,
+              },
+              {
+                fontFamily: "Sahel FD",
+                fontStyle: "normal",
+                fontDisplay: "swap",
+                fontWeight: 700,
+                src: `url('${generatedAssetsBaseUrl}fonts/Sahel-Bold-FD.woff2') format('woff2')`,
+              },
+            ],
+            ".eos-persian-number, .eos-persian-number *": {
+              fontFamily:
+                '"Sahel FD", Vazirmatn, "Segoe UI", sans-serif !important',
             },
             body: { margin: 0, minWidth: 320 },
             "input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus, input:-webkit-autofill:active":

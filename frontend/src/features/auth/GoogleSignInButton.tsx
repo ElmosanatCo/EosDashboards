@@ -1,5 +1,5 @@
-import GoogleIcon from "@mui/icons-material/Google";
 import { Button } from "@mui/material";
+import { GoogleBrandMark } from "./GoogleBrandMark";
 
 type Props = {
   available: boolean;
@@ -16,7 +16,7 @@ export function GoogleSignInButton({ available, busy, onStart }: Props) {
       variant="outlined"
       fullWidth
       size="large"
-      startIcon={<GoogleIcon />}
+      startIcon={<GoogleBrandMark />}
       disabled={busy}
       onClick={onStart}
       sx={{

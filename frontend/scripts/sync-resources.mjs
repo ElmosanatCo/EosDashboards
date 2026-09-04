@@ -22,6 +22,18 @@ await cp(
   resolve(repositoryRoot, "resources", "fonts", "vazirmatn", "OFL.txt"),
   resolve(destination, "fonts", "OFL.txt"),
 );
+await cp(
+  resolve(repositoryRoot, "resources", "fonts", "sahel", "Sahel-FD.woff2"),
+  resolve(destination, "fonts", "Sahel-FD.woff2"),
+);
+await cp(
+  resolve(repositoryRoot, "resources", "fonts", "sahel", "Sahel-Bold-FD.woff2"),
+  resolve(destination, "fonts", "Sahel-Bold-FD.woff2"),
+);
+await cp(
+  resolve(repositoryRoot, "resources", "fonts", "sahel", "LICENSE"),
+  resolve(destination, "fonts", "Sahel-LICENSE"),
+);
 
 const logoSource = resolve(repositoryRoot, "resources", "branding", "eos.svg");
 try {

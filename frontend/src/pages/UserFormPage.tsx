@@ -171,7 +171,11 @@ export function UserFormPage({
           <Typography component="h1" variant="h5" sx={{ fontWeight: 750 }}>
             {userId ? "ویرایش کاربر" : "تعریف کاربر"}
           </Typography>
-          <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+          <Typography
+            className="eos-persian-number"
+            color="text.secondary"
+            sx={{ mt: 0.5 }}
+          >
             {userId
               ? `شماره همراه فعلی: ${details.data?.maskedMobile ?? "—"}`
               : "اگر نام کاربری وارد نشود، کد پرسنلی برای آن استفاده می‌شود."}
@@ -186,6 +190,7 @@ export function UserFormPage({
         >
           <TextField
             required
+            className="eos-persian-number"
             label="کد پرسنلی"
             value={form.personnelCode}
             onChange={(e) => update("personnelCode", e.target.value)}
@@ -203,6 +208,7 @@ export function UserFormPage({
             onChange={(e) => update("lastName", e.target.value)}
           />
           <TextField
+            className="eos-persian-number"
             label="نام کاربری"
             helperText={
               userId
@@ -223,7 +229,11 @@ export function UserFormPage({
               onChange={(e) => update("departmentId", e.target.value)}
             >
               {departments.data?.map((item) => (
-                <MenuItem key={item.id} value={String(item.id)}>
+                <MenuItem
+                  key={item.id}
+                  value={String(item.id)}
+                  className="eos-persian-number"
+                >
                   {item.name}
                 </MenuItem>
               ))}
@@ -233,6 +243,7 @@ export function UserFormPage({
             <>
               <TextField
                 required
+                className="eos-persian-number"
                 label="شماره همراه"
                 value={form.mobile}
                 onChange={(e) => update("mobile", e.target.value)}
@@ -241,6 +252,7 @@ export function UserFormPage({
               />
               <TextField
                 required
+                className="eos-persian-number"
                 type="password"
                 label="رمز موقت"
                 helperText="حداقل ۸ کاراکتر"
@@ -252,6 +264,7 @@ export function UserFormPage({
             </>
           ) : (
             <TextField
+              className="eos-persian-number"
               label="شماره همراه جدید"
               helperText="فقط در صورت نیاز وارد کنید؛ مقدار قبلی نمایش داده نمی‌شود."
               value={form.mobile}
@@ -332,6 +345,7 @@ export function UserFormPage({
             >
               <TextField
                 size="small"
+                className="eos-persian-number"
                 type="password"
                 label="رمز موقت جدید"
                 value={form.temporaryPassword}

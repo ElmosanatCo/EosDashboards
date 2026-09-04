@@ -106,6 +106,7 @@ export function DepartmentFormPage({
         </Box>
         <TextField
           autoFocus
+          className="eos-persian-number"
           required
           label="نام واحد"
           value={name}

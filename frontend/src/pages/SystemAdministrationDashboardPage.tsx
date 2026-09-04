@@ -88,7 +88,11 @@ export function SystemAdministrationDashboardPage() {
               sx={{ justifyContent: "space-between", alignItems: "flex-start" }}
             >
               <Icon color="primary" />
-              <Typography variant="h4" sx={{ fontWeight: 760 }}>
+              <Typography
+                className="eos-persian-number"
+                variant="h4"
+                sx={{ fontWeight: 760 }}
+              >
                 {formatPersianNumber(data[key])}
               </Typography>
             </Stack>
@@ -179,7 +183,11 @@ function AuditRow({
         <Typography sx={{ fontWeight: 600 }}>
           {eventLabel(item.eventCode)}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography
+          className="eos-persian-number"
+          variant="body2"
+          color="text.secondary"
+        >
           {item.actorDisplayName ?? "سامانه"} ← {item.subjectDisplayName ?? "—"}
         </Typography>
       </Box>
@@ -189,10 +197,18 @@ function AuditRow({
       >
         {item.succeeded ? "موفق" : "ناموفق"}
       </Typography>
-      <Typography variant="body2" color="text.secondary">
+      <Typography
+        className="eos-persian-number"
+        variant="body2"
+        color="text.secondary"
+      >
         {occurred.date}
       </Typography>
-      <Typography variant="body2" color="text.secondary">
+      <Typography
+        className="eos-persian-number"
+        variant="body2"
+        color="text.secondary"
+      >
         {occurred.time}
       </Typography>
     </Box>

@@ -54,6 +54,7 @@ describe("SystemAuditPage filters", () => {
       </QueryClientProvider>,
     );
 
+    expect(screen.getByTestId("audit-filters")).toBeInTheDocument();
     await user.click(
       await screen.findByRole("combobox", { name: "کد رویداد" }),
     );

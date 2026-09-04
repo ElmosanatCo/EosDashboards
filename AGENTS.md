@@ -35,6 +35,7 @@ At the start of every new chat, automatically recall the project's prior agreeme
 - Manager-facing primary panels use the shared flat accent-card treatment: a thin top line changes to the approved gold on hover. User and department create/edit forms remain responsive in-page dialogs, and their form card fills the dialog content width at desktop and mobile sizes.
 - Persisted application times use the local clock of the application server, are named without `Utc`, and have millisecond precision only. No UTC persistence or Tehran-time conversion is used for application time logic.
 - Display and select all user-facing dates with the Persian calendar and Persian digits. Keep date/time visually separate, using one non-wrapping row where space permits.
+- Render every user-visible number with Persian digits, including numbers embedded in usernames, revealed passwords, personnel/organizational identifiers, versions, masked contact values, dates, times, counts, and IP addresses. Keep submitted form/API values and internal technical identifiers in the representation required by their contracts.
 - All principal application tables use auto-incrementing SQL Server `bigint` primary keys named `Id`, subject to the documented narrow exceptions.
 - Branding: company name is `علم و صنعت`; use the approved `resources/branding/eos.svg` unchanged. Do not recolor or substitute it.
 - Documentation: concise, plain English.

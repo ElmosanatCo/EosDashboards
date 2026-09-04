@@ -5,6 +5,30 @@ import { SignInPage } from "./SignInPage";
 
 describe("SignInPage", () => {
   afterEach(cleanup);
+
+  it("uses the approved EOS logo in the sign-in card brand", () => {
+    render(
+      <SignInPage
+        mode="signIn"
+        challenge={null}
+        busy={false}
+        googleAvailable={false}
+        onStartSignIn={vi.fn(async () => undefined)}
+        onVerifyOtp={vi.fn(async () => undefined)}
+        onStartPasswordReset={vi.fn(async () => undefined)}
+        onCompletePasswordReset={vi.fn(async () => undefined)}
+        onResendOtp={vi.fn(async () => undefined)}
+        onBack={vi.fn()}
+        onStartGoogleSignIn={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId("sign-in-card-brand").querySelector('img[alt="EOS"]'),
+    ).not.toBeNull();
+    expect(screen.queryByTestId("compact-sign-in-lock")).toBeNull();
+  });
+
   it("submits username and password before showing OTP", async () => {
     const user = userEvent.setup();
     const onStartSignIn = vi.fn(async () => undefined);

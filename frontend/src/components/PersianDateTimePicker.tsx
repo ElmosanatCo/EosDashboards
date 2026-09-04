@@ -10,6 +10,7 @@ import {
   TextField,
   Typography,
   Button,
+  Tooltip,
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { toPersianDigits } from "../lib/format/persianDigits";
@@ -136,6 +137,7 @@ export function PersianDateTimePicker({
     >
       <TextField
         size="small"
+        className="eos-persian-number"
         label={label}
         value={formatDate(value)}
         onClick={(event) => setAnchorEl(event.currentTarget)}
@@ -152,6 +154,7 @@ export function PersianDateTimePicker({
       />
       <TextField
         size="small"
+        className="eos-persian-number"
         type="time"
         label="ساعت"
         value={time}
@@ -179,23 +182,31 @@ export function PersianDateTimePicker({
             direction="row"
             sx={{ alignItems: "center", justifyContent: "space-between" }}
           >
-            <IconButton
-              size="small"
-              aria-label="ماه بعد"
-              onClick={() => setView(monthOffset(view.year, view.month, 1))}
+            <Tooltip title="ماه بعد">
+              <IconButton
+                size="small"
+                aria-label="ماه بعد"
+                onClick={() => setView(monthOffset(view.year, view.month, 1))}
+              >
+                <ChevronRightOutlinedIcon />
+              </IconButton>
+            </Tooltip>
+            <Typography
+              className="eos-persian-number"
+              variant="subtitle2"
+              sx={{ fontWeight: 700 }}
             >
-              <ChevronRightOutlinedIcon />
-            </IconButton>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
               {monthNames[view.month - 1]} {toPersianDigits(view.year)}
             </Typography>
-            <IconButton
-              size="small"
-              aria-label="ماه قبل"
-              onClick={() => setView(monthOffset(view.year, view.month, -1))}
-            >
-              <ChevronLeftOutlinedIcon />
-            </IconButton>
+            <Tooltip title="ماه قبل">
+              <IconButton
+                size="small"
+                aria-label="ماه قبل"
+                onClick={() => setView(monthOffset(view.year, view.month, -1))}
+              >
+                <ChevronLeftOutlinedIcon />
+              </IconButton>
+            </Tooltip>
           </Stack>
           <Box
             role="grid"

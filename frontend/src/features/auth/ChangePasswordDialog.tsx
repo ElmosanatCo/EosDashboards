@@ -9,6 +9,7 @@ import {
   InputAdornment,
   Stack,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { useState } from "react";
@@ -41,13 +42,15 @@ export function ChangePasswordDialog({
   const inputType = showPasswords ? "text" : "password";
   const visibility = (
     <InputAdornment position="end">
-      <IconButton
-        aria-label={showPasswords ? "پنهان کردن رمزها" : "نمایش رمزها"}
-        edge="end"
-        onClick={() => setShowPasswords((value) => !value)}
-      >
-        {showPasswords ? <VisibilityOff /> : <Visibility />}
-      </IconButton>
+      <Tooltip title={showPasswords ? "پنهان کردن رمزها" : "نمایش رمزها"}>
+        <IconButton
+          aria-label={showPasswords ? "پنهان کردن رمزها" : "نمایش رمزها"}
+          edge="end"
+          onClick={() => setShowPasswords((value) => !value)}
+        >
+          {showPasswords ? <VisibilityOff /> : <Visibility />}
+        </IconButton>
+      </Tooltip>
     </InputAdornment>
   );
   return (
@@ -74,6 +77,7 @@ export function ChangePasswordDialog({
           <TextField
             autoFocus
             autoComplete="current-password"
+            className="eos-persian-number"
             disabled={busy}
             fullWidth
             label="رمز فعلی"
@@ -88,6 +92,7 @@ export function ChangePasswordDialog({
           />
           <TextField
             autoComplete="new-password"
+            className="eos-persian-number"
             disabled={busy}
             fullWidth
             label="رمز جدید"
@@ -107,6 +112,7 @@ export function ChangePasswordDialog({
           />
           <TextField
             autoComplete="new-password"
+            className="eos-persian-number"
             disabled={busy}
             fullWidth
             label="تکرار رمز جدید"

@@ -92,15 +92,24 @@ export function UserManagementPage() {
             <TableBody>
               {users.data?.items.map((user) => (
                 <TableRow key={user.id} hover>
-                  <TableCell sx={{ fontWeight: 600 }}>
+                  <TableCell
+                    className="eos-persian-number"
+                    sx={{ fontWeight: 600 }}
+                  >
                     {user.firstName} {user.lastName}
                   </TableCell>
-                  <TableCell>{user.personnelCode}</TableCell>
-                  <TableCell dir="ltr">
+                  <TableCell className="eos-persian-number">
+                    {user.personnelCode}
+                  </TableCell>
+                  <TableCell className="eos-persian-number" dir="ltr">
                     {user.username ?? user.personnelCode}
                   </TableCell>
-                  <TableCell>{user.departmentName ?? "—"}</TableCell>
-                  <TableCell dir="ltr">{user.maskedMobile}</TableCell>
+                  <TableCell className="eos-persian-number">
+                    {user.departmentName ?? "—"}
+                  </TableCell>
+                  <TableCell className="eos-persian-number" dir="ltr">
+                    {user.maskedMobile}
+                  </TableCell>
                   <TableCell>
                     <Chip
                       size="small"
@@ -125,16 +134,22 @@ export function UserManagementPage() {
                         <LockResetOutlinedIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
-                    <Switch
-                      checked={user.isActive}
-                      disabled={changeStatus.isPending}
-                      slotProps={{
-                        input: {
-                          "aria-label": `${user.isActive ? "غیرفعال کردن" : "فعال کردن"} ${user.firstName} ${user.lastName}`,
-                        },
-                      }}
-                      onChange={() => changeStatus.mutate(user)}
-                    />
+                    <Tooltip
+                      title={
+                        user.isActive ? "غیرفعال کردن کاربر" : "فعال کردن کاربر"
+                      }
+                    >
+                      <Switch
+                        checked={user.isActive}
+                        disabled={changeStatus.isPending}
+                        slotProps={{
+                          input: {
+                            "aria-label": `${user.isActive ? "غیرفعال کردن" : "فعال کردن"} ${user.firstName} ${user.lastName}`,
+                          },
+                        }}
+                        onChange={() => changeStatus.mutate(user)}
+                      />
+                    </Tooltip>
                   </TableCell>
                 </TableRow>
               ))}

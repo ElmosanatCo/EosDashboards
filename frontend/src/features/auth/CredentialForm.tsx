@@ -4,6 +4,7 @@ import {
   InputAdornment,
   Stack,
   TextField,
+  Tooltip,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useState } from "react";
@@ -30,6 +31,7 @@ export function CredentialForm({ busy, onSubmit }: Props) {
       <TextField
         autoFocus
         autoComplete="username"
+        className="eos-persian-number"
         disabled={busy}
         fullWidth
         label="نام کاربری"
@@ -38,6 +40,7 @@ export function CredentialForm({ busy, onSubmit }: Props) {
       />
       <TextField
         autoComplete="current-password"
+        className="eos-persian-number"
         disabled={busy}
         fullWidth
         label="رمز عبور"
@@ -47,15 +50,21 @@ export function CredentialForm({ busy, onSubmit }: Props) {
           input: {
             endAdornment: (
               <InputAdornment position="end">
-                <IconButton
-                  aria-label={
+                <Tooltip
+                  title={
                     showPassword ? "پنهان کردن رمز عبور" : "نمایش رمز عبور"
                   }
-                  edge="end"
-                  onClick={() => setShowPassword((value) => !value)}
                 >
-                  {showPassword ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
+                  <IconButton
+                    aria-label={
+                      showPassword ? "پنهان کردن رمز عبور" : "نمایش رمز عبور"
+                    }
+                    edge="end"
+                    onClick={() => setShowPassword((value) => !value)}
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </Tooltip>
               </InputAdornment>
             ),
           },
