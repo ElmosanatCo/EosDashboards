@@ -23,3 +23,5 @@ test-results/
 .env
 .env.*
 !.env.example
+backend/src/EosDashboards.Api/appsettings.Production.json
+backend/src/EosDashboards.Api/appsettings.*.local.json

@@ -31,6 +31,7 @@ String یا دیتابیس شرکت نیاز ندارد؛ اجرای Migration �
 - [راهنمای فارسی Migration روی سرور شرکت](docs/operations/production-database-migration-fa.md)
 - [راهنمای نصب مرحله‌به‌مرحله API و UI روی IIS](docs/operations/production-iis-installation-fa.md)
 - [English production IIS installation guide](docs/operations/production-iis-installation-en.md)
+- [Production appsettings template](backend/src/EosDashboards.Api/appsettings.Production.template.json)
 - [راهنمای IIS](docs/operations/iis-deployment.md)
 - [حافظه و وضعیت پروژه](docs/project/current-state.md)
 - [استانداردهای فنی و عملیاتی](docs/project/standards.md)
