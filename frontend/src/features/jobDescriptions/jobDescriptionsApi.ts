@@ -36,6 +36,7 @@ export type PublicSkill = {
   name: string;
   ownerDepartmentId: number | null;
   usageDepartmentCount: number;
+  isActive: boolean;
   canEdit: boolean;
   canDelete: boolean;
 };
@@ -47,6 +48,7 @@ export type JobDescriptionCatalog = {
     name: string;
     ownerDepartmentId: number | null;
     usageDepartmentCount: number;
+    isActive: boolean;
     canEdit: boolean;
     canDelete: boolean;
   }[];
@@ -55,6 +57,7 @@ export type JobDescriptionCatalog = {
     departmentId: number;
     title: string;
     isProject: boolean;
+    isActive: boolean;
     requiredSkillIds: number[];
   }[];
 };
@@ -145,8 +148,10 @@ export const jobDescriptionsApi = {
     ),
   humanResourcesReview: () =>
     apiFetch<JobDescriptionListItem[]>(`${base}/human-resources-review`),
-  humanResourcesCatalog: () =>
-    apiFetch<PublicSkill[]>(`${base}/human-resources-catalog`),
+  humanResourcesCatalog: (includeInactive = false) =>
+    apiFetch<PublicSkill[]>(
+      `${base}/human-resources-catalog?includeInactive=${includeInactive}`,
+    ),
   renamePublicSkill: (id: number, name: string) =>
     apiFetch(`${base}/catalog/public-skills/${id}`, {
       method: "PUT",
@@ -154,6 +159,8 @@ export const jobDescriptionsApi = {
     }),
   deactivatePublicSkill: (id: number) =>
     apiFetch(`${base}/catalog/public-skills/${id}`, { method: "DELETE" }),
+  activatePublicSkill: (id: number) =>
+    apiFetch(`${base}/catalog/public-skills/${id}/active`, { method: "PUT" }),
   detail: (id: number) => apiFetch<JobDescriptionDetail>(`${base}/${id}`),
   analysis: (id: number) =>
     apiFetch<JobDescriptionQualityFinding[]>(`${base}/${id}/analysis`),
@@ -164,11 +171,11 @@ export const jobDescriptionsApi = {
       method: "POST",
       body: JSON.stringify({ reason }),
     }),
-  catalog: (departmentId?: number) =>
+  catalog: (departmentId?: number, includeInactive = false) =>
     apiFetch<JobDescriptionCatalog>(
       departmentId
-        ? `${base}/catalog?departmentId=${departmentId}`
-        : `${base}/catalog`,
+        ? `${base}/catalog?departmentId=${departmentId}&includeInactive=${includeInactive}`
+        : `${base}/catalog?includeInactive=${includeInactive}`,
     ),
   create: (input: CreateJobDescriptionInput) =>
     apiFetch(`${base}`, { method: "POST", body: JSON.stringify(input) }),
@@ -201,6 +208,8 @@ export const jobDescriptionsApi = {
     }),
   deactivateDepartmentSkill: (id: number) =>
     apiFetch(`${base}/catalog/skills/${id}`, { method: "DELETE" }),
+  activateDepartmentSkill: (id: number) =>
+    apiFetch(`${base}/catalog/skills/${id}/active`, { method: "PUT" }),
   renameDepartmentTask: (id: number, name: string) =>
     apiFetch(`${base}/catalog/tasks/${id}`, {
       method: "PUT",
@@ -208,6 +217,8 @@ export const jobDescriptionsApi = {
     }),
   deactivateDepartmentTask: (id: number) =>
     apiFetch(`${base}/catalog/tasks/${id}`, { method: "DELETE" }),
+  activateDepartmentTask: (id: number) =>
+    apiFetch(`${base}/catalog/tasks/${id}/active`, { method: "PUT" }),
   import: (files: File[]) => {
     const form = new FormData();
     files.forEach((file) => form.append("files", file));

@@ -195,6 +195,13 @@ department uses them. The department manager who registers a public skill may
 edit or deactivate it while its usage remains within that manager's department;
 the API must enforce this ownership and usage boundary.
 
+Catalog names and task titles that already exist must produce an explicit,
+actionable conflict in the form; the request must not fail silently and the
+entered form values remain available for correction. Deactivated catalog
+skills and tasks are hidden from the active view but can be shown with an
+inactive/all filter and reactivated by an authorized manager or Human Resources
+operator.
+
 When resolving an imported value, the manager can choose any public skill or a
 skill specific to the target department, or create a new public or
 department-specific skill. A new task can be marked as a project during the

@@ -10,10 +10,10 @@ public sealed class ManageCatalog(
     IHumanResourcesCatalogReader humanResourcesCatalog,
     IUnitOfWork unitOfWork)
 {
-    public async Task<IReadOnlyList<SkillCatalogListItem>?> ListPublicSkillsAsync(long actorUserId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<SkillCatalogListItem>?> ListPublicSkillsAsync(long actorUserId, bool includeInactive, CancellationToken cancellationToken)
     {
         if (!await scope.CanReviewAsHumanResourcesAsync(actorUserId, cancellationToken)) return null;
-        return await humanResourcesCatalog.ListPublicSkillsAsync(cancellationToken);
+        return await humanResourcesCatalog.ListPublicSkillsAsync(includeInactive, cancellationToken);
     }
 
     public async Task<CatalogOperationResult> RenamePublicSkillAsync(long actorUserId, long skillId, string name, CancellationToken cancellationToken)
@@ -27,6 +27,11 @@ public sealed class ManageCatalog(
         }
         try
         {
+            var duplicate = await catalog.FindSkillByNameAsync(null, name.Trim(), skillId, cancellationToken);
+            if (duplicate is not null)
+            {
+                return new(duplicate.IsActive ? CatalogOperationStatus.Duplicate : CatalogOperationStatus.InactiveDuplicate, duplicate.Id);
+            }
             skill.Rename(name, clock.Now);
             await unitOfWork.SaveChangesAsync(cancellationToken);
             return new(CatalogOperationStatus.Succeeded, skill.Id);
@@ -48,6 +53,20 @@ public sealed class ManageCatalog(
         return new(CatalogOperationStatus.Succeeded, skill.Id);
     }
 
+    public async Task<CatalogOperationResult> ActivatePublicSkillAsync(long actorUserId, long skillId, CancellationToken cancellationToken)
+    {
+        var skill = await humanResourcesCatalog.GetPublicSkillForUpdateAsync(skillId, cancellationToken);
+        if (skill is null) return new(CatalogOperationStatus.NotFound);
+        if (!await CanManagePublicSkillAsync(actorUserId, skill, cancellationToken) &&
+            !await scope.CanReviewAsHumanResourcesAsync(actorUserId, cancellationToken))
+        {
+            return new(CatalogOperationStatus.Forbidden);
+        }
+        skill.Activate(clock.Now);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        return new(CatalogOperationStatus.Succeeded, skill.Id);
+    }
+
     public async Task<CatalogOperationResult> CreatePublicSkillAsync(long actorUserId, CreatePublicSkillCommand command, CancellationToken cancellationToken)
     {
         if (command is null || command.OwnerDepartmentId <= 0 || string.IsNullOrWhiteSpace(command.Name) ||
@@ -58,6 +77,11 @@ public sealed class ManageCatalog(
 
         try
         {
+            var duplicate = await catalog.FindSkillByNameAsync(null, command.Name.Trim(), null, cancellationToken);
+            if (duplicate is not null)
+            {
+                return new(duplicate.IsActive ? CatalogOperationStatus.Duplicate : CatalogOperationStatus.InactiveDuplicate, duplicate.Id);
+            }
             var skill = SkillCatalogItem.CreatePublic(command.OwnerDepartmentId, command.Name, clock.Now);
             catalog.AddSkill(skill);
             await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -78,6 +102,11 @@ public sealed class ManageCatalog(
 
         try
         {
+            var duplicate = await catalog.FindSkillByNameAsync(command.DepartmentId, command.Name.Trim(), null, cancellationToken);
+            if (duplicate is not null)
+            {
+                return new(duplicate.IsActive ? CatalogOperationStatus.Duplicate : CatalogOperationStatus.InactiveDuplicate, duplicate.Id);
+            }
             var skill = SkillCatalogItem.Create(command.DepartmentId, command.Name, clock.Now);
             catalog.AddSkill(skill);
             await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -99,6 +128,11 @@ public sealed class ManageCatalog(
 
         try
         {
+            var duplicate = await catalog.FindTaskByTitleAsync(command.DepartmentId, command.Title.Trim(), null, cancellationToken);
+            if (duplicate is not null)
+            {
+                return new(duplicate.IsActive ? CatalogOperationStatus.Duplicate : CatalogOperationStatus.InactiveDuplicate, duplicate.Id);
+            }
             var task = TaskCatalogItem.Create(command.DepartmentId, command.Title, command.IsProject, clock.Now);
             catalog.AddTask(task);
             await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -141,7 +175,17 @@ public sealed class ManageCatalog(
         var skill = await catalog.GetSkillForUpdateAsync(skillId, cancellationToken);
         if (skill is null) return new(CatalogOperationStatus.NotFound);
         if (skill.DepartmentId is null || !await scope.CanManageDepartmentAsync(actorUserId, skill.DepartmentId.Value, cancellationToken)) return new(CatalogOperationStatus.Forbidden);
-        try { skill.Rename(name, clock.Now); await unitOfWork.SaveChangesAsync(cancellationToken); return new(CatalogOperationStatus.Succeeded, skill.Id); }
+        try
+        {
+            var duplicate = await catalog.FindSkillByNameAsync(skill.DepartmentId, name.Trim(), skillId, cancellationToken);
+            if (duplicate is not null)
+            {
+                return new(duplicate.IsActive ? CatalogOperationStatus.Duplicate : CatalogOperationStatus.InactiveDuplicate, duplicate.Id);
+            }
+            skill.Rename(name, clock.Now);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            return new(CatalogOperationStatus.Succeeded, skill.Id);
+        }
         catch (ArgumentException) { return new(CatalogOperationStatus.Invalid); }
     }
 
@@ -155,12 +199,32 @@ public sealed class ManageCatalog(
         return new(CatalogOperationStatus.Succeeded, skill.Id);
     }
 
+    public async Task<CatalogOperationResult> ActivateDepartmentSkillAsync(long actorUserId, long skillId, CancellationToken cancellationToken)
+    {
+        var skill = await catalog.GetSkillForUpdateAsync(skillId, cancellationToken);
+        if (skill is null) return new(CatalogOperationStatus.NotFound);
+        if (skill.DepartmentId is null || !await scope.CanManageDepartmentAsync(actorUserId, skill.DepartmentId.Value, cancellationToken)) return new(CatalogOperationStatus.Forbidden);
+        skill.Activate(clock.Now);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        return new(CatalogOperationStatus.Succeeded, skill.Id);
+    }
+
     public async Task<CatalogOperationResult> RenameDepartmentTaskAsync(long actorUserId, long taskId, string title, CancellationToken cancellationToken)
     {
         var task = await catalog.GetTaskForUpdateAsync(taskId, cancellationToken);
         if (task is null) return new(CatalogOperationStatus.NotFound);
         if (!await scope.CanManageDepartmentAsync(actorUserId, task.DepartmentId, cancellationToken)) return new(CatalogOperationStatus.Forbidden);
-        try { task.Rename(title, clock.Now); await unitOfWork.SaveChangesAsync(cancellationToken); return new(CatalogOperationStatus.Succeeded, task.Id); }
+        try
+        {
+            var duplicate = await catalog.FindTaskByTitleAsync(task.DepartmentId, title.Trim(), taskId, cancellationToken);
+            if (duplicate is not null)
+            {
+                return new(duplicate.IsActive ? CatalogOperationStatus.Duplicate : CatalogOperationStatus.InactiveDuplicate, duplicate.Id);
+            }
+            task.Rename(title, clock.Now);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            return new(CatalogOperationStatus.Succeeded, task.Id);
+        }
         catch (ArgumentException) { return new(CatalogOperationStatus.Invalid); }
     }
 
@@ -170,6 +234,16 @@ public sealed class ManageCatalog(
         if (task is null) return new(CatalogOperationStatus.NotFound);
         if (!await scope.CanManageDepartmentAsync(actorUserId, task.DepartmentId, cancellationToken)) return new(CatalogOperationStatus.Forbidden);
         task.Deactivate(clock.Now);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        return new(CatalogOperationStatus.Succeeded, task.Id);
+    }
+
+    public async Task<CatalogOperationResult> ActivateDepartmentTaskAsync(long actorUserId, long taskId, CancellationToken cancellationToken)
+    {
+        var task = await catalog.GetTaskForUpdateAsync(taskId, cancellationToken);
+        if (task is null) return new(CatalogOperationStatus.NotFound);
+        if (!await scope.CanManageDepartmentAsync(actorUserId, task.DepartmentId, cancellationToken)) return new(CatalogOperationStatus.Forbidden);
+        task.Activate(clock.Now);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return new(CatalogOperationStatus.Succeeded, task.Id);
     }

@@ -77,4 +77,10 @@ public sealed class SkillCatalogItem
         IsActive = false;
         UpdatedAt = updatedAt;
     }
+
+    public void Activate(DateTime updatedAt)
+    {
+        IsActive = true;
+        UpdatedAt = updatedAt;
+    }
 }

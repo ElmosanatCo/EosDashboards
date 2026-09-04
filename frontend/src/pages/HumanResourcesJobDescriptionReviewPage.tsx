@@ -13,8 +13,12 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControl,
   IconButton,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
   Stack,
   Table,
   TableBody,
@@ -26,6 +30,7 @@ import {
   Typography,
 } from "@mui/material";
 import { ConfirmActionDialog } from "../components/ConfirmActionDialog";
+import { MutationErrorAlert } from "../components/MutationErrorAlert";
 import {
   jobDescriptionsApi,
   type JobDescriptionListItem,
@@ -75,6 +80,8 @@ export function HumanResourcesJobDescriptionReviewPage() {
         >
           مدیریت مهارت‌های عمومی
         </Button>
+        {approve.isError ? <MutationErrorAlert error={approve.error} /> : null}
+        {reject.isError ? <MutationErrorAlert error={reject.error} /> : null}
       </Box>
       <Paper
         variant="outlined"
@@ -213,9 +220,11 @@ function PublicSkillCatalogDialog({
   onClose: () => void;
 }) {
   const queryClient = useQueryClient();
+  const [status, setStatus] = useState<"active" | "inactive" | "all">("active");
   const catalog = useQuery({
-    queryKey: ["human-resources-catalog"],
-    queryFn: jobDescriptionsApi.humanResourcesCatalog,
+    queryKey: ["human-resources-catalog", status !== "active"],
+    queryFn: () =>
+      jobDescriptionsApi.humanResourcesCatalog(status !== "active"),
     enabled: open,
   });
   const [names, setNames] = useState<Record<number, string>>({});
@@ -238,17 +247,54 @@ function PublicSkillCatalogDialog({
   });
   const deactivate = useMutation({
     mutationFn: (id: number) => jobDescriptionsApi.deactivatePublicSkill(id),
+    onSuccess: () => {
+      setPendingDelete(null);
+      void queryClient.invalidateQueries({
+        queryKey: ["human-resources-catalog"],
+      });
+    },
+  });
+  const activate = useMutation({
+    mutationFn: (id: number) => jobDescriptionsApi.activatePublicSkill(id),
     onSuccess: () =>
       void queryClient.invalidateQueries({
         queryKey: ["human-resources-catalog"],
       }),
   });
+  const visibleSkills =
+    catalog.data?.filter((skill) =>
+      status === "all"
+        ? true
+        : status === "active"
+          ? skill.isActive
+          : !skill.isActive,
+    ) ?? [];
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>مدیریت مهارت‌های عمومی</DialogTitle>
       <DialogContent>
         <Stack spacing={1.25} sx={{ pt: 1 }}>
-          {catalog.data?.map((skill) => (
+          <FormControl size="small" fullWidth>
+            <InputLabel id="human-resources-catalog-status-label">
+              وضعیت
+            </InputLabel>
+            <Select
+              labelId="human-resources-catalog-status-label"
+              label="وضعیت"
+              value={status}
+              onChange={(event) =>
+                setStatus(event.target.value as "active" | "inactive" | "all")
+              }
+            >
+              <MenuItem value="active">فعال</MenuItem>
+              <MenuItem value="inactive">غیرفعال</MenuItem>
+              <MenuItem value="all">همه</MenuItem>
+            </Select>
+          </FormControl>
+          <MutationErrorAlert
+            error={rename.error ?? deactivate.error ?? activate.error}
+          />
+          {visibleSkills.map((skill) => (
             <Stack
               key={skill.id}
               direction="row"
@@ -267,28 +313,42 @@ function PublicSkillCatalogDialog({
                   }))
                 }
               />
-              <Button
-                size="small"
-                disabled={!names[skill.id]?.trim() || rename.isPending}
-                onClick={() =>
-                  rename.mutate({ id: skill.id, name: names[skill.id] })
-                }
-              >
-                ذخیره
-              </Button>
-              <Button
-                size="small"
-                color="error"
-                disabled={deactivate.isPending}
-                onClick={() => setPendingDelete(skill)}
-              >
-                حذف
-              </Button>
+              {skill.isActive ? (
+                <>
+                  <Button
+                    size="small"
+                    disabled={!names[skill.id]?.trim() || rename.isPending}
+                    onClick={() =>
+                      rename.mutate({ id: skill.id, name: names[skill.id] })
+                    }
+                  >
+                    ذخیره
+                  </Button>
+                  <Button
+                    size="small"
+                    color="error"
+                    disabled={deactivate.isPending}
+                    onClick={() => setPendingDelete(skill)}
+                  >
+                    حذف
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  size="small"
+                  startIcon={<CheckCircleOutlineOutlinedIcon />}
+                  disabled={activate.isPending}
+                  onClick={() => activate.mutate(skill.id)}
+                  aria-label={`فعال‌سازی مهارت ${skill.name}`}
+                >
+                  فعال‌سازی
+                </Button>
+              )}
             </Stack>
           ))}
-          {catalog.isSuccess && catalog.data.length === 0 ? (
+          {catalog.isSuccess && visibleSkills.length === 0 ? (
             <Typography color="text.secondary">
-              مهارت عمومی فعالی وجود ندارد.
+              مهارتی با این وضعیت وجود ندارد.
             </Typography>
           ) : null}
         </Stack>

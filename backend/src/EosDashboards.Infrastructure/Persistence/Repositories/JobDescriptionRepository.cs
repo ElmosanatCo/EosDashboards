@@ -79,12 +79,13 @@ public sealed class JobDescriptionRepository(EosDashboardDbContext context) : IJ
 
     public async Task<IReadOnlyList<SkillCatalogListItem>> ListSkillsAsync(
         IReadOnlyCollection<long> departmentIds,
+        bool includeInactive,
         CancellationToken cancellationToken)
     {
         var skills = await context.SkillCatalogItems.AsNoTracking()
-            .Where(skill => skill.IsActive && (skill.DepartmentId == null || departmentIds.Contains(skill.DepartmentId.Value)))
+            .Where(skill => (includeInactive || skill.IsActive) && (skill.DepartmentId == null || departmentIds.Contains(skill.DepartmentId.Value)))
             .OrderBy(skill => skill.DepartmentId).ThenBy(skill => skill.Name)
-            .Select(skill => new { skill.Id, skill.DepartmentId, skill.Name, skill.OwnerDepartmentId })
+            .Select(skill => new { skill.Id, skill.DepartmentId, skill.Name, skill.OwnerDepartmentId, skill.IsActive })
             .ToArrayAsync(cancellationToken);
         return await AddSkillUsageAsync(
             skills,
@@ -92,25 +93,45 @@ public sealed class JobDescriptionRepository(EosDashboardDbContext context) : IJ
             skill => skill.DepartmentId,
             skill => skill.Name,
             skill => skill.OwnerDepartmentId,
+            skill => skill.IsActive,
             cancellationToken);
     }
 
     public async Task<IReadOnlyList<TaskCatalogListItem>> ListTasksAsync(
         IReadOnlyCollection<long> departmentIds,
         long? departmentId,
+        bool includeInactive,
         CancellationToken cancellationToken)
     {
         var query = context.TaskCatalogItems.AsNoTracking()
-            .Where(task => task.IsActive && departmentIds.Contains(task.DepartmentId));
+            .Where(task => (includeInactive || task.IsActive) && departmentIds.Contains(task.DepartmentId));
         if (departmentId is { } selectedDepartmentId)
         {
             query = query.Where(task => task.DepartmentId == selectedDepartmentId);
         }
 
         return await query.OrderBy(task => task.Title)
-            .Select(task => new TaskCatalogListItem(task.Id, task.DepartmentId, task.Title, task.IsProject, task.RequiredSkills.Select(skill => skill.SkillCatalogItemId).ToArray()))
+            .Select(task => new TaskCatalogListItem(task.Id, task.DepartmentId, task.Title, task.IsProject, task.IsActive, task.RequiredSkills.Select(skill => skill.SkillCatalogItemId).ToArray()))
             .ToArrayAsync(cancellationToken);
     }
+
+    public Task<SkillCatalogItem?> FindSkillByNameAsync(
+        long? departmentId,
+        string name,
+        long? excludingId,
+        CancellationToken cancellationToken) =>
+        context.SkillCatalogItems.SingleOrDefaultAsync(
+            skill => skill.DepartmentId == departmentId && skill.Name == name &&
+                     (excludingId == null || skill.Id != excludingId), cancellationToken);
+
+    public Task<TaskCatalogItem?> FindTaskByTitleAsync(
+        long departmentId,
+        string title,
+        long? excludingId,
+        CancellationToken cancellationToken) =>
+        context.TaskCatalogItems.SingleOrDefaultAsync(
+            task => task.DepartmentId == departmentId && task.Title == title &&
+                    (excludingId == null || task.Id != excludingId), cancellationToken);
 
     public Task<TaskCatalogItem?> GetTaskForUpdateAsync(long id, CancellationToken cancellationToken) =>
         context.TaskCatalogItems.Include(task => task.RequiredSkills).SingleOrDefaultAsync(task => task.Id == id, cancellationToken);
@@ -126,12 +147,12 @@ public sealed class JobDescriptionRepository(EosDashboardDbContext context) : IJ
 
     public void AddTask(TaskCatalogItem task) => context.TaskCatalogItems.Add(task);
 
-    public async Task<IReadOnlyList<SkillCatalogListItem>> ListPublicSkillsAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<SkillCatalogListItem>> ListPublicSkillsAsync(bool includeInactive, CancellationToken cancellationToken)
     {
         var skills = await context.SkillCatalogItems.AsNoTracking()
-            .Where(skill => skill.IsActive && skill.DepartmentId == null)
+            .Where(skill => (includeInactive || skill.IsActive) && skill.DepartmentId == null)
             .OrderBy(skill => skill.Name)
-            .Select(skill => new { skill.Id, skill.DepartmentId, skill.Name, skill.OwnerDepartmentId })
+            .Select(skill => new { skill.Id, skill.DepartmentId, skill.Name, skill.OwnerDepartmentId, skill.IsActive })
             .ToArrayAsync(cancellationToken);
         return await AddSkillUsageAsync(
             skills,
@@ -139,6 +160,7 @@ public sealed class JobDescriptionRepository(EosDashboardDbContext context) : IJ
             skill => skill.DepartmentId,
             skill => skill.Name,
             skill => skill.OwnerDepartmentId,
+            skill => skill.IsActive,
             cancellationToken);
     }
 
@@ -158,6 +180,7 @@ public sealed class JobDescriptionRepository(EosDashboardDbContext context) : IJ
         Func<T, long?> departmentIdSelector,
         Func<T, string> nameSelector,
         Func<T, long?> ownerDepartmentIdSelector,
+        Func<T, bool> isActiveSelector,
         CancellationToken cancellationToken)
     {
         var skillIds = skills.Select(idSelector).ToArray();
@@ -171,6 +194,7 @@ public sealed class JobDescriptionRepository(EosDashboardDbContext context) : IJ
             departmentIdSelector(skill),
             nameSelector(skill),
             ownerDepartmentIdSelector(skill),
+            isActiveSelector(skill),
             usages.Where(usage => usage.SkillCatalogItemId == idSelector(skill)).Select(usage => usage.DepartmentId).ToArray())).ToArray();
     }
 }

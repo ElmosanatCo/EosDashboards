@@ -81,10 +81,11 @@ public sealed record SkillCatalogResponse(
     string Name,
     long? OwnerDepartmentId,
     int UsageDepartmentCount,
+    bool IsActive,
     bool CanEdit,
     bool CanDelete);
 
-public sealed record TaskCatalogResponse(long Id, long DepartmentId, string Title, bool IsProject, IReadOnlyCollection<long> RequiredSkillIds);
+public sealed record TaskCatalogResponse(long Id, long DepartmentId, string Title, bool IsProject, bool IsActive, IReadOnlyCollection<long> RequiredSkillIds);
 
 public sealed record CreateSkillRequest(long DepartmentId, string Name);
 

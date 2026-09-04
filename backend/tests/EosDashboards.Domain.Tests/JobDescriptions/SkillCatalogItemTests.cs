@@ -14,4 +14,15 @@ public sealed class SkillCatalogItemTests
         Assert.Equal("مدیریت پروژه", skill.Name);
         Assert.True(skill.IsActive);
     }
+
+    [Fact]
+    public void Deactivated_skill_can_be_activated_again()
+    {
+        var skill = SkillCatalogItem.Create(7, "مدیریت پروژه", new DateTime(2026, 9, 4, 12, 0, 0));
+
+        skill.Deactivate(new DateTime(2026, 9, 4, 12, 1, 0));
+        skill.Activate(new DateTime(2026, 9, 4, 12, 2, 0));
+
+        Assert.True(skill.IsActive);
+    }
 }
