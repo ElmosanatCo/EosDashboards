@@ -306,7 +306,15 @@ The React UI and ASP.NET Core API are independently hosted on IIS with separate 
 
 **Status:** Confirmed
 
-Entity Framework Code First migrations are the schema source of truth. Production schema changes use reviewed, tested, archived deployment scripts or bundles and never automatic startup migration.
+Entity Framework Code First migrations are the schema source of truth. Production
+schema changes use reviewed, tested, archived deployment scripts or bundles and
+never automatic startup migration. Every production API release that contains a
+pending migration must include an automated or operator-triggered deployment
+stage that runs the matching migration artifact with a separately authorized
+deployment identity before switching IIS to the new API. The developer does not
+need direct database access, and the runtime API identity must not receive schema
+change permission. If the migration stage fails, the API release must not be
+activated.
 
 ### TC-013 — Primary keys
 
