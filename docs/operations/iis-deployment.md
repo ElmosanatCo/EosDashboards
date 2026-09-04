@@ -4,7 +4,13 @@ The React UI and ASP.NET Core API must use separate IIS sites/applications and s
 
 ## Publish
 
+Run the publish commands from the repository root, or use absolute paths for
+the script and both artifacts. A relative path such as `.\scripts` is resolved
+against the current PowerShell directory, not against the repository. Do not
+escape the underscore in the migration name.
+
 ```powershell
+Set-Location D:\Workspaces\ChatGpt\EosDashboards
 dotnet publish backend/src/EosDashboards.Api/EosDashboards.Api.csproj -c Release -o <versioned-api-directory>
 npm ci --prefix frontend
 npm --prefix frontend run build
