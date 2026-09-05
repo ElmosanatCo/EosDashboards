@@ -161,45 +161,42 @@ Initial authentication and application-shell implementation.
 
 ## Current implementation note
 
-On 2026-09-05, job-description quality was aligned with task-catalog
-relationships. Required-skill assignment changes now revalidate active versions
-that use the changed task; affected Human Resources-review versions return to
-`منتظر رفع نقص`, both approval gates recheck catalog findings, and user-facing
-findings prefer catalog names over opaque identifiers. Migration
-`RevalidateJobDescriptionQuality` was applied to the local development database
-after a verified backup; the affected sample record now persists
-`PendingDataCompletion` with catalog quality issues. Fresh Release verification
-passed all 287 backend tests (including 138 SQL-backed integration tests); the
-frontend suite passed 36 files/98 tests, and the changed page passed typecheck,
-production build, and focused formatting checks. The matching API/UI artifacts
-were published from `main` commit `266548b` as local IIS release
-`20260905-150224`; API liveness/readiness, UI entry, and the SPA refresh probe
-all returned HTTPS HTTP 200.
+On 2026-09-05, the job-description quality model was corrected so an unrelated
+selected skill is allowed and does not create a defect. A required skill that
+is still missing from a person's selected skills is also non-blocking: the
+version remains `سالم` for workflow approval but persists `NeedsReview` and is
+shown as `نیازمند بررسی` to the department manager and Chief Executive Officer.
+Blocking quality findings remain separate and continue to produce
+`منتظر رفع نقص`; both approval gates revalidate the blocking set. The manager
+dashboard and list expose the review state, and the Chief Executive dashboard
+has a read-only warning feed with the department, person, task, and missing
+skill. Required-skill catalog changes revalidate active versions that use the
+changed task.
 
-The first post-publication edit-and-resubmit check exposed a follow-up defect:
-creating or revising a version evaluated structural completeness before task
-catalog evidence, so a version could display as healthy until the approval
-request rechecked it. The API correctly returned `incomplete_job_description`,
-but the frontend did not translate that code and showed a generic error. Create
-and revise now run catalog analysis before saving the new version, and the
-frontend displays the actionable incomplete-quality message. A follow-up
-data-only migration, `RevalidateExistingJobDescriptionQuality`, was applied
-after a second verified backup so versions created before this correction are
-also revalidated; the affected active versions now persist
-`PendingDataCompletion` with catalog quality issues. Application verification
-passed 96 tests; the frontend suite passed 37 files/99 tests, and typecheck,
-IIS build, lint, and focused formatting checks passed. The matching artifacts
-were published from `main` commit `5160ce9` as local IIS release
-`20260905-153628`; API liveness/readiness, UI entry, and the SPA refresh probe
-all returned HTTPS HTTP 200. An authenticated browser check confirmed the
-affected record displays `ناقص`/`منتظر رفع نقص` and no longer offers submission.
+Migration `20260905170000_AddJobDescriptionReviewWarning` was applied to the
+local development database after a verified backup. It added the persisted
+review flag and backfilled active non-approved versions without changing
+approved or archived history. Release verification passed 55 Domain tests,
+101 Application tests, 1 Architecture test, and 138 isolated SQL-backed
+integration tests. The frontend suite passed 38 files/102 tests; typecheck,
+IIS build, changed-file formatting, and lint completed with only the
+repository's existing warnings. The first broad backend attempt correctly
+stopped because the isolated SQL-test connection was missing; rerunning with
+the documented isolated test database passed all SQL-backed tests.
+
+The matching API/UI artifacts were published from `main` commit `72d860b` as
+local IIS release `20260905-155956`. Post-publication checks returned HTTPS
+HTTP 200 for API liveness, API readiness, the UI entry route, and the internal
+job-description route. The authenticated manager page now shows the affected
+records as `منتظر تأیید` and `سالم`; the database confirms migration
+`20260905170000_AddJobDescriptionReviewWarning` is current. No company
+production deployment was performed.
 
 ## Next agreed step
 
-The Human Resources dashboard and unified job-description-management slice is
-merged and pushed in `main` commit `5160ce9` and published to local IIS as
-release `20260905-153628`. Do not deploy to company production servers in this
-slice.
+Push the verified review-warning change from `main` and keep the local IIS
+release `20260905-155956` as the current local candidate. Do not deploy to
+company production servers in this slice.
 
 ## Blockers
 
