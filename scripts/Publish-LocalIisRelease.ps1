@@ -6,7 +6,7 @@ param(
 
     [string]$ReleaseId = (Get-Date -Format 'yyyyMMdd-HHmmss'),
 
-    [string]$ExpectedMigration = '20260905153600_RevalidateExistingJobDescriptionQuality',
+    [string]$ExpectedMigration = '20260905170000_AddJobDescriptionReviewWarning',
 
     [string]$StatusFile = (Join-Path $env:LOCALAPPDATA 'Temp\EosDashboards-local-publish-status.txt')
 )
