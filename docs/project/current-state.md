@@ -186,14 +186,20 @@ frontend displays the actionable incomplete-quality message. A follow-up
 data-only migration, `RevalidateExistingJobDescriptionQuality`, was applied
 after a second verified backup so versions created before this correction are
 also revalidated; the affected active versions now persist
-`PendingDataCompletion` with catalog quality issues.
+`PendingDataCompletion` with catalog quality issues. Application verification
+passed 96 tests; the frontend suite passed 37 files/99 tests, and typecheck,
+IIS build, lint, and focused formatting checks passed. The matching artifacts
+were published from `main` commit `5160ce9` as local IIS release
+`20260905-153628`; API liveness/readiness, UI entry, and the SPA refresh probe
+all returned HTTPS HTTP 200. An authenticated browser check confirmed the
+affected record displays `ناقص`/`منتظر رفع نقص` and no longer offers submission.
 
 ## Next agreed step
 
 The Human Resources dashboard and unified job-description-management slice is
-merged and pushed in `main`; the follow-up correction and data migration are
-pending the next matching local IIS release. Do not deploy to company
-production servers in this slice.
+merged and pushed in `main` commit `5160ce9` and published to local IIS as
+release `20260905-153628`. Do not deploy to company production servers in this
+slice.
 
 ## Blockers
 
