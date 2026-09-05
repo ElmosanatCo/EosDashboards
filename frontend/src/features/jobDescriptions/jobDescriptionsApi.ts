@@ -24,6 +24,75 @@ export type DepartmentDashboardMetrics = {
   peopleWorkingOnActiveProjectsCount: number;
 };
 
+export type HumanResourcesDepartment = {
+  id: number;
+  name: string;
+};
+
+export type HumanResourcesChangeSummary = {
+  departmentId: number;
+  departmentName: string;
+  changeCount: number;
+  latestChangedAt: string | null;
+};
+
+export type HumanResourcesChange = {
+  versionId: number;
+  departmentId: number;
+  departmentName: string;
+  personName: string;
+  changeType: string;
+  changedAt: string;
+  actorUserId: number | null;
+};
+
+export type HumanResourcesDashboard = {
+  metrics: DepartmentDashboardMetrics;
+  changeSummaries: HumanResourcesChangeSummary[];
+  changes: HumanResourcesChange[];
+  totalChangeCount: number;
+  page: number;
+  pageSize: number;
+};
+
+export type JobDescriptionComparisonTask = {
+  taskCatalogItemId: number;
+  title: string;
+  description: string;
+  startDate: string | null;
+  endDate: string | null;
+  sortOrder: number;
+  weeklyHours: number | null;
+};
+
+export type JobDescriptionComparisonSnapshot = {
+  versionId: number;
+  personName: string;
+  departmentId: number;
+  personnelCode: string | null;
+  education: string;
+  fieldOfStudy: string;
+  minimumExperience: string;
+  skillIds: number[];
+  tasks: JobDescriptionComparisonTask[];
+  workflowStatus: string;
+  qualityStatus: string;
+  updatedAt: string;
+};
+
+export type JobDescriptionComparison = {
+  currentVersionId: number;
+  previousVersionId: number | null;
+  current: JobDescriptionComparisonSnapshot;
+  previous: JobDescriptionComparisonSnapshot | null;
+  changes: {
+    field: string;
+    kind: string;
+    before: string | null;
+    after: string | null;
+  }[];
+};
+
 export type ManagedDepartment = {
   id: number;
   name: string;
@@ -146,8 +215,30 @@ export const jobDescriptionsApi = {
     apiFetch<JobDescriptionListItem[]>(
       departmentId ? `${base}?departmentId=${departmentId}` : base,
     ),
-  humanResourcesReview: () =>
-    apiFetch<JobDescriptionListItem[]>(`${base}/human-resources-review`),
+  humanResourcesDepartments: () =>
+    apiFetch<HumanResourcesDepartment[]>(`${base}/human-resources-departments`),
+  humanResourcesDashboard: (departmentId?: number, page = 1, pageSize = 20) => {
+    const query = new URLSearchParams({
+      page: String(page),
+      pageSize: String(pageSize),
+    });
+    if (departmentId) query.set("departmentId", String(departmentId));
+    return apiFetch<HumanResourcesDashboard>(
+      `${base}/human-resources-dashboard?${query}`,
+    );
+  },
+  humanResourcesReview: (departmentId?: number) =>
+    apiFetch<JobDescriptionListItem[]>(
+      departmentId
+        ? `${base}/human-resources-review?departmentId=${departmentId}`
+        : `${base}/human-resources-review`,
+    ),
+  humanResourcesApproved: (departmentId?: number) =>
+    apiFetch<JobDescriptionListItem[]>(
+      departmentId
+        ? `${base}/human-resources-approved?departmentId=${departmentId}`
+        : `${base}/human-resources-approved`,
+    ),
   humanResourcesCatalog: (includeInactive = false) =>
     apiFetch<PublicSkill[]>(
       `${base}/human-resources-catalog?includeInactive=${includeInactive}`,
@@ -161,7 +252,14 @@ export const jobDescriptionsApi = {
     apiFetch(`${base}/catalog/public-skills/${id}`, { method: "DELETE" }),
   activatePublicSkill: (id: number) =>
     apiFetch(`${base}/catalog/public-skills/${id}/active`, { method: "PUT" }),
+  mergePublicSkill: (sourceId: number, survivingSkillId: number) =>
+    apiFetch(`${base}/catalog/public-skills/${sourceId}/merge`, {
+      method: "POST",
+      body: JSON.stringify({ survivingSkillId }),
+    }),
   detail: (id: number) => apiFetch<JobDescriptionDetail>(`${base}/${id}`),
+  comparison: (id: number) =>
+    apiFetch<JobDescriptionComparison>(`${base}/${id}/comparison`),
   analysis: (id: number) =>
     apiFetch<JobDescriptionQualityFinding[]>(`${base}/${id}/analysis`),
   approveByHumanResources: (id: number) =>

@@ -133,8 +133,13 @@ returns an independent result for each file. A generated workbook is derived fro
 the saved database revision and stored with that revision; dashboards and quality
 queries read structured database data directly and never parse the workbook.
 Past-ended task rows remain in revision history but are omitted from the current
-generated workbook. The API exposes only scoped detail, revision, import, and
-download operations.
+generated workbook. The API exposes scoped detail, revision, import, download,
+Human Resources dashboard, approved-history, comparison, and public-skill-
+management operations. The Human Resources dashboard queries structured
+revisions and retained change data directly; it does not infer metrics from
+Excel artifacts. Public-skill merge is an Application transaction implemented
+through Infrastructure junction-table updates and soft deactivation of the
+source skill.
 
 - Central exception handling returns safe standard error objects with trace identifiers.
 - Transport and background adapters provide the current correlation identifier through an Application port; every audit record created by one operation uses that same identifier.

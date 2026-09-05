@@ -114,8 +114,8 @@ export const workspaceTargets: readonly WorkspaceTarget[] = [
   {
     routeId: "human-resources-job-description-review",
     pathname: "/human-resources-job-description-review",
-    title: "بازبینی شرح وظایف",
-    keywords: ["منابع انسانی", "شرح وظایف", "بازبینی", "تأیید"],
+    title: "مدیریت شرح وظایف",
+    keywords: ["منابع انسانی", "شرح وظایف", "مدیریت", "تأیید", "مهارت عمومی"],
     requiredRoleCodes: ["HumanResourcesManager"],
     Icon: GroupsOutlinedIcon,
     render: () => <HumanResourcesJobDescriptionReviewPage />,
