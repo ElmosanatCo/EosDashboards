@@ -8,6 +8,7 @@ public sealed record DepartmentDashboardMetrics(
     int ArchivedPersonnelCount,
     int HealthyDescriptionCount,
     int IncompleteDescriptionCount,
+    int NeedsReviewCount,
     int PendingDataCompletionCount,
     int PendingDepartmentApprovalCount,
     int UnderHumanResourcesReviewCount,

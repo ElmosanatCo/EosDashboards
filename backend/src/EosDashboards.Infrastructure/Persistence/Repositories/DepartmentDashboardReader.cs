@@ -40,6 +40,7 @@ public sealed class DepartmentDashboardReader(EosDashboardDbContext context) : I
             archivedVersions.Select(version => version.JobDescriptionRecordId ?? version.Id).Distinct().Count(),
             versions.Count(version => version.QualityStatus == JobDescriptionQualityStatus.Healthy),
             versions.Count(version => version.QualityStatus == JobDescriptionQualityStatus.Incomplete),
+            versions.Count(version => version.NeedsReview),
             versions.Count(version => version.WorkflowStatus == JobDescriptionWorkflowStatus.PendingDataCompletion),
             versions.Count(version => version.WorkflowStatus == JobDescriptionWorkflowStatus.PendingDepartmentApproval),
             versions.Count(version => version.WorkflowStatus == JobDescriptionWorkflowStatus.UnderHumanResourcesReview),

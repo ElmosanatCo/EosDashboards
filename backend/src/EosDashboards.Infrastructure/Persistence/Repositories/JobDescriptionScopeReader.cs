@@ -68,4 +68,21 @@ public sealed class JobDescriptionScopeReader(EosDashboardDbContext context) : I
             user.UserRoles.Any(userRole => userRole.RoleId == roleId.Value),
             cancellationToken);
     }
+
+    public async Task<bool> CanReviewAsChiefExecutiveAsync(long actorUserId, CancellationToken cancellationToken)
+    {
+        if (actorUserId <= 0)
+        {
+            return false;
+        }
+
+        var roleId = await context.Roles
+            .Where(role => role.Code == "ChiefExecutiveOfficer" && role.IsActive)
+            .Select(role => (long?)role.Id)
+            .SingleOrDefaultAsync(cancellationToken);
+        return roleId is not null && await context.Users.AnyAsync(user =>
+            user.Id == actorUserId && user.IsActive &&
+            user.UserRoles.Any(userRole => userRole.RoleId == roleId.Value),
+            cancellationToken);
+    }
 }

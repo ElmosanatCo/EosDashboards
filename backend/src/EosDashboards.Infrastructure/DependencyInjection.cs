@@ -59,6 +59,8 @@ public static class DependencyInjection
             serviceProvider.GetRequiredService<JobDescriptionRepository>());
         services.AddScoped<IJobDescriptionComparisonReader>(serviceProvider =>
             serviceProvider.GetRequiredService<JobDescriptionRepository>());
+        services.AddScoped<IJobDescriptionReviewWarningReader>(serviceProvider =>
+            serviceProvider.GetRequiredService<JobDescriptionRepository>());
         services.AddScoped<IHumanResourcesDashboardReader, HumanResourcesDashboardReader>();
         services.AddScoped<IJobDescriptionScope, JobDescriptionScopeReader>();
         services.AddScoped<IJobDescriptionDepartmentReader, JobDescriptionDepartmentReader>();

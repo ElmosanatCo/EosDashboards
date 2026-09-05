@@ -31,6 +31,14 @@ public sealed record JobDescriptionListItem(
     DateTime UpdatedAt,
     bool NeedsReview);
 
+public sealed record JobDescriptionReviewWarning(
+    long VersionId,
+    long DepartmentId,
+    string DepartmentName,
+    string PersonName,
+    string TaskTitle,
+    string MissingSkillName);
+
 public enum JobDescriptionOperationStatus
 {
     Succeeded,
@@ -67,6 +75,13 @@ public interface IJobDescriptionRepository
     void AddRecord(JobDescriptionRecord record);
 
     void AddVersion(JobDescriptionVersion version);
+}
+
+public interface IJobDescriptionReviewWarningReader
+{
+    Task<IReadOnlyList<JobDescriptionReviewWarning>> ListAsync(
+        IReadOnlyCollection<long>? departmentIds,
+        CancellationToken cancellationToken);
 }
 
 public interface IJobDescriptionCatalogReader
@@ -165,6 +180,8 @@ public interface IJobDescriptionScope
     Task<bool> CanManageDepartmentAsync(long actorUserId, long departmentId, CancellationToken cancellationToken);
 
     Task<bool> CanReviewAsHumanResourcesAsync(long actorUserId, CancellationToken cancellationToken);
+
+    Task<bool> CanReviewAsChiefExecutiveAsync(long actorUserId, CancellationToken cancellationToken);
 }
 
 public interface IJobDescriptionDepartmentReader

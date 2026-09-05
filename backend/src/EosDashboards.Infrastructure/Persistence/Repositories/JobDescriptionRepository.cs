@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EosDashboards.Infrastructure.Persistence.Repositories;
 
-public sealed class JobDescriptionRepository(EosDashboardDbContext context) : IJobDescriptionRepository, IJobDescriptionCatalogReader, IHumanResourcesCatalogReader, IJobDescriptionComparisonReader
+public sealed class JobDescriptionRepository(EosDashboardDbContext context) : IJobDescriptionRepository, IJobDescriptionCatalogReader, IHumanResourcesCatalogReader, IJobDescriptionComparisonReader, IJobDescriptionReviewWarningReader
 {
     public Task<JobDescriptionVersion?> GetForUpdateAsync(long id, CancellationToken cancellationToken) =>
         context.JobDescriptionVersions
@@ -141,6 +141,67 @@ public sealed class JobDescriptionRepository(EosDashboardDbContext context) : IJ
                 assessment.NeedsReview,
                 occurredAt);
         }
+    }
+
+    public async Task<IReadOnlyList<JobDescriptionReviewWarning>> ListAsync(
+        IReadOnlyCollection<long>? departmentIds,
+        CancellationToken cancellationToken)
+    {
+        var versionQuery = context.JobDescriptionVersions.AsNoTracking()
+            .Where(version => version.NeedsReview &&
+                              version.WorkflowStatus != EosDashboards.Domain.Enums.JobDescriptionWorkflowStatus.Approved &&
+                              version.WorkflowStatus != EosDashboards.Domain.Enums.JobDescriptionWorkflowStatus.Archived);
+        if (departmentIds is not null)
+        {
+            versionQuery = versionQuery.Where(version => departmentIds.Contains(version.DepartmentId));
+        }
+
+        var versions = await versionQuery
+            .Include(version => version.Tasks)
+            .Include(version => version.Skills)
+            .OrderBy(version => version.DepartmentId)
+            .ThenBy(version => version.PersonName)
+            .ThenBy(version => version.Id)
+            .ToArrayAsync(cancellationToken);
+        var taskIds = versions.SelectMany(version => version.Tasks)
+            .Select(task => task.TaskCatalogItemId)
+            .Distinct()
+            .ToArray();
+        var taskCatalog = await context.TaskCatalogItems.AsNoTracking()
+            .Include(task => task.RequiredSkills)
+            .Where(task => taskIds.Contains(task.Id))
+            .ToDictionaryAsync(task => task.Id, cancellationToken);
+        var missingSkillIds = taskCatalog.Values
+            .SelectMany(task => task.RequiredSkillIds)
+            .Distinct()
+            .ToArray();
+        var skillNames = await context.SkillCatalogItems.AsNoTracking()
+            .Where(skill => missingSkillIds.Contains(skill.Id))
+            .ToDictionaryAsync(skill => skill.Id, skill => skill.Name, cancellationToken);
+        var departmentNames = await context.Departments.AsNoTracking()
+            .Where(department => departmentIds == null || departmentIds.Contains(department.Id))
+            .ToDictionaryAsync(department => department.Id, department => department.Name, cancellationToken);
+
+        return versions
+            .SelectMany(version => version.Tasks.SelectMany(task =>
+            {
+                if (!taskCatalog.TryGetValue(task.TaskCatalogItemId, out var catalogTask))
+                {
+                    return [];
+                }
+
+                var selectedSkillIds = version.SkillIds.ToHashSet();
+                return catalogTask.RequiredSkillIds
+                    .Where(skillId => !selectedSkillIds.Contains(skillId))
+                    .Select(skillId => new JobDescriptionReviewWarning(
+                        version.Id,
+                        version.DepartmentId,
+                        departmentNames.GetValueOrDefault(version.DepartmentId, "بخش نامشخص"),
+                        version.PersonName,
+                        task.Title,
+                        skillNames.GetValueOrDefault(skillId, $"شناسه {skillId}")));
+            }))
+            .ToArray();
     }
 
     public async Task<JobDescriptionComparisonVersions?> GetAsync(long versionId, CancellationToken cancellationToken)

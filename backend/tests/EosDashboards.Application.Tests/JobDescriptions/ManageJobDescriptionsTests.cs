@@ -235,6 +235,7 @@ public sealed class ManageJobDescriptionsTests
         public Task<IReadOnlyList<long>> GetManagedDepartmentIdsAsync(long actorUserId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<long>>([1]);
         public Task<bool> CanManageDepartmentAsync(long actorUserId, long departmentId, CancellationToken cancellationToken) => Task.FromResult(actorUserId == 7 && departmentId == 1);
         public Task<bool> CanReviewAsHumanResourcesAsync(long actorUserId, CancellationToken cancellationToken) => Task.FromResult(CanReview);
+        public Task<bool> CanReviewAsChiefExecutiveAsync(long actorUserId, CancellationToken cancellationToken) => Task.FromResult(false);
     }
 
     private sealed class TestCatalog : IJobDescriptionCatalogReader, IJobDescriptionAnalysisReader

@@ -70,6 +70,7 @@ public sealed class CompareJobDescriptionVersionsTests
         public Task<IReadOnlyList<long>> GetManagedDepartmentIdsAsync(long actorUserId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<long>>([]);
         public Task<bool> CanManageDepartmentAsync(long actorUserId, long departmentId, CancellationToken cancellationToken) => Task.FromResult(false);
         public Task<bool> CanReviewAsHumanResourcesAsync(long actorUserId, CancellationToken cancellationToken) => Task.FromResult(CanReview);
+        public Task<bool> CanReviewAsChiefExecutiveAsync(long actorUserId, CancellationToken cancellationToken) => Task.FromResult(false);
     }
 
     private sealed class TestComparisonReader(JobDescriptionVersion current, JobDescriptionVersion? previous) : IJobDescriptionComparisonReader

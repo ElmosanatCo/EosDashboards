@@ -15,6 +15,7 @@ public static class JobDescriptionEndpoints
             .RequireAuthorization("ActiveUser");
         group.MapGet("", ListAsync);
         group.MapGet("/dashboard", DashboardAsync);
+        group.MapGet("/review-warnings", ReviewWarningsAsync);
         group.MapGet("/human-resources-dashboard", HumanResourcesDashboardAsync);
         group.MapGet("/catalog", CatalogAsync);
         group.MapGet("/managed-departments", ManagedDepartmentsAsync);
@@ -65,7 +66,7 @@ public static class JobDescriptionEndpoints
             ? Problem(context, 403, "department_scope_forbidden", "The selected department is outside your management scope.")
             : Results.Ok(items.Select(item => new JobDescriptionListResponse(
                 item.Id, item.DepartmentId, item.PersonName,
-                Workflow(item.WorkflowStatus), Quality(item.QualityStatus), item.UpdatedAt)).ToArray());
+                Workflow(item.WorkflowStatus), Quality(item.QualityStatus), item.UpdatedAt, item.NeedsReview)).ToArray());
     }
 
     private static async Task<IResult> DashboardAsync(
@@ -79,6 +80,24 @@ public static class JobDescriptionEndpoints
         return metrics is null
             ? Problem(context, 403, "department_scope_forbidden", "The selected department is outside your management scope.")
             : Results.Ok(metrics);
+    }
+
+    private static async Task<IResult> ReviewWarningsAsync(
+        HttpContext context,
+        GetJobDescriptionReviewWarnings warnings,
+        CancellationToken token = default)
+    {
+        if (!TryActor(context, out var actor)) return Unauthorized(context);
+        var result = await warnings.HandleAsync(actor, token);
+        return result is null
+            ? Problem(context, 403, "job_description_review_forbidden", "Job description review warnings are not available for this user.")
+            : Results.Ok(result.Select(item => new JobDescriptionReviewWarningResponse(
+                item.VersionId,
+                item.DepartmentId,
+                item.DepartmentName,
+                item.PersonName,
+                item.TaskTitle,
+                item.MissingSkillName)).ToArray());
     }
 
     private static async Task<IResult> HumanResourcesDashboardAsync(
@@ -181,7 +200,7 @@ public static class JobDescriptionEndpoints
             ? Problem(context, 403, "human_resources_forbidden", "Human Resources review access is required.")
             : Results.Ok(items.Select(item => new JobDescriptionListResponse(
                 item.Id, item.DepartmentId, item.PersonName,
-                Workflow(item.WorkflowStatus), Quality(item.QualityStatus), item.UpdatedAt)).ToArray());
+                Workflow(item.WorkflowStatus), Quality(item.QualityStatus), item.UpdatedAt, item.NeedsReview)).ToArray());
     }
 
     private static async Task<IResult> HumanResourcesApprovedListAsync(HttpContext context, ManageJobDescriptions manager, long? departmentId = null, CancellationToken token = default)
@@ -192,7 +211,7 @@ public static class JobDescriptionEndpoints
             ? Problem(context, 403, "human_resources_forbidden", "Human Resources review access is required.")
             : Results.Ok(items.Select(item => new JobDescriptionListResponse(
                 item.Id, item.DepartmentId, item.PersonName,
-                Workflow(item.WorkflowStatus), Quality(item.QualityStatus), item.UpdatedAt)).ToArray());
+                Workflow(item.WorkflowStatus), Quality(item.QualityStatus), item.UpdatedAt, item.NeedsReview)).ToArray());
     }
 
     private static async Task<IResult> HumanResourcesCatalogAsync(
@@ -225,7 +244,7 @@ public static class JobDescriptionEndpoints
                 version.UnresolvedSkills.Select(skill => new JobDescriptionUnresolvedSkillResponse(skill.RawName, skill.SortOrder)).ToArray(),
                 version.UnresolvedTasks.Select(task => new JobDescriptionUnresolvedTaskResponse(
                     task.RawTitle, task.Description, task.StartDate, task.EndDate, task.SortOrder)).ToArray(),
-                Workflow(version.WorkflowStatus), Quality(version.QualityStatus), version.RejectionReason));
+                Workflow(version.WorkflowStatus), Quality(version.QualityStatus), version.RejectionReason, version.NeedsReview));
     }
 
     private static async Task<IResult> AnalysisAsync(long versionId, HttpContext context, AnalyzeJobDescription analyzer, CancellationToken token)
@@ -527,7 +546,7 @@ public static class JobDescriptionEndpoints
         snapshot.UpdatedAt);
 
     private static JobDescriptionOperationResponse Version(EosDashboards.Domain.Entities.JobDescriptionVersion version) =>
-        new(version.Id, Workflow(version.WorkflowStatus), Quality(version.QualityStatus), version.RejectionReason);
+        new(version.Id, Workflow(version.WorkflowStatus), Quality(version.QualityStatus), version.RejectionReason, version.NeedsReview);
 
     private static string Workflow(EosDashboards.Domain.Enums.JobDescriptionWorkflowStatus status) => status switch
     {

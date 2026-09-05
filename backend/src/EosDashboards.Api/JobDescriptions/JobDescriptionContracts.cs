@@ -29,13 +29,15 @@ public sealed record JobDescriptionListResponse(
     string PersonName,
     string WorkflowStatus,
     string QualityStatus,
-    DateTime UpdatedAt);
+    DateTime UpdatedAt,
+    bool NeedsReview);
 
 public sealed record JobDescriptionOperationResponse(
     long Id,
     string WorkflowStatus,
     string QualityStatus,
-    string? RejectionReason);
+    string? RejectionReason,
+    bool NeedsReview);
 
 public sealed record JobDescriptionDetailResponse(
     long Id,
@@ -51,7 +53,16 @@ public sealed record JobDescriptionDetailResponse(
     IReadOnlyCollection<JobDescriptionUnresolvedTaskResponse> UnresolvedTasks,
     string WorkflowStatus,
     string QualityStatus,
-    string? RejectionReason);
+    string? RejectionReason,
+    bool NeedsReview);
+
+public sealed record JobDescriptionReviewWarningResponse(
+    long VersionId,
+    long DepartmentId,
+    string DepartmentName,
+    string PersonName,
+    string TaskTitle,
+    string MissingSkillName);
 
 public sealed record JobDescriptionTaskResponse(
     long TaskCatalogItemId,
