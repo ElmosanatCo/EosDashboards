@@ -23,16 +23,15 @@ public sealed class JobDescriptionQualityAnalyzerTests
     }
 
     [Fact]
-    public void Reports_selected_skill_without_supporting_task()
+    public void Ignores_selected_skill_without_supporting_task()
     {
         var taskCatalog = TaskCatalogItem.Create(1, "توسعه نرم افزار", isProject: false, Now);
         SetId(taskCatalog, 1);
-        var version = CreateVersion(skillIds: [10]);
+        var version = CreateVersion(skillIds: [10], startDate: new DateOnly(2026, 9, 1));
 
         var findings = JobDescriptionQualityAnalyzer.Analyze(version, [taskCatalog]);
 
-        var finding = Assert.Single(findings, item => item.Code == "unsupported-selected-skill");
-        Assert.Equal("skills", finding.ActionTarget);
+        Assert.Empty(findings);
     }
 
     [Fact]
@@ -41,7 +40,7 @@ public sealed class JobDescriptionQualityAnalyzerTests
         var taskCatalog = TaskCatalogItem.Create(1, "توسعه نرم افزار", isProject: false, Now);
         SetId(taskCatalog, 1);
         taskCatalog.AddRequiredSkill(20);
-        var version = CreateVersion(skillIds: [10]);
+        var version = CreateVersion(skillIds: [10], startDate: new DateOnly(2026, 9, 1));
 
         var findings = JobDescriptionQualityAnalyzer.Analyze(
             version,
@@ -49,7 +48,36 @@ public sealed class JobDescriptionQualityAnalyzerTests
             new Dictionary<long, string> { [10] = "آموزش", [20] = "مدیریت پروژه" });
 
         Assert.Contains(findings, item => item.Code == "missing-required-skill" && item.Message.Contains("مدیریت پروژه"));
-        Assert.Contains(findings, item => item.Code == "unsupported-selected-skill" && item.Message.Contains("آموزش"));
+        Assert.DoesNotContain(findings, item => item.Message.Contains("آموزش"));
+    }
+
+    [Fact]
+    public void Classifies_missing_required_skill_as_a_non_blocking_review_warning()
+    {
+        var taskCatalog = TaskCatalogItem.Create(1, "توسعه نرم افزار", isProject: false, Now);
+        SetId(taskCatalog, 1);
+        taskCatalog.AddRequiredSkill(20);
+        var version = CreateVersion(skillIds: [10], startDate: new DateOnly(2026, 9, 1));
+
+        var assessment = JobDescriptionQualityAssessment.From(
+            JobDescriptionQualityAnalyzer.Analyze(version, [taskCatalog]));
+
+        Assert.True(assessment.NeedsReview);
+        Assert.False(assessment.HasBlockingIssues);
+    }
+
+    [Fact]
+    public void Classifies_missing_task_data_as_a_blocking_quality_issue()
+    {
+        var taskCatalog = TaskCatalogItem.Create(1, "توسعه نرم افزار", isProject: false, Now);
+        SetId(taskCatalog, 1);
+        var version = CreateVersion(skillIds: [10], startDate: null);
+
+        var assessment = JobDescriptionQualityAssessment.From(
+            JobDescriptionQualityAnalyzer.Analyze(version, [taskCatalog]));
+
+        Assert.False(assessment.NeedsReview);
+        Assert.True(assessment.HasBlockingIssues);
     }
 
     [Fact]

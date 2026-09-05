@@ -82,15 +82,6 @@ public static class JobDescriptionQualityAnalyzer
                 SkillCatalogItemId: missingSkillId));
         }
 
-        foreach (var unsupportedSkillId in selectedSkillIds.Except(requiredSkillIds).Order())
-        {
-            findings.Add(new JobDescriptionQualityFinding(
-                "unsupported-selected-skill",
-                $"مهارت انتخاب‌شده «{DisplaySkillName(unsupportedSkillId, skillNames)}» در وظایف کاتالوگی این شرح وظایف شواهد مرتبط ندارد.",
-                "skills",
-                SkillCatalogItemId: unsupportedSkillId));
-        }
-
         return findings;
     }
 
