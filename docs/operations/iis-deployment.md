@@ -16,6 +16,22 @@ The English version is available at
 
 ## Publish
 
+Check elevation before doing release work; this prevents spending time building
+artifacts that cannot be switched into IIS:
+
+```powershell
+$principal = New-Object Security.Principal.WindowsPrincipal(
+  [Security.Principal.WindowsIdentity]::GetCurrent())
+if (-not $principal.IsInRole(
+  [Security.Principal.WindowsBuiltInRole]::Administrator)) {
+  throw 'Open PowerShell with Run as Administrator before building or publishing.'
+}
+```
+
+If Windows cancels the elevation request, stop and rerun the complete release
+from a new elevated PowerShell session. Do not treat a canceled request as a
+successful publication and do not repeat the publisher unchanged.
+
 Run the publish commands from the repository root, or use absolute paths for
 the script and both artifacts. A relative path such as `.\scripts` is resolved
 against the current PowerShell directory, not against the repository. Do not
