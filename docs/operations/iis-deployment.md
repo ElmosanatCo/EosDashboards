@@ -16,21 +16,19 @@ The English version is available at
 
 ## Publish
 
-Check elevation before doing release work; this prevents spending time building
-artifacts that cannot be switched into IIS:
+Use the canonical finalization entry point from the repository root. It checks
+the real PowerShell token, requests UAC elevation automatically when the current
+shell is not elevated, builds both artifacts from the current committed source,
+and invokes the guarded publisher with the same release ID:
 
 ```powershell
-$principal = New-Object Security.Principal.WindowsPrincipal(
-  [Security.Principal.WindowsIdentity]::GetCurrent())
-if (-not $principal.IsInRole(
-  [Security.Principal.WindowsBuiltInRole]::Administrator)) {
-  throw 'Open PowerShell with Run as Administrator before building or publishing.'
-}
+Set-Location D:\Workspaces\ChatGpt\EosDashboards
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\Finalize-LocalIisRelease.ps1
 ```
 
-If Windows cancels the elevation request, stop and rerun the complete release
-from a new elevated PowerShell session. Do not treat a canceled request as a
-successful publication and do not repeat the publisher unchanged.
+Approve the UAC prompt once. If Windows cancels the prompt, the command exits
+without building or switching IIS; rerun the same command after approving it.
+Do not treat a canceled request as a successful publication.
 
 If the elevated session reports that script execution is disabled, use a
 process-scoped policy change and retry the publisher in that same session. This
@@ -44,19 +42,10 @@ When copying the command, keep the migration identifier's underscore literal;
 do not paste Markdown escapes such as `\_` or a backslash before a PowerShell
 backtick.
 
-Run the publish commands from the repository root, or use absolute paths for
-the script and both artifacts. A relative path such as `.\scripts` is resolved
-against the current PowerShell directory, not against the repository. Do not
-escape the underscore in the migration name.
-
-```powershell
-Set-Location D:\Workspaces\ChatGpt\EosDashboards
-dotnet publish backend/src/EosDashboards.Api/EosDashboards.Api.csproj -c Release -o <versioned-api-directory>
-npm ci --prefix frontend
-npm --prefix frontend run build
-```
-
-Copy `frontend/dist/` to a versioned UI directory. Point IIS to the versioned directories only after inspection; keep the previous directories for rollback.
+The guarded publisher remains available for already-built, inspected artifacts,
+but it intentionally refuses a non-administrator token. The normal path is the
+single command above; do not separately build with one shell and publish with a
+different worktree. Do not escape the underscore in the migration name.
 
 ## API application pool
 
