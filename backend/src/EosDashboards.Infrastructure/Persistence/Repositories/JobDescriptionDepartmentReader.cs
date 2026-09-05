@@ -5,6 +5,12 @@ namespace EosDashboards.Infrastructure.Persistence.Repositories;
 
 public sealed class JobDescriptionDepartmentReader(EosDashboardDbContext context) : IJobDescriptionDepartmentReader
 {
+    public Task<string?> GetNameAsync(long departmentId, CancellationToken cancellationToken) =>
+        context.Departments.AsNoTracking()
+            .Where(department => department.Id == departmentId)
+            .Select(department => department.Name)
+            .SingleOrDefaultAsync(cancellationToken);
+
     public async Task<IReadOnlyList<ManagedDepartmentListItem>> ListAsync(long ownDepartmentId, IReadOnlyCollection<long> departmentIds, CancellationToken cancellationToken) =>
         await context.Departments.AsNoTracking()
             .Where(department => departmentIds.Contains(department.Id))

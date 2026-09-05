@@ -97,7 +97,14 @@ public sealed class ImportJobDescriptions(
                     unresolvedTasks);
                 repository.AddVersion(version);
                 await unitOfWork.SaveChangesAsync(cancellationToken);
-                version.SetExcelArtifact(generator.Generate(version, DateOnly.FromDateTime(clock.Now)), StandardWorkbookFileName(workbook.PersonName), clock.Now);
+                version.SetExcelArtifact(
+                    generator.Generate(
+                        version,
+                        DateOnly.FromDateTime(clock.Now),
+                        workbook.DepartmentName,
+                        workbook.SkillNames),
+                    StandardWorkbookFileName(workbook.PersonName),
+                    clock.Now);
                 await unitOfWork.SaveChangesAsync(cancellationToken);
                 results.Add(new(workbook.FileName, true, version.Id,
                     suggestions.Length == 0 ? "فایل با موفقیت استانداردسازی و به‌صورت پیش‌نویس ثبت شد." :

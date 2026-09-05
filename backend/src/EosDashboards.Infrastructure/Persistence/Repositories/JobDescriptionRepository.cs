@@ -15,6 +15,31 @@ public sealed class JobDescriptionRepository(EosDashboardDbContext context) : IJ
             .Include(item => item.UnresolvedTasks)
             .SingleOrDefaultAsync(item => item.Id == id, cancellationToken);
 
+    public async Task DeleteVersionAsync(JobDescriptionVersion version, CancellationToken cancellationToken)
+    {
+        context.JobDescriptionTasks.RemoveRange(version.Tasks);
+        context.JobDescriptionVersionSkills.RemoveRange(version.Skills);
+        context.JobDescriptionVersionUnresolvedSkills.RemoveRange(version.UnresolvedSkills);
+        context.JobDescriptionVersionUnresolvedTasks.RemoveRange(version.UnresolvedTasks);
+
+        var recordId = version.JobDescriptionRecordId;
+        context.JobDescriptionVersions.Remove(version);
+        if (recordId is not null && !await context.JobDescriptionVersions.AnyAsync(
+                item => item.JobDescriptionRecordId == recordId && item.Id != version.Id,
+                cancellationToken))
+        {
+            if (version.JobDescriptionRecord is not null)
+            {
+                context.JobDescriptionRecords.Remove(version.JobDescriptionRecord);
+            }
+            else
+            {
+                var record = await context.JobDescriptionRecords.FindAsync([recordId.Value], cancellationToken);
+                if (record is not null) context.JobDescriptionRecords.Remove(record);
+            }
+        }
+    }
+
     public async Task<IReadOnlyList<JobDescriptionListItem>> ListAsync(
         IReadOnlyCollection<long> departmentIds,
         long? departmentId,
@@ -76,6 +101,15 @@ public sealed class JobDescriptionRepository(EosDashboardDbContext context) : IJ
         return availableSkillCount == skillIds.Distinct().Count() &&
                availableTaskCount == taskCatalogItemIds.Distinct().Count();
     }
+
+    public async Task<IReadOnlyList<string>> GetSkillNamesAsync(
+        IReadOnlyCollection<long> skillIds,
+        CancellationToken cancellationToken) =>
+        await context.SkillCatalogItems.AsNoTracking()
+            .Where(skill => skillIds.Contains(skill.Id))
+            .OrderBy(skill => skill.Name)
+            .Select(skill => skill.Name)
+            .ToArrayAsync(cancellationToken);
 
     public async Task<IReadOnlyList<SkillCatalogListItem>> ListSkillsAsync(
         IReadOnlyCollection<long> departmentIds,

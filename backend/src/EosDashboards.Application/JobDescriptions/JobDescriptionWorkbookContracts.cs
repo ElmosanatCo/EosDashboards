@@ -30,7 +30,11 @@ public interface IJobDescriptionWorkbookParser
 
 public interface IJobDescriptionWorkbookGenerator
 {
-    byte[] Generate(JobDescriptionVersion version, DateOnly asOf);
+    byte[] Generate(
+        JobDescriptionVersion version,
+        DateOnly asOf,
+        string? departmentName = null,
+        IReadOnlyCollection<string>? skillNames = null);
 }
 
 public interface IJobDescriptionImportReader

@@ -228,6 +228,9 @@ export const jobDescriptionsApi = {
     });
   },
   download: (id: number) => apiDownload(`${base}/${id}/excel`),
+  archive: (id: number) =>
+    apiFetch(`${base}/${id}/archive`, { method: "POST" }),
+  delete: (id: number) => apiFetch(`${base}/${id}`, { method: "DELETE" }),
   approveByDepartmentManager: (id: number) =>
     apiFetch(`${base}/${id}/department-approval`, { method: "POST" }),
 };

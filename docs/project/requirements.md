@@ -168,7 +168,10 @@ while it awaits Human Resources review. A record is `تأیید شده` and acti
 after both the Department Manager and Human Resources have approved it. Human
 Resources may return a record as `رد شده` with a reason; the manager can revise
 and resubmit it. A departed person's approved record may be `آرشیو شده`
-without deleting its history.
+without deleting its history. A Department Manager may permanently delete only
+an unapproved draft in `منتظر تأیید` or `منتظر رفع نقص`, and the interface must
+request explicit confirmation before either deletion or archival. Rejected,
+under-review, approved, and archived versions remain retained history.
 
 Independently, the data quality status is `سالم` when the required information
 is present and all imported skills and tasks are linked to catalog values, and

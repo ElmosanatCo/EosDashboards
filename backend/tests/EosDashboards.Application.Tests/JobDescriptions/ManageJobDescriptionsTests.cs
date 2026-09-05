@@ -12,7 +12,7 @@ public sealed class ManageJobDescriptionsTests
     {
         var repository = new TestRepository();
         var manager = new ManageJobDescriptions(
-            new TestClock(), repository, new TestScope(), new TestCatalog(), new TestGenerator(), new TestUnitOfWork());
+            new TestClock(), repository, new TestScope(), new TestCatalog(), new TestDepartments(), new TestGenerator(), new TestUnitOfWork());
 
         var result = await manager.CreateAsync(7, new CreateJobDescriptionCommand(
             "علی نمونه", 1, "P-1", "لیسانس", "نرم افزار", "۳ سال", [20],
@@ -32,7 +32,7 @@ public sealed class ManageJobDescriptionsTests
     public async Task Manager_cannot_create_a_job_description_without_personnel_code()
     {
         var manager = new ManageJobDescriptions(
-            new TestClock(), new TestRepository(), new TestScope(), new TestCatalog(), new TestGenerator(), new TestUnitOfWork());
+            new TestClock(), new TestRepository(), new TestScope(), new TestCatalog(), new TestDepartments(), new TestGenerator(), new TestUnitOfWork());
 
         var result = await manager.CreateAsync(7, new CreateJobDescriptionCommand(
             "علی نمونه", 1, "", "لیسانس", "نرم افزار", "۳ سال", [20],
@@ -47,7 +47,7 @@ public sealed class ManageJobDescriptionsTests
     {
         var repository = new TestRepository();
         var manager = new ManageJobDescriptions(
-            new TestClock(), repository, new TestScope { CanReview = false }, new TestCatalog(), new TestGenerator(), new TestUnitOfWork());
+            new TestClock(), repository, new TestScope { CanReview = false }, new TestCatalog(), new TestDepartments(), new TestGenerator(), new TestUnitOfWork());
         var version = JobDescriptionVersion.Create("علی نمونه", 1, "P-1", "لیسانس", "نرم افزار", "۳ سال", [20],
             [JobDescriptionTask.Create(10, "توسعه نرم افزار", "شرح", new DateOnly(2026, 9, 1), null, 1, 40)],
             new DateTime(2026, 9, 4));
@@ -70,12 +70,73 @@ public sealed class ManageJobDescriptionsTests
                 new DateTime(2026, 9, 4)),
         };
         var manager = new ManageJobDescriptions(
-            new TestClock(), repository, new TestScope(), new TestCatalog(), new TestGenerator(), new TestUnitOfWork());
+            new TestClock(), repository, new TestScope(), new TestCatalog(), new TestDepartments(), new TestGenerator(), new TestUnitOfWork());
 
         var result = await manager.ApproveByDepartmentManagerAsync(7, 1, CancellationToken.None);
 
         Assert.Equal(JobDescriptionOperationStatus.Incomplete, result.Status);
         Assert.Equal(JobDescriptionWorkflowStatus.PendingDataCompletion, result.Version!.WorkflowStatus);
+    }
+
+    [Fact]
+    public async Task Manager_can_archive_an_approved_version()
+    {
+        var repository = new TestRepository
+        {
+            Version = JobDescriptionVersion.Create(
+                "علی نمونه", 1, "P-1", "لیسانس", "نرم افزار", "۳ سال", [20],
+                [JobDescriptionTask.Create(10, "توسعه نرم افزار", "شرح", new DateOnly(2026, 9, 1), null, 1, 40)],
+                new DateTime(2026, 9, 4)),
+        };
+        repository.Version.ApproveByDepartmentManager(new DateTime(2026, 9, 4));
+        repository.Version.ApproveByHumanResources(new DateTime(2026, 9, 4));
+        var manager = new ManageJobDescriptions(
+            new TestClock(), repository, new TestScope(), new TestCatalog(), new TestDepartments(), new TestGenerator(), new TestUnitOfWork());
+
+        var result = await manager.ArchiveAsync(7, 1, CancellationToken.None);
+
+        Assert.Equal(JobDescriptionOperationStatus.Succeeded, result.Status);
+        Assert.Equal(JobDescriptionWorkflowStatus.Archived, result.Version!.WorkflowStatus);
+    }
+
+    [Fact]
+    public async Task Manager_can_delete_an_unapproved_draft()
+    {
+        var repository = new TestRepository
+        {
+            Version = JobDescriptionVersion.Create(
+                "علی نمونه", 1, "P-1", "لیسانس", "نرم افزار", "۳ سال", [20],
+                [JobDescriptionTask.Create(10, "توسعه نرم افزار", "شرح", new DateOnly(2026, 9, 1), null, 1, 40)],
+                new DateTime(2026, 9, 4)),
+        };
+        var manager = new ManageJobDescriptions(
+            new TestClock(), repository, new TestScope(), new TestCatalog(), new TestDepartments(), new TestGenerator(), new TestUnitOfWork());
+
+        var result = await manager.DeleteAsync(7, 1, CancellationToken.None);
+
+        Assert.Equal(JobDescriptionOperationStatus.Succeeded, result.Status);
+        Assert.True(repository.DeleteCalled);
+    }
+
+    [Fact]
+    public async Task Manager_cannot_delete_an_approved_version()
+    {
+        var repository = new TestRepository
+        {
+            Version = JobDescriptionVersion.Create(
+                "علی نمونه", 1, "P-1", "لیسانس", "نرم افزار", "۳ سال", [20],
+                [JobDescriptionTask.Create(10, "توسعه نرم افزار", "شرح", new DateOnly(2026, 9, 1), null, 1, 40)],
+                new DateTime(2026, 9, 4)),
+        };
+        repository.Version.ApproveByDepartmentManager(new DateTime(2026, 9, 4));
+        repository.Version.ApproveByHumanResources(new DateTime(2026, 9, 4));
+        var manager = new ManageJobDescriptions(
+            new TestClock(), repository, new TestScope(), new TestCatalog(), new TestDepartments(), new TestGenerator(), new TestUnitOfWork());
+
+        var result = await manager.DeleteAsync(7, 1, CancellationToken.None);
+
+        Assert.Equal(JobDescriptionOperationStatus.Conflict, result.Status);
+        Assert.False(repository.DeleteCalled);
     }
 
     private sealed class TestClock : IClock
@@ -91,7 +152,13 @@ public sealed class ManageJobDescriptionsTests
 
     private sealed class TestGenerator : IJobDescriptionWorkbookGenerator
     {
-        public byte[] Generate(JobDescriptionVersion version, DateOnly asOf) => [1];
+        public byte[] Generate(JobDescriptionVersion version, DateOnly asOf, string? departmentName = null, IReadOnlyCollection<string>? skillNames = null) => [1];
+    }
+
+    private sealed class TestDepartments : IJobDescriptionDepartmentReader
+    {
+        public Task<string?> GetNameAsync(long departmentId, CancellationToken cancellationToken) => Task.FromResult<string?>("نرم افزار");
+        public Task<IReadOnlyList<ManagedDepartmentListItem>> ListAsync(long ownDepartmentId, IReadOnlyCollection<long> departmentIds, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<ManagedDepartmentListItem>>([]);
     }
 
     private sealed class TestScope : IJobDescriptionScope
@@ -104,6 +171,7 @@ public sealed class ManageJobDescriptionsTests
 
     private sealed class TestCatalog : IJobDescriptionCatalogReader
     {
+        public Task<IReadOnlyList<string>> GetSkillNamesAsync(IReadOnlyCollection<long> skillIds, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<string>>(["مهارت نمونه"]);
         public Task<bool> AreValidSelectionsAsync(long departmentId, IReadOnlyCollection<long> skillIds, IReadOnlyCollection<long> taskCatalogItemIds, CancellationToken cancellationToken) => Task.FromResult(departmentId == 1 && skillIds.Contains(20) && taskCatalogItemIds.Contains(10));
         public Task<IReadOnlyList<SkillCatalogListItem>> ListSkillsAsync(IReadOnlyCollection<long> departmentIds, bool includeInactive, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<SkillCatalogListItem>>([]);
         public Task<IReadOnlyList<TaskCatalogListItem>> ListTasksAsync(IReadOnlyCollection<long> departmentIds, long? departmentId, bool includeInactive, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<TaskCatalogListItem>>([]);
@@ -120,11 +188,18 @@ public sealed class ManageJobDescriptionsTests
     private sealed class TestRepository : IJobDescriptionRepository
     {
         public JobDescriptionVersion? Version { get; set; }
+        public bool DeleteCalled { get; private set; }
         public Task<JobDescriptionVersion?> GetForUpdateAsync(long id, CancellationToken cancellationToken) => Task.FromResult(Version);
         public Task<IReadOnlyList<JobDescriptionListItem>> ListAsync(IReadOnlyCollection<long> departmentIds, long? departmentId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<JobDescriptionListItem>>([]);
         public Task<IReadOnlyList<JobDescriptionListItem>> ListForHumanResourcesAsync(CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<JobDescriptionListItem>>([]);
         public void AddRecord(JobDescriptionRecord record) => SetId(record, 1);
         public void AddVersion(JobDescriptionVersion version) { SetId(version, 1); Version = version; }
+        public Task DeleteVersionAsync(JobDescriptionVersion version, CancellationToken cancellationToken)
+        {
+            DeleteCalled = true;
+            Version = null;
+            return Task.CompletedTask;
+        }
         private static void SetId<T>(T entity, long id) => typeof(T).GetProperty(nameof(JobDescriptionVersion.Id))!.SetValue(entity, id);
     }
 }

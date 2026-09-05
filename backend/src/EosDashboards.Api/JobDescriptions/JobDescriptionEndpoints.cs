@@ -42,6 +42,7 @@ public static class JobDescriptionEndpoints
         group.MapPost("/{versionId:long}/human-resources-approval", ApproveByHumanResourcesAsync);
         group.MapPost("/{versionId:long}/human-resources-rejection", RejectByHumanResourcesAsync);
         group.MapPost("/{versionId:long}/archive", ArchiveAsync);
+        group.MapDelete("/{versionId:long}", DeleteAsync);
         return endpoints;
     }
 
@@ -316,9 +317,9 @@ public static class JobDescriptionEndpoints
         CancellationToken token)
     {
         if (!TryActor(context, out var actor)) return Unauthorized(context);
-        var version = await manager.GetForAuthorizedReadAsync(actor, versionId, token);
-        if (version?.ExcelArtifact is null) return Problem(context, 404, "excel_artifact_not_found", "The standard Excel artifact is not available.");
-        return Results.File(version.ExcelArtifact, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", version.ExcelFileName ?? $"job-description-{version.Id}.xlsx");
+        var workbook = await manager.GetWorkbookForAuthorizedReadAsync(actor, versionId, token);
+        if (workbook is null) return Problem(context, 404, "excel_artifact_not_found", "The standard Excel artifact is not available.");
+        return Results.File(workbook.Content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", workbook.FileName);
     }
 
     private static async Task<IResult> ReviseAsync(
@@ -378,6 +379,16 @@ public static class JobDescriptionEndpoints
     {
         if (!TryActor(context, out var actor)) return Unauthorized(context);
         return Operation(context, await manager.ArchiveAsync(actor, versionId, token), false);
+    }
+
+    private static async Task<IResult> DeleteAsync(
+        long versionId,
+        HttpContext context,
+        ManageJobDescriptions manager,
+        CancellationToken token)
+    {
+        if (!TryActor(context, out var actor)) return Unauthorized(context);
+        return Operation(context, await manager.DeleteAsync(actor, versionId, token), false);
     }
 
     private static IResult Operation(HttpContext context, JobDescriptionOperationResult result, bool created) => result.Status switch

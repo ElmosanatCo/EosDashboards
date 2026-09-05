@@ -30,10 +30,14 @@ Task titles and skills are catalog values. Only task descriptions are free
 text. Each department has an independent task catalog. Catalog tasks may be
 marked as projects and may declare required skills in the database.
 
-Excel sheet names and source column labels are not contractual. The importer
-recognizes supported content and common labels, ignores empty/explanatory rows,
-preserves useful extra columns in the task description, and repairs task
-numbering.
+Excel sheet names and source column labels are not contractual for imports. The
+downloaded standard workbook uses the approved reference layout stored at
+`resources/templates/job-description-reference.xlsx`, based on the supplied
+personnel workbook sample: its RTL `Sheet1`, merged cells, widths, row
+heights, styles, theme, print setup, Persian labels, and task-table geometry
+remain intact while persisted values are filled in. The importer recognizes
+supported content and common labels, ignores empty/explanatory rows, preserves
+useful extra columns in the task description, and repairs task numbering.
 
 ## Persistence flow
 
@@ -50,6 +54,11 @@ or `آرشیو شده`. Quality status is independently `سالم` or `ناقص`
 start date and missing optional database personnel code contribute to `ناقص`.
 The manager reviews and sends drafts; Human Resources approves or rejects with a
 reason. A rejected version is revisable and retains its history.
+Only an unapproved draft in `منتظر تأیید` or `منتظر رفع نقص` may be deleted by
+the Department Manager. Deletion and archival both require explicit user
+confirmation. Rejected, under-review, approved, and archived versions remain
+retained history; an approved departed-person record is archived rather than
+deleted.
 
 ## History and analysis
 

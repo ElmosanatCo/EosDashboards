@@ -44,9 +44,13 @@ public sealed record JobDescriptionOperationResult(
     JobDescriptionOperationStatus Status,
     JobDescriptionVersion? Version = null);
 
+public sealed record GeneratedJobDescriptionWorkbook(byte[] Content, string FileName);
+
 public interface IJobDescriptionRepository
 {
     Task<JobDescriptionVersion?> GetForUpdateAsync(long id, CancellationToken cancellationToken);
+
+    Task DeleteVersionAsync(JobDescriptionVersion version, CancellationToken cancellationToken);
 
     Task<IReadOnlyList<JobDescriptionListItem>> ListAsync(
         IReadOnlyCollection<long> departmentIds,
@@ -62,6 +66,10 @@ public interface IJobDescriptionRepository
 
 public interface IJobDescriptionCatalogReader
 {
+    Task<IReadOnlyList<string>> GetSkillNamesAsync(
+        IReadOnlyCollection<long> skillIds,
+        CancellationToken cancellationToken);
+
     Task<bool> AreValidSelectionsAsync(
         long departmentId,
         IReadOnlyCollection<long> skillIds,
@@ -143,6 +151,8 @@ public interface IJobDescriptionScope
 
 public interface IJobDescriptionDepartmentReader
 {
+    Task<string?> GetNameAsync(long departmentId, CancellationToken cancellationToken);
+
     Task<IReadOnlyList<ManagedDepartmentListItem>> ListAsync(
         long ownDepartmentId,
         IReadOnlyCollection<long> departmentIds,

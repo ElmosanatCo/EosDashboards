@@ -86,6 +86,7 @@ public sealed class ManageCatalogTests
         public SkillCatalogItem? SkillForUpdate { get; init; }
         public List<SkillCatalogItem> AddedSkills { get; } = [];
 
+        public Task<IReadOnlyList<string>> GetSkillNamesAsync(IReadOnlyCollection<long> skillIds, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<string>>([]);
         public Task<SkillCatalogItem?> FindSkillByNameAsync(long? departmentId, string name, long? excludingId, CancellationToken cancellationToken) => Task.FromResult(DuplicateSkill);
         public Task<TaskCatalogItem?> FindTaskByTitleAsync(long departmentId, string title, long? excludingId, CancellationToken cancellationToken) => Task.FromResult<TaskCatalogItem?>(null);
         public Task<SkillCatalogItem?> GetSkillForUpdateAsync(long id, CancellationToken cancellationToken) => Task.FromResult(SkillForUpdate);

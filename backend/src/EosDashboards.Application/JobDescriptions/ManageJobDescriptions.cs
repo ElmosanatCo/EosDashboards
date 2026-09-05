@@ -9,6 +9,7 @@ public sealed class ManageJobDescriptions(
     IJobDescriptionRepository repository,
     IJobDescriptionScope scope,
     IJobDescriptionCatalogReader catalog,
+    IJobDescriptionDepartmentReader departments,
     IJobDescriptionWorkbookGenerator generator,
     IUnitOfWork unitOfWork)
 {
@@ -61,7 +62,7 @@ public sealed class ManageJobDescriptions(
                 previous.Archive(clock.Now);
             repository.AddVersion(version);
             await unitOfWork.SaveChangesAsync(cancellationToken);
-            version.SetExcelArtifact(generator.Generate(version, DateOnly.FromDateTime(clock.Now)), $"شرح-وظایف-{version.PersonName}.xlsx", clock.Now);
+            version.SetExcelArtifact(await GenerateWorkbookAsync(version, cancellationToken), $"شرح-وظایف-{version.PersonName}.xlsx", clock.Now);
             await unitOfWork.SaveChangesAsync(cancellationToken);
             return new(JobDescriptionOperationStatus.Succeeded, version);
         }
@@ -167,7 +168,7 @@ public sealed class ManageJobDescriptions(
                 record.Id);
             repository.AddVersion(version);
             await unitOfWork.SaveChangesAsync(cancellationToken);
-            version.SetExcelArtifact(generator.Generate(version, DateOnly.FromDateTime(clock.Now)), $"شرح-وظایف-{version.PersonName}.xlsx", clock.Now);
+            version.SetExcelArtifact(await GenerateWorkbookAsync(version, cancellationToken), $"شرح-وظایف-{version.PersonName}.xlsx", clock.Now);
             await unitOfWork.SaveChangesAsync(cancellationToken);
             return new(JobDescriptionOperationStatus.Succeeded, version);
         }
@@ -294,5 +295,62 @@ public sealed class ManageJobDescriptions(
         {
             return new(JobDescriptionOperationStatus.Conflict);
         }
+    }
+
+    public async Task<JobDescriptionOperationResult> DeleteAsync(
+        long actorUserId,
+        long versionId,
+        CancellationToken cancellationToken)
+    {
+        var version = await repository.GetForUpdateAsync(versionId, cancellationToken);
+        if (version is null)
+        {
+            return new(JobDescriptionOperationStatus.NotFound);
+        }
+
+        if (!await scope.CanManageDepartmentAsync(actorUserId, version.DepartmentId, cancellationToken))
+        {
+            return new(JobDescriptionOperationStatus.Forbidden);
+        }
+
+        if (version.WorkflowStatus is not (
+            JobDescriptionWorkflowStatus.PendingDepartmentApproval or
+            JobDescriptionWorkflowStatus.PendingDataCompletion))
+        {
+            return new(JobDescriptionOperationStatus.Conflict);
+        }
+
+        await repository.DeleteVersionAsync(version, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        return new(JobDescriptionOperationStatus.Succeeded, version);
+    }
+
+    public async Task<GeneratedJobDescriptionWorkbook?> GetWorkbookForAuthorizedReadAsync(
+        long actorUserId,
+        long versionId,
+        CancellationToken cancellationToken)
+    {
+        var version = await GetForAuthorizedReadAsync(actorUserId, versionId, cancellationToken);
+        if (version is null) return null;
+
+        return new(
+            await GenerateWorkbookAsync(version, cancellationToken),
+            version.ExcelFileName ?? $"شرح-وظایف-{version.PersonName}.xlsx");
+    }
+
+    private async Task<byte[]> GenerateWorkbookAsync(
+        JobDescriptionVersion version,
+        CancellationToken cancellationToken)
+    {
+        var departmentName = await departments.GetNameAsync(version.DepartmentId, cancellationToken);
+        var skillNames = await catalog.GetSkillNamesAsync(version.SkillIds, cancellationToken);
+        return generator.Generate(
+            version,
+            DateOnly.FromDateTime(clock.Now),
+            departmentName,
+            skillNames.Concat(version.UnresolvedSkills
+                .OrderBy(skill => skill.SortOrder)
+                .Select(skill => skill.RawName))
+                .ToArray());
     }
 }

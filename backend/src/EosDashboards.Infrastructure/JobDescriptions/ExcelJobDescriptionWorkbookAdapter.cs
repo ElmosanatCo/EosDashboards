@@ -94,7 +94,12 @@ public sealed class ExcelJobDescriptionWorkbookParser : IJobDescriptionWorkbookP
                     ? row.Skip(index + 1).FirstOrDefault(item => !string.IsNullOrWhiteSpace(item))
                     : inlineValue;
                 if (string.IsNullOrWhiteSpace(value)) continue;
-                if (Matches(label, "نام پرسنل", "نام و نام خانوادگی", "نام کارمند", "نام")) personName ??= value;
+                if (Matches(label, "نام پرسنل", "نام و نام خانوادگی", "نام کارمند", "نام"))
+                {
+                    var embeddedCode = ExtractEmbeddedField(value, "کد پرسنلی");
+                    personName ??= embeddedCode.Value;
+                    personnelCode ??= embeddedCode.Code;
+                }
                 else if (Matches(label, "بخش", "واحد", "نام واحد", "دپارتمان", "بخش سازمانی")) departmentName ??= value;
                 else if (Matches(label, "کد پرسنلی", "کد کارمندی")) personnelCode ??= value;
                 else if (Matches(label, "مدرک تحصیلی", "مدرک")) education ??= value;
@@ -178,6 +183,16 @@ public sealed class ExcelJobDescriptionWorkbookParser : IJobDescriptionWorkbookP
     }
 
     private static IEnumerable<string> SplitList(string value) => value.Split(['،', ',', ';', '؛', '\n', '|'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    private static (string Value, string? Code) ExtractEmbeddedField(string value, string fieldName)
+    {
+        var marker = value.IndexOf(fieldName, StringComparison.Ordinal);
+        if (marker < 0) return (value, null);
+        var separator = value.IndexOf(':', marker);
+        if (separator < 0) return (value, null);
+        var code = value[(separator + 1)..].Trim().Trim('(', ')', '،', ',').Trim();
+        var cleanValue = value[..marker].Trim().Trim('(', ')', '،', ',').Trim();
+        return (cleanValue, string.IsNullOrWhiteSpace(code) ? null : code);
+    }
     private static bool Matches(string value, params string[] labels) => labels.Any(label => value == Normalize(label));
     private static string Normalize(string value) => PersianDigits(value ?? string.Empty).Replace("ي", "ی").Replace("ك", "ک").Replace("‌", string.Empty).Replace(" ", string.Empty).Replace(":", string.Empty).Trim().ToLowerInvariant();
     private static string PersianDigits(string value) => value.Replace('۰', '0').Replace('۱', '1').Replace('۲', '2').Replace('۳', '3').Replace('۴', '4').Replace('۵', '5').Replace('۶', '6').Replace('۷', '7').Replace('۸', '8').Replace('۹', '9');
@@ -193,47 +208,173 @@ public sealed class ExcelJobDescriptionWorkbookParser : IJobDescriptionWorkbookP
 
 public sealed class ExcelJobDescriptionWorkbookGenerator : IJobDescriptionWorkbookGenerator
 {
-    public byte[] Generate(JobDescriptionVersion version, DateOnly asOf)
+    private static readonly XNamespace Spreadsheet = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+    private static readonly XNamespace Xml = "http://www.w3.org/XML/1998/namespace";
+    private const string TemplateResourceName = "EosDashboards.Infrastructure.Resources.Templates.job-description-reference.xlsx";
+
+    public byte[] Generate(
+        JobDescriptionVersion version,
+        DateOnly asOf,
+        string? departmentName = null,
+        IReadOnlyCollection<string>? skillNames = null)
     {
+        using var template = new MemoryStream(LoadTemplate(), writable: false);
+        using var source = new ZipArchive(template, ZipArchiveMode.Read, leaveOpen: true);
         using var output = new MemoryStream();
         using (var archive = new ZipArchive(output, ZipArchiveMode.Create, leaveOpen: true))
         {
-            Add(archive, "[Content_Types].xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/><Override PartName=\"/xl/worksheets/sheet1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/></Types>");
-            Add(archive, "_rels/.rels", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/></Relationships>");
-            Add(archive, "xl/workbook.xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><sheets><sheet name=\"شرح وظایف\" sheetId=\"1\" r:id=\"rId1\"/></sheets></workbook>");
-            Add(archive, "xl/_rels/workbook.xml.rels", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/></Relationships>");
-            var rows = new List<string[]>
+            foreach (var entry in source.Entries)
             {
-                new[] { "نام و نام خانوادگی", version.PersonName },
-                new[] { "بخش", version.DepartmentId.ToString(CultureInfo.InvariantCulture) },
-                new[] { "کد پرسنلی", version.PersonnelCode ?? "" },
-                new[] { "مدرک تحصیلی", version.Education },
-                new[] { "رشته تحصیلی", version.FieldOfStudy },
-                new[] { "حداقل سابقه تخصصی", version.MinimumExperience },
-                new[] { "مهارت‌ها", string.Join("، ", version.SkillIds.Select(skillId => skillId.ToString(CultureInfo.InvariantCulture)).Concat(version.UnresolvedSkills.OrderBy(skill => skill.SortOrder).Select(skill => skill.RawName))) },
-                Array.Empty<string>(),
-                new[] { "ردیف", "عنوان وظیفه", "تاریخ شروع", "تاریخ پایان", "شرح وظیفه" }
-            };
-            rows.AddRange(version.Tasks
-                .Where(task => !task.EndDate.HasValue || task.EndDate.Value >= asOf)
-                .Select(task => (SortOrder: task.SortOrder, Title: task.Title, task.StartDate, task.EndDate, Description: task.Description))
-                .Concat(version.UnresolvedTasks
-                    .Where(task => !task.EndDate.HasValue || task.EndDate.Value >= asOf)
-                    .Select(task => (SortOrder: task.SortOrder, Title: task.RawTitle, task.StartDate, task.EndDate, Description: task.Description)))
-                .OrderBy(task => task.SortOrder)
-                .Select(task => new[]
+                var target = archive.CreateEntry(entry.FullName, CompressionLevel.Optimal);
+                using var input = entry.Open();
+                using var outputEntry = target.Open();
+                if (entry.FullName == "xl/worksheets/sheet1.xml")
                 {
-                    task.SortOrder.ToString(CultureInfo.InvariantCulture), task.Title, task.StartDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) ?? "", task.EndDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) ?? "", task.Description
-                }));
-            var renderedRows = string.Concat(rows.Select((row, index) =>
-                $"<row r=\"{index + 1}\">{string.Concat(row.Select((value, column) => Cell(column, value)))}</row>"));
-            var sheet = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetData>" + renderedRows + "</sheetData></worksheet>";
-            Add(archive, "xl/worksheets/sheet1.xml", sheet);
+                    var sheet = XDocument.Load(input, LoadOptions.PreserveWhitespace);
+                    UpdateSheet(sheet, version, asOf, departmentName, skillNames);
+                    sheet.Save(outputEntry, SaveOptions.DisableFormatting);
+                }
+                else if (entry.FullName == "xl/workbook.xml")
+                {
+                    var workbook = XDocument.Load(input, LoadOptions.PreserveWhitespace);
+                    UpdatePrintArea(workbook, version, asOf);
+                    workbook.Save(outputEntry, SaveOptions.DisableFormatting);
+                }
+                else
+                {
+                    input.CopyTo(outputEntry);
+                }
+            }
         }
         return output.ToArray();
     }
 
-    private static string Cell(int column, string value) => $"<c r=\"{ColumnName(column)}\" t=\"inlineStr\"><is><t xml:space=\"preserve\">{System.Security.SecurityElement.Escape(value) ?? string.Empty}</t></is></c>";
-    private static string ColumnName(int column) { var result = string.Empty; for (var value = column + 1; value > 0; value = (value - 1) / 26) result = (char)('A' + (value - 1) % 26) + result; return result; }
-    private static void Add(ZipArchive archive, string name, string content) { using var writer = new StreamWriter(archive.CreateEntry(name).Open(), new System.Text.UTF8Encoding(false)); writer.Write(content); }
+    private static byte[] LoadTemplate()
+    {
+        using var stream = typeof(ExcelJobDescriptionWorkbookGenerator).Assembly
+            .GetManifestResourceStream(TemplateResourceName)
+            ?? throw new InvalidOperationException("The standard job-description workbook template is unavailable.");
+        using var output = new MemoryStream();
+        stream.CopyTo(output);
+        return output.ToArray();
+    }
+
+    private static void UpdateSheet(
+        XDocument document,
+        JobDescriptionVersion version,
+        DateOnly asOf,
+        string? departmentName,
+        IReadOnlyCollection<string>? skillNames)
+    {
+        var sheetData = document.Root?.Element(Spreadsheet + "sheetData")
+            ?? throw new InvalidDataException("The standard workbook has no sheet data.");
+        var rows = sheetData.Elements(Spreadsheet + "row").ToArray();
+        var taskTemplate = rows.Single(row => (string?)row.Attribute("r") == "7");
+        foreach (var row in rows.Where(row => ParseRowNumber(row) >= 7)) row.Remove();
+
+        SetCell(rows.Single(row => ParseRowNumber(row) == 1), "A", "شرح شغل ");
+        var personnelCodeSuffix = string.IsNullOrWhiteSpace(version.PersonnelCode) ? string.Empty : $" (کد پرسنلی: {version.PersonnelCode})";
+        SetCell(rows.Single(row => ParseRowNumber(row) == 2), "A", $"نام پرسنل: {version.PersonName}{personnelCodeSuffix}");
+        SetCell(rows.Single(row => ParseRowNumber(row) == 2), "C", $"نام واحد  : {departmentName ?? string.Empty}");
+        SetCell(rows.Single(row => ParseRowNumber(row) == 2), "E", $"مدرک تحصیلی : {version.Education}");
+        SetCell(rows.Single(row => ParseRowNumber(row) == 3), "A", $"حداقل میزان سابقه کار: {version.MinimumExperience}");
+        SetCell(rows.Single(row => ParseRowNumber(row) == 3), "C", $"رشته تحصیلی: {version.FieldOfStudy}");
+        var renderedSkills = skillNames ?? version.UnresolvedSkills
+            .OrderBy(skill => skill.SortOrder)
+            .Select(skill => skill.RawName)
+            .ToArray();
+        SetCell(rows.Single(row => ParseRowNumber(row) == 4), "A", $"مهارتها  و توانایی های مورد نیاز : {string.Join("، ", renderedSkills)}");
+        SetCell(rows.Single(row => ParseRowNumber(row) == 6), "A", "ردیف");
+        SetCell(rows.Single(row => ParseRowNumber(row) == 6), "B", "عنوان وظایف");
+        SetCell(rows.Single(row => ParseRowNumber(row) == 6), "D", "تاریخ ");
+        SetCell(rows.Single(row => ParseRowNumber(row) == 6), "E", "شرح وظایف ");
+
+        var tasks = version.Tasks
+            .Where(task => !task.EndDate.HasValue || task.EndDate.Value >= asOf)
+            .Select(task => (SortOrder: task.SortOrder, task.Title, task.StartDate, task.EndDate, task.Description))
+            .Concat(version.UnresolvedTasks
+                .Where(task => !task.EndDate.HasValue || task.EndDate.Value >= asOf)
+                .Select(task => (SortOrder: task.SortOrder, Title: task.RawTitle, task.StartDate, task.EndDate, task.Description)))
+            .OrderBy(task => task.SortOrder)
+            .ToArray();
+        var merges = document.Root?.Element(Spreadsheet + "mergeCells");
+        foreach (var merge in merges?.Elements(Spreadsheet + "mergeCell").ToArray() ?? [])
+        {
+            var reference = (string?)merge.Attribute("ref") ?? string.Empty;
+            if (reference.StartsWith("B", StringComparison.Ordinal) && ParseRowNumber(reference) >= 7) merge.Remove();
+        }
+
+        foreach (var (task, index) in tasks.Select((task, index) => (task, index)))
+        {
+            var rowNumber = 7 + index;
+            var row = new XElement(taskTemplate);
+            row.SetAttributeValue("r", rowNumber);
+            var templateCells = taskTemplate.Elements(Spreadsheet + "c").ToDictionary(
+                cell => (string?)cell.Attribute("r") is { } reference ? reference[..^1] : string.Empty,
+                StringComparer.Ordinal);
+            row.RemoveNodes();
+            row.Add(
+                InlineCell(templateCells["A"], "" + (index + 1), $"A{rowNumber}"),
+                InlineCell(templateCells["B"], task.Title, $"B{rowNumber}"),
+                InlineCell(templateCells["C"], string.Empty, $"C{rowNumber}"),
+                InlineCell(templateCells["D"], ToPersianDate(task.StartDate), $"D{rowNumber}"),
+                InlineCell(templateCells["E"], task.Description, $"E{rowNumber}"));
+            sheetData.Add(row);
+            merges?.Add(new XElement(Spreadsheet + "mergeCell", new XAttribute("ref", $"B{rowNumber}:C{rowNumber}")));
+        }
+    }
+
+    private static void UpdatePrintArea(XDocument document, JobDescriptionVersion version, DateOnly asOf)
+    {
+        var lastRow = 6 + version.Tasks.Count(task => !task.EndDate.HasValue || task.EndDate.Value >= asOf) +
+            version.UnresolvedTasks.Count(task => !task.EndDate.HasValue || task.EndDate.Value >= asOf);
+        var definedName = document.Descendants(Spreadsheet + "definedName")
+            .FirstOrDefault(item => (string?)item.Attribute("name") == "_xlnm.Print_Area");
+        if (definedName is not null) definedName.Value = $"Sheet1!$A$1:$E${Math.Max(lastRow, 6)}";
+    }
+
+    private static int ParseRowNumber(XElement rowOrReference)
+    {
+        var value = (string?)rowOrReference.Attribute("r") ?? string.Empty;
+        return ParseRowNumber(value);
+    }
+
+    private static int ParseRowNumber(string reference)
+    {
+        var digits = new string(reference.SkipWhile(character => !char.IsDigit(character)).ToArray());
+        return int.TryParse(digits, out var number) ? number : 0;
+    }
+
+    private static void SetCell(XElement row, string column, string value)
+    {
+        var cell = row.Elements(Spreadsheet + "c")
+            .FirstOrDefault(item => ((string?)item.Attribute("r"))?.StartsWith(column, StringComparison.Ordinal) == true);
+        if (cell is not null) ReplaceCellValue(cell, value);
+    }
+
+    private static XElement InlineCell(XElement template, string value, string reference)
+    {
+        var cell = new XElement(template);
+        cell.SetAttributeValue("r", reference);
+        ReplaceCellValue(cell, value);
+        return cell;
+    }
+
+    private static void ReplaceCellValue(XElement cell, string value)
+    {
+        cell.SetAttributeValue("t", "inlineStr");
+        cell.Element(Spreadsheet + "v")?.Remove();
+        cell.Element(Spreadsheet + "is")?.Remove();
+        cell.Add(new XElement(
+            Spreadsheet + "is",
+            new XElement(Spreadsheet + "t", new XAttribute(Xml + "space", "preserve"), value)));
+    }
+
+    private static string ToPersianDate(DateOnly? value)
+    {
+        if (value is null) return string.Empty;
+        var date = value.Value.ToDateTime(TimeOnly.MinValue);
+        var calendar = new PersianCalendar();
+        return $"{calendar.GetYear(date):0000}/{calendar.GetMonth(date):00}/{calendar.GetDayOfMonth(date):00}";
+    }
 }

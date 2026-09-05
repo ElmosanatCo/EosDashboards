@@ -30,6 +30,8 @@ vi.mock("../features/jobDescriptions/jobDescriptionsApi", async () => {
       catalog: vi.fn(),
       analysis: vi.fn(),
       createTask: vi.fn(),
+      archive: vi.fn(),
+      delete: vi.fn(),
     },
   };
 });
@@ -52,6 +54,8 @@ beforeEach(() => {
     { id: 2, name: "فناوری اطلاعات", isOwnDepartment: false },
   ]);
   vi.mocked(jobDescriptionsApi.list).mockResolvedValue([]);
+  vi.mocked(jobDescriptionsApi.archive).mockResolvedValue(undefined);
+  vi.mocked(jobDescriptionsApi.delete).mockResolvedValue(undefined);
 });
 
 describe("DepartmentJobDescriptionsPage", () => {
@@ -332,6 +336,83 @@ describe("DepartmentJobDescriptionsPage", () => {
         "وظیفه تازه",
         false,
       );
+    });
+  });
+
+  it("requires confirmation before archiving an approved description", async () => {
+    const userActions = userEvent.setup();
+    vi.mocked(jobDescriptionsApi.list).mockResolvedValue([
+      {
+        id: 21,
+        departmentId: 1,
+        personName: "پرسنل تأییدشده",
+        workflowStatus: "تأیید شده",
+        qualityStatus: "سالم",
+        updatedAt: "2026-09-04T10:00:00",
+      },
+    ]);
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <DepartmentJobDescriptionsPage />
+      </QueryClientProvider>,
+    );
+
+    await userActions.click(
+      await screen.findByRole("button", {
+        name: "آرشیو شرح وظایف پرسنل تأییدشده",
+      }),
+    );
+    await userActions.click(screen.getByRole("button", { name: "انصراف" }));
+    expect(jobDescriptionsApi.archive).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+
+    await userActions.click(
+      screen.getByRole("button", {
+        name: "آرشیو شرح وظایف پرسنل تأییدشده",
+      }),
+    );
+    await userActions.click(
+      screen.getByRole("button", { name: "تأیید آرشیو" }),
+    );
+    await waitFor(() => {
+      expect(jobDescriptionsApi.archive).toHaveBeenCalledWith(21);
+    });
+  });
+
+  it("requires confirmation before deleting an unapproved draft", async () => {
+    const userActions = userEvent.setup();
+    vi.mocked(jobDescriptionsApi.list).mockResolvedValue([
+      {
+        id: 22,
+        departmentId: 1,
+        personName: "پرسنل پیش‌نویس",
+        workflowStatus: "منتظر رفع نقص",
+        qualityStatus: "ناقص",
+        updatedAt: "2026-09-04T10:00:00",
+      },
+    ]);
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <DepartmentJobDescriptionsPage />
+      </QueryClientProvider>,
+    );
+
+    await userActions.click(
+      await screen.findByRole("button", {
+        name: "حذف شرح وظایف پرسنل پیش‌نویس",
+      }),
+    );
+    await userActions.click(screen.getByRole("button", { name: "تأیید حذف" }));
+    await waitFor(() => {
+      expect(jobDescriptionsApi.delete).toHaveBeenCalledWith(22);
     });
   });
 });

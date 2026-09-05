@@ -76,7 +76,42 @@ public sealed class ExcelJobDescriptionWorkbookAdapterTests
         var parsed = await parser.ParseAsync("ناقص.xlsx", workbook, CancellationToken.None);
 
         Assert.Contains("مهارت تایپی", parsed.SkillNames);
+        Assert.Single(parsed.SkillNames, skill => skill == "مهارت تایپی");
         Assert.Contains(parsed.Tasks, task => task.Title == "وظیفه تایپی" && task.Description.Contains("شرح تایپی"));
+    }
+
+    [Fact]
+    public void Generated_workbook_preserves_the_reference_layout_and_styles()
+    {
+        var version = JobDescriptionVersion.Create(
+            "پرهام جهانشاهی", 7, "P-7", "لیسانس", "نرم افزار", "2 سال", [11],
+            [JobDescriptionTask.Create(21, "نگهداری و توسعه Wintas", "شرح وظیفه", new DateOnly(2023, 5, 1), null, 1, 40)],
+            new DateTime(2026, 9, 4));
+
+        var workbook = new ExcelJobDescriptionWorkbookGenerator().Generate(
+            version,
+            new DateOnly(2026, 9, 4),
+            "نرم افزار",
+            ["دات نت", "SQL"]);
+
+        using var archive = new ZipArchive(new MemoryStream(workbook), ZipArchiveMode.Read);
+        Assert.NotNull(archive.GetEntry("xl/styles.xml"));
+        Assert.NotNull(archive.GetEntry("xl/theme/theme1.xml"));
+        var sheet = ReadEntry(archive, "xl/worksheets/sheet1.xml");
+        var workbookXml = ReadEntry(archive, "xl/workbook.xml");
+        Assert.Contains("name=\"Sheet1\"", workbookXml);
+        Assert.Contains("rightToLeft=\"1\"", sheet);
+        Assert.Contains("<cols><col min=\"1\" max=\"1\" width=\"5.5703125\"", sheet);
+        Assert.Contains("<mergeCells", sheet);
+        Assert.Contains("نام پرسنل: پرهام جهانشاهی", sheet);
+        Assert.Contains("عنوان وظایف", sheet);
+        Assert.Contains("1402/02/11", sheet);
+    }
+
+    private static string ReadEntry(ZipArchive archive, string name)
+    {
+        using var reader = new StreamReader(archive.GetEntry(name)!.Open());
+        return reader.ReadToEnd();
     }
 
     private static MemoryStream CreateWorkbook(IReadOnlyList<string[]> rows)

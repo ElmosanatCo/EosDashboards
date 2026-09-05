@@ -5,6 +5,8 @@ import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
 import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Accordion,
@@ -73,6 +75,10 @@ export function DepartmentJobDescriptionsPage() {
   );
   const [editingVersion, setEditingVersion] =
     useState<JobDescriptionDetail | null>(null);
+  const [pendingArchive, setPendingArchive] =
+    useState<JobDescriptionListItem | null>(null);
+  const [pendingDelete, setPendingDelete] =
+    useState<JobDescriptionListItem | null>(null);
   const queryClient = useQueryClient();
   const departments = useQuery({
     queryKey: ["managed-departments"],
@@ -90,6 +96,26 @@ export function DepartmentJobDescriptionsPage() {
       jobDescriptionsApi.approveByDepartmentManager(id),
     onSuccess: () =>
       void queryClient.invalidateQueries({ queryKey: ["job-descriptions"] }),
+  });
+  const archive = useMutation({
+    mutationFn: (id: number) => jobDescriptionsApi.archive(id),
+    onSuccess: () => {
+      setPendingArchive(null);
+      void queryClient.invalidateQueries({ queryKey: ["job-descriptions"] });
+      void queryClient.invalidateQueries({
+        queryKey: ["department-dashboard"],
+      });
+    },
+  });
+  const remove = useMutation({
+    mutationFn: (id: number) => jobDescriptionsApi.delete(id),
+    onSuccess: () => {
+      setPendingDelete(null);
+      void queryClient.invalidateQueries({ queryKey: ["job-descriptions"] });
+      void queryClient.invalidateQueries({
+        queryKey: ["department-dashboard"],
+      });
+    },
   });
   const importWorkbooks = useMutation({
     mutationFn: (files: File[]) => jobDescriptionsApi.import(files),
@@ -151,6 +177,8 @@ export function DepartmentJobDescriptionsPage() {
         </Stack>
       </Stack>
       {approve.isError ? <MutationErrorAlert error={approve.error} /> : null}
+      {archive.isError ? <MutationErrorAlert error={archive.error} /> : null}
+      {remove.isError ? <MutationErrorAlert error={remove.error} /> : null}
       {importWorkbooks.isError ? (
         <MutationErrorAlert error={importWorkbooks.error} />
       ) : null}
@@ -212,6 +240,8 @@ export function DepartmentJobDescriptionsPage() {
                   onApprove={() => approve.mutate(item.id)}
                   onDownload={() => void download(item)}
                   onView={() => setSelectedVersionId(item.id)}
+                  onArchive={() => setPendingArchive(item)}
+                  onDelete={() => setPendingDelete(item)}
                 />
               ))}
             </TableBody>
@@ -230,6 +260,28 @@ export function DepartmentJobDescriptionsPage() {
           ) : null}
         </Paper>
       ))}
+      <ConfirmActionDialog
+        open={pendingArchive !== null}
+        title="تأیید آرشیو شرح وظیفه"
+        message={`آیا از آرشیو شرح وظایف «${pendingArchive?.personName ?? ""}» مطمئن هستید؟`}
+        confirmLabel="تأیید آرشیو"
+        confirmColor="warning"
+        pending={archive.isPending}
+        onClose={() => setPendingArchive(null)}
+        onConfirm={() => {
+          if (pendingArchive) archive.mutate(pendingArchive.id);
+        }}
+      />
+      <ConfirmActionDialog
+        open={pendingDelete !== null}
+        title="تأیید حذف شرح وظیفه"
+        message={`آیا از حذف شرح وظایف «${pendingDelete?.personName ?? ""}» مطمئن هستید؟`}
+        pending={remove.isPending}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={() => {
+          if (pendingDelete) remove.mutate(pendingDelete.id);
+        }}
+      />
       <ManualJobDescriptionDialog
         open={openCreate}
         departmentId={
@@ -1317,14 +1369,22 @@ function DescriptionRow({
   onApprove,
   onDownload,
   onView,
+  onArchive,
+  onDelete,
 }: {
   item: JobDescriptionListItem;
   approving: boolean;
   onApprove: () => void;
   onDownload: () => void;
   onView: () => void;
+  onArchive: () => void;
+  onDelete: () => void;
 }) {
   const canApprove = item.workflowStatus === "منتظر تأیید";
+  const canArchive = item.workflowStatus === "تأیید شده";
+  const canDelete =
+    item.workflowStatus === "منتظر تأیید" ||
+    item.workflowStatus === "منتظر رفع نقص";
   return (
     <TableRow hover>
       <TableCell sx={{ fontWeight: 650 }}>{item.personName}</TableCell>
@@ -1373,6 +1433,28 @@ function DescriptionRow({
               color="primary"
             >
               <CheckCircleOutlineOutlinedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        ) : null}
+        {canArchive ? (
+          <Tooltip title="آرشیو شرح وظایف">
+            <IconButton
+              aria-label={`آرشیو شرح وظایف ${item.personName}`}
+              onClick={onArchive}
+              color="warning"
+            >
+              <ArchiveOutlinedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        ) : null}
+        {canDelete ? (
+          <Tooltip title="حذف شرح وظایف">
+            <IconButton
+              aria-label={`حذف شرح وظایف ${item.personName}`}
+              onClick={onDelete}
+              color="error"
+            >
+              <DeleteOutlineOutlinedIcon fontSize="small" />
             </IconButton>
           </Tooltip>
         ) : null}

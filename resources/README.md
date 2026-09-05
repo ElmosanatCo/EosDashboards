@@ -37,3 +37,8 @@ For every added asset, record its source, owner, license, version or acquisition
   Use only as an internal visual reference for the approved manager-facing
   UI system; it is not a production asset and does not approve its depicted
   content, data, operations, or branding.
+- Job-description workbook reference: a user-provided personnel workbook,
+  approved on 2026-09-05 as the standard download layout. The tracked template
+  at `templates/job-description-reference.xlsx` is a sanitized layout copy;
+  generated workbooks fill it with persisted record values while retaining its
+  RTL sheet, merged cells, dimensions, styles, theme, and print setup.
