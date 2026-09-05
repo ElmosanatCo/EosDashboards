@@ -769,10 +769,12 @@ test("a System Administrator can open the operational dashboard", async ({
   await expect(page.getByText("۱۲", { exact: true })).toBeVisible();
   await expect(page.getByText("۱۲", { exact: true })).toHaveCSS(
     "font-family",
-    /Sahel FD/,
+    /Vazirmatn FD/,
   );
   await expect
-    .poll(() => page.evaluate(() => document.fonts.check('16px "Sahel FD"')))
+    .poll(() =>
+      page.evaluate(() => document.fonts.check('16px "Vazirmatn FD"')),
+    )
     .toBe(true);
   await expect(page.getByText("کاربران دارای نشست فعال")).toBeVisible();
   await expect(page.getByText("کاربر ایجاد شد")).toBeVisible();

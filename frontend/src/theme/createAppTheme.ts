@@ -96,24 +96,29 @@ export function createAppTheme(mode: PaletteMode, palette: PaletteId) {
                 fontWeight: "100 900",
                 src: `url('${generatedAssetsBaseUrl}fonts/Vazirmatn[wght].woff2') format('woff2')`,
               },
-              {
-                fontFamily: "Sahel FD",
+              ...(
+                [
+                  [100, "Thin"],
+                  [200, "ExtraLight"],
+                  [300, "Light"],
+                  [400, "Regular"],
+                  [500, "Medium"],
+                  [600, "SemiBold"],
+                  [700, "Bold"],
+                  [800, "ExtraBold"],
+                  [900, "Black"],
+                ] as const
+              ).map(([fontWeight, fileWeight]) => ({
+                fontFamily: "Vazirmatn FD",
                 fontStyle: "normal",
                 fontDisplay: "swap",
-                fontWeight: 400,
-                src: `url('${generatedAssetsBaseUrl}fonts/Sahel-FD.woff2') format('woff2')`,
-              },
-              {
-                fontFamily: "Sahel FD",
-                fontStyle: "normal",
-                fontDisplay: "swap",
-                fontWeight: 700,
-                src: `url('${generatedAssetsBaseUrl}fonts/Sahel-Bold-FD.woff2') format('woff2')`,
-              },
+                fontWeight,
+                src: `url('${generatedAssetsBaseUrl}fonts/Vazirmatn-FD-${fileWeight}.woff2') format('woff2')`,
+              })),
             ],
             ".eos-persian-number, .eos-persian-number *": {
               fontFamily:
-                '"Sahel FD", Vazirmatn, "Segoe UI", sans-serif !important',
+                '"Vazirmatn FD", Vazirmatn, "Segoe UI", sans-serif !important',
             },
             ".eos-management-list-text": {
               fontFamily: 'Vazirmatn, "Segoe UI", sans-serif',

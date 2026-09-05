@@ -17,14 +17,16 @@ addresses.
 
 Render every number visible to an application user with Persian digits. Keep
 form state, API request values, URL/API values, and internal identifiers in the
-representation required by their existing contracts. Apply the Sahel
-Farsi-Digits font to numeric-bearing controls and values while retaining
-Vazirmatn as the primary text typeface.
+representation required by their existing contracts. Apply the locally hosted
+Vazirmatn Farsi-Digits weight files to numeric-bearing controls and values
+while retaining Vazirmatn as the only application typeface.
 
 ## Rationale
 
-This provides one predictable Persian visual language without changing
-authentication semantics, identifier comparisons, or protocol contracts.
+This provides one predictable Persian visual language without introducing a
+second typeface, and without depending on browser OpenType feature support or
+changing authentication semantics, identifier comparisons, or protocol
+contracts.
 
 ## Consequences
 

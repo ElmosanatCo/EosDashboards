@@ -139,7 +139,7 @@ This is the canonical implementation standard for EosDashboards. Feature specifi
 
 ## 10. Typography and shared resources
 
-- Vazirmatn is the primary application, chart, form, and printable-output typeface. The locally hosted Sahel Farsi-Digits variant may be applied to numeric-bearing controls and values so visible digits remain Persian without changing submitted values.
+- Vazirmatn is the primary application, chart, form, and printable-output typeface. Numeric-bearing controls and values use the locally hosted Vazirmatn Farsi-Digits weight files so visible digits remain Persian without changing submitted values.
 - Self-host optimized web font files; do not require internet access for typography.
 - Store authoritative shared resources under:
 

@@ -66,6 +66,30 @@ describe("createAppTheme", () => {
     });
   });
 
+  it("uses the Vazirmatn Farsi-digit family for numeric-bearing values", () => {
+    const theme = createAppTheme("dark", "teal");
+    const baseline = theme.components?.MuiCssBaseline?.styleOverrides as Record<
+      string,
+      unknown
+    >;
+    const fontFaces = baseline["@font-face"] as Array<Record<string, unknown>>;
+
+    expect(fontFaces).toHaveLength(10);
+    expect(fontFaces[0]).toMatchObject({ fontFamily: "Vazirmatn" });
+    expect(fontFaces.slice(1)).toHaveLength(9);
+    expect(
+      fontFaces
+        .slice(1)
+        .every((fontFace) => fontFace.fontFamily === "Vazirmatn FD"),
+    ).toBe(true);
+    expect(
+      baseline[".eos-persian-number, .eos-persian-number *"],
+    ).toMatchObject({
+      fontFamily:
+        '"Vazirmatn FD", Vazirmatn, "Segoe UI", sans-serif !important',
+    });
+  });
+
   it("styles scrollbars from the active palette and appearance mode", () => {
     const darkTheme = createAppTheme("dark", "teal");
     const darkBaseline = darkTheme.components?.MuiCssBaseline
