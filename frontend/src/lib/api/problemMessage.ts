@@ -14,6 +14,8 @@ const problemMessages: Record<string, string> = {
   catalog_item_not_found: "مورد کاتالوگ پیدا نشد.",
   catalog_scope_forbidden: "برای این مورد کاتالوگ دسترسی ندارید.",
   invalid_catalog_request: "اطلاعات کاتالوگ معتبر نیست.",
+  incomplete_job_description:
+    "شرح وظیفه ناقص است؛ موارد تطبیق‌نشده و داده‌های ناقص را اصلاح و دوباره ارسال کنید.",
 };
 
 export function problemMessage(error: unknown) {

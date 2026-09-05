@@ -54,6 +54,7 @@ public sealed class ManageJobDescriptions(
                 command.Tasks.Select(task => JobDescriptionTask.Create(task.TaskCatalogItemId, task.Title, task.Description, task.StartDate, task.EndDate, task.SortOrder, task.WeeklyHours)),
                 clock.Now,
                 previous.JobDescriptionRecordId);
+            await RefreshCatalogQualityAsync(version, cancellationToken);
             if (previous.JobDescriptionRecord is not null &&
                 previous.DepartmentId != command.DepartmentId)
             {
@@ -173,6 +174,7 @@ public sealed class ManageJobDescriptions(
                 tasks,
                 clock.Now,
                 record.Id);
+            await RefreshCatalogQualityAsync(version, cancellationToken);
             repository.AddVersion(version);
             await unitOfWork.SaveChangesAsync(cancellationToken);
             version.SetExcelArtifact(await GenerateWorkbookAsync(version, cancellationToken), $"شرح-وظایف-{version.PersonName}.xlsx", clock.Now);

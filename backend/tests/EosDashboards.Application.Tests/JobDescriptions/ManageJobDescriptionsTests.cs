@@ -29,6 +29,47 @@ public sealed class ManageJobDescriptionsTests
     }
 
     [Fact]
+    public async Task New_version_with_catalog_mismatch_enters_data_completion_before_it_can_be_sent()
+    {
+        var repository = new TestRepository();
+        var manager = new ManageJobDescriptions(
+            new TestClock(), repository, new TestScope(), new TestCatalog(), new TestCatalog(), new TestDepartments(), new TestGenerator(), new TestUnitOfWork());
+
+        var result = await manager.CreateAsync(7, new CreateJobDescriptionCommand(
+            "علی نمونه", 1, "P-1", "لیسانس", "نرم افزار", "۳ سال", [20, 21],
+            [new JobDescriptionTaskInput(10, "توسعه نرم افزار", "شرح", new DateOnly(2026, 9, 1), null, 1, 40)]),
+            CancellationToken.None);
+
+        Assert.Equal(JobDescriptionOperationStatus.Succeeded, result.Status);
+        Assert.Equal(JobDescriptionWorkflowStatus.PendingDataCompletion, result.Version!.WorkflowStatus);
+        Assert.Equal(JobDescriptionQualityStatus.Incomplete, result.Version.QualityStatus);
+        Assert.True(result.Version.HasCatalogQualityIssues);
+    }
+
+    [Fact]
+    public async Task Revised_version_with_catalog_mismatch_enters_data_completion_before_it_can_be_sent()
+    {
+        var repository = new TestRepository
+        {
+            Version = JobDescriptionVersion.Create(
+                "علی نمونه", 1, "P-1", "لیسانس", "نرم افزار", "۳ سال", [20],
+                [JobDescriptionTask.Create(10, "توسعه نرم افزار", "شرح", new DateOnly(2026, 9, 1), null, 1, 40)],
+                new DateTime(2026, 9, 4), 1),
+        };
+        var manager = new ManageJobDescriptions(
+            new TestClock(), repository, new TestScope(), new TestCatalog(), new TestCatalog(), new TestDepartments(), new TestGenerator(), new TestUnitOfWork());
+
+        var result = await manager.ReviseAsync(7, 1, new CreateJobDescriptionCommand(
+            "علی نمونه", 1, "P-1", "لیسانس", "نرم افزار", "۳ سال", [20, 21],
+            [new JobDescriptionTaskInput(10, "توسعه نرم افزار", "شرح جدید", new DateOnly(2026, 9, 1), null, 1, 40)]),
+            CancellationToken.None);
+
+        Assert.Equal(JobDescriptionOperationStatus.Succeeded, result.Status);
+        Assert.Equal(JobDescriptionWorkflowStatus.PendingDataCompletion, result.Version!.WorkflowStatus);
+        Assert.True(result.Version.HasCatalogQualityIssues);
+    }
+
+    [Fact]
     public async Task Manager_cannot_create_a_job_description_without_personnel_code()
     {
         var manager = new ManageJobDescriptions(

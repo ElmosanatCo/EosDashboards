@@ -176,6 +176,14 @@ were published from `main` commit `266548b` as local IIS release
 `20260905-150224`; API liveness/readiness, UI entry, and the SPA refresh probe
 all returned HTTPS HTTP 200.
 
+The first post-publication edit-and-resubmit check exposed a follow-up defect:
+creating or revising a version evaluated structural completeness before task
+catalog evidence, so a version could display as healthy until the approval
+request rechecked it. The API correctly returned `incomplete_job_description`,
+but the frontend did not translate that code and showed a generic error. Create
+and revise now run catalog analysis before saving the new version, and the
+frontend displays the actionable incomplete-quality message.
+
 ## Next agreed step
 
 The Human Resources dashboard and unified job-description-management slice is
