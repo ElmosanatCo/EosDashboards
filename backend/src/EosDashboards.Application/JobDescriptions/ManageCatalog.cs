@@ -8,7 +8,9 @@ public sealed class ManageCatalog(
     IJobDescriptionScope scope,
     IJobDescriptionCatalogReader catalog,
     IHumanResourcesCatalogReader humanResourcesCatalog,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    IAuditWriter auditWriter,
+    ICorrelationContext correlationContext)
 {
     public async Task<IReadOnlyList<SkillCatalogListItem>?> ListPublicSkillsAsync(long actorUserId, bool includeInactive, CancellationToken cancellationToken)
     {
@@ -65,6 +67,78 @@ public sealed class ManageCatalog(
         skill.Activate(clock.Now);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return new(CatalogOperationStatus.Succeeded, skill.Id);
+    }
+
+    public async Task<CatalogOperationResult> MergePublicSkillAsync(
+        long actorUserId,
+        long sourceSkillId,
+        long survivingSkillId,
+        CancellationToken cancellationToken)
+    {
+        if (sourceSkillId <= 0 || survivingSkillId <= 0 || sourceSkillId == survivingSkillId)
+        {
+            return new(CatalogOperationStatus.Invalid);
+        }
+
+        if (!await scope.CanReviewAsHumanResourcesAsync(actorUserId, cancellationToken))
+        {
+            return new(CatalogOperationStatus.Forbidden);
+        }
+
+        CatalogOperationResult? result = null;
+        try
+        {
+            await unitOfWork.ExecuteSerializedTransactionAsync(
+                "job-description-public-skill-merge",
+                async token =>
+                {
+                    var pair = await humanResourcesCatalog.GetPublicSkillPairForMergeAsync(
+                        sourceSkillId,
+                        survivingSkillId,
+                        token);
+                    if (pair is null)
+                    {
+                        result = new(CatalogOperationStatus.NotFound);
+                        return;
+                    }
+
+                    if (!pair.Value.Source.IsActive || !pair.Value.Target.IsActive)
+                    {
+                        result = new(CatalogOperationStatus.Conflict);
+                        return;
+                    }
+
+                    await humanResourcesCatalog.MergePublicSkillReferencesAsync(
+                        sourceSkillId,
+                        survivingSkillId,
+                        token);
+                    pair.Value.Source.Deactivate(clock.Now);
+                    await auditWriter.WriteAsync(
+                        new AuditRecord(
+                            actorUserId,
+                            null,
+                            "job-description.public-skill-merged",
+                            true,
+                            correlationContext.TraceId,
+                            new Dictionary<string, string>
+                            {
+                                ["sourceSkillId"] = sourceSkillId.ToString(),
+                                ["sourceSkillName"] = pair.Value.Source.Name,
+                                ["survivingSkillId"] = survivingSkillId.ToString(),
+                                ["survivingSkillName"] = pair.Value.Target.Name,
+                            }),
+                        token);
+                    await unitOfWork.SaveChangesAsync(token);
+                    result = new(CatalogOperationStatus.Succeeded, survivingSkillId);
+                },
+                cancellationToken);
+        }
+        catch (InvalidOperationException)
+        {
+            return new(CatalogOperationStatus.Conflict);
+        }
+
+        return result ?? new(CatalogOperationStatus.Conflict);
     }
 
     public async Task<CatalogOperationResult> CreatePublicSkillAsync(long actorUserId, CreatePublicSkillCommand command, CancellationToken cancellationToken)

@@ -70,7 +70,8 @@ export const homeTargetMetadata: Readonly<Record<string, HomeTargetMetadata>> =
       actionLabel: "کاتالوگ مهارت‌ها",
     },
     "department-task-catalog": {
-      summary: "وظایف استاندارد بخش را تعریف و مهارت‌های لازم آن‌ها را تعیین کنید.",
+      summary:
+        "وظایف استاندارد بخش را تعریف و مهارت‌های لازم آن‌ها را تعیین کنید.",
       actionLabel: "کاتالوگ وظایف",
     },
     "human-resources-dashboard": {
@@ -78,8 +79,9 @@ export const homeTargetMetadata: Readonly<Record<string, HomeTargetMetadata>> =
       actionLabel: "مشاهده داشبورد",
     },
     "human-resources-job-description-review": {
-      summary: "شرح وظایف ارسال‌شده را بازبینی و تأیید یا با دلیل رد کنید.",
-      actionLabel: "بازبینی شرح وظایف",
+      summary:
+        "شرح وظایف ارسالی، نسخه‌های تأییدشده و مهارت‌های عمومی را مدیریت کنید.",
+      actionLabel: "مدیریت شرح وظایف",
     },
     "chief-executive-dashboard": {
       summary: "نمای کلی شاخص‌های مدیریتی سازمان را ببینید.",

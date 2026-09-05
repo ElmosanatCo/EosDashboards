@@ -219,6 +219,23 @@ evidence-linked review suggestions and never automatically change a record,
 catalog, or approval status. No external AI service is required or assumed for
 this initial capability.
 
+Human Resources has an organization-level dashboard with an explicit
+`همه بخش‌ها` option and a single-department filter. Its cards expose the
+approved personnel, description, workflow, project, and quality counts; it
+also shows per-department change statistics and a paged history of retained
+job-description revisions. The Human Resources management workspace is named
+`مدیریت شرح وظایف` and contains pending-review, approved, and public-skill
+tabs. Pending and approved records can be viewed in the management form and
+downloaded; approved records can be compared with the immediately previous
+retained revision. Rejection requires a reason.
+
+Public skills are organization-wide and have no department field in their
+management workflow. Human Resources may rename, deactivate, reactivate, or
+merge them. A merge confirmation names both the source skill and the skill
+that remains; confirmation moves existing job-description and catalog-task
+references to the surviving skill, collapses duplicate references, records an
+audit event, and deactivates the source while retaining its history.
+
 ### FR-006 — Tabbed SPA workspace
 
 **Status:** Confirmed

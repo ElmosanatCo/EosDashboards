@@ -87,10 +87,16 @@ public sealed class ManageJobDescriptions(
         return await repository.ListAsync(managedDepartmentIds, departmentId, cancellationToken);
     }
 
-    public async Task<IReadOnlyList<JobDescriptionListItem>?> ListForHumanResourcesAsync(long actorUserId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<JobDescriptionListItem>?> ListForHumanResourcesAsync(long actorUserId, long? departmentId, CancellationToken cancellationToken)
     {
         if (!await scope.CanReviewAsHumanResourcesAsync(actorUserId, cancellationToken)) return null;
-        return await repository.ListForHumanResourcesAsync(cancellationToken);
+        return await repository.ListForHumanResourcesAsync(departmentId, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<JobDescriptionListItem>?> ListApprovedForHumanResourcesAsync(long actorUserId, long? departmentId, CancellationToken cancellationToken)
+    {
+        if (!await scope.CanReviewAsHumanResourcesAsync(actorUserId, cancellationToken)) return null;
+        return await repository.ListApprovedForHumanResourcesAsync(departmentId, cancellationToken);
     }
 
     public async Task<(IReadOnlyList<SkillCatalogListItem> Skills, IReadOnlyList<TaskCatalogListItem> Tasks)?> ListCatalogAsync(

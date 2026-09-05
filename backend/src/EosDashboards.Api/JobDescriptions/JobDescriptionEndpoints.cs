@@ -15,12 +15,16 @@ public static class JobDescriptionEndpoints
             .RequireAuthorization("ActiveUser");
         group.MapGet("", ListAsync);
         group.MapGet("/dashboard", DashboardAsync);
+        group.MapGet("/human-resources-dashboard", HumanResourcesDashboardAsync);
         group.MapGet("/catalog", CatalogAsync);
         group.MapGet("/managed-departments", ManagedDepartmentsAsync);
+        group.MapGet("/human-resources-departments", HumanResourcesDepartmentsAsync);
         group.MapGet("/human-resources-review", HumanResourcesReviewListAsync);
+        group.MapGet("/human-resources-approved", HumanResourcesApprovedListAsync);
         group.MapGet("/human-resources-catalog", HumanResourcesCatalogAsync);
         group.MapGet("/{versionId:long}", DetailAsync);
         group.MapGet("/{versionId:long}/analysis", AnalysisAsync);
+        group.MapGet("/{versionId:long}/comparison", ComparisonAsync);
         group.MapGet("/{versionId:long}/excel", DownloadExcelAsync);
         group.MapPost("/catalog/skills", CreateSkillAsync);
         group.MapPost("/catalog/public-skills", CreatePublicSkillAsync);
@@ -29,6 +33,7 @@ public static class JobDescriptionEndpoints
         group.MapPut("/catalog/public-skills/{skillId:long}", RenamePublicSkillAsync);
         group.MapDelete("/catalog/public-skills/{skillId:long}", DeactivatePublicSkillAsync);
         group.MapPut("/catalog/public-skills/{skillId:long}/active", ActivatePublicSkillAsync);
+        group.MapPost("/catalog/public-skills/{sourceSkillId:long}/merge", MergePublicSkillAsync);
         group.MapPut("/catalog/skills/{skillId:long}", RenameDepartmentSkillAsync);
         group.MapDelete("/catalog/skills/{skillId:long}", DeactivateDepartmentSkillAsync);
         group.MapPut("/catalog/skills/{skillId:long}/active", ActivateDepartmentSkillAsync);
@@ -76,6 +81,42 @@ public static class JobDescriptionEndpoints
             : Results.Ok(metrics);
     }
 
+    private static async Task<IResult> HumanResourcesDashboardAsync(
+        HttpContext context,
+        GetHumanResourcesDashboard dashboard,
+        long? departmentId = null,
+        int page = 1,
+        int pageSize = 20,
+        CancellationToken token = default)
+    {
+        if (!TryActor(context, out var actor)) return Unauthorized(context);
+        var result = await dashboard.HandleAsync(actor, departmentId, page, pageSize, token);
+        return result is null
+            ? Problem(context, 403, "human_resources_forbidden", "Human Resources dashboard access is required.")
+            : Results.Ok(new HumanResourcesDashboardResponse(
+                new HumanResourcesMetricResponse(
+                    result.Metrics.PersonnelCount,
+                    result.Metrics.ActivePersonnelCount,
+                    result.Metrics.ArchivedPersonnelCount,
+                    result.Metrics.HealthyDescriptionCount,
+                    result.Metrics.IncompleteDescriptionCount,
+                    result.Metrics.PendingDataCompletionCount,
+                    result.Metrics.PendingDepartmentApprovalCount,
+                    result.Metrics.UnderHumanResourcesReviewCount,
+                    result.Metrics.ApprovedDescriptionCount,
+                    result.Metrics.RejectedDescriptionCount,
+                    result.Metrics.ActiveProjectCount,
+                    result.Metrics.PeopleWorkingOnActiveProjectsCount),
+                result.ChangeSummaries.Select(summary => new HumanResourcesChangeSummaryResponse(
+                    summary.DepartmentId, summary.DepartmentName, summary.ChangeCount, summary.LatestChangedAt)).ToArray(),
+                result.Changes.Select(change => new HumanResourcesChangeResponse(
+                    change.VersionId, change.DepartmentId, change.DepartmentName, change.PersonName,
+                    change.ChangeType, change.ChangedAt, change.ActorUserId)).ToArray(),
+                result.TotalChangeCount,
+                result.Page,
+                result.PageSize));
+    }
+
     private static async Task<IResult> CatalogAsync(
         HttpContext context,
         ManageJobDescriptions manager,
@@ -116,10 +157,37 @@ public static class JobDescriptionEndpoints
         return Results.Ok(await departments.ListAsync(ids[0], ids, token));
     }
 
-    private static async Task<IResult> HumanResourcesReviewListAsync(HttpContext context, ManageJobDescriptions manager, CancellationToken token)
+    private static async Task<IResult> HumanResourcesDepartmentsAsync(
+        HttpContext context,
+        IHumanResourcesDashboardReader departments,
+        IJobDescriptionScope scope,
+        CancellationToken token)
     {
         if (!TryActor(context, out var actor)) return Unauthorized(context);
-        var items = await manager.ListForHumanResourcesAsync(actor, token);
+        if (!await scope.CanReviewAsHumanResourcesAsync(actor, token))
+        {
+            return Problem(context, 403, "human_resources_forbidden", "Human Resources department access is required.");
+        }
+
+        var result = await departments.ListDepartmentsAsync(token);
+        return Results.Ok(result);
+    }
+
+    private static async Task<IResult> HumanResourcesReviewListAsync(HttpContext context, ManageJobDescriptions manager, long? departmentId = null, CancellationToken token = default)
+    {
+        if (!TryActor(context, out var actor)) return Unauthorized(context);
+        var items = await manager.ListForHumanResourcesAsync(actor, departmentId, token);
+        return items is null
+            ? Problem(context, 403, "human_resources_forbidden", "Human Resources review access is required.")
+            : Results.Ok(items.Select(item => new JobDescriptionListResponse(
+                item.Id, item.DepartmentId, item.PersonName,
+                Workflow(item.WorkflowStatus), Quality(item.QualityStatus), item.UpdatedAt)).ToArray());
+    }
+
+    private static async Task<IResult> HumanResourcesApprovedListAsync(HttpContext context, ManageJobDescriptions manager, long? departmentId = null, CancellationToken token = default)
+    {
+        if (!TryActor(context, out var actor)) return Unauthorized(context);
+        var items = await manager.ListApprovedForHumanResourcesAsync(actor, departmentId, token);
         return items is null
             ? Problem(context, 403, "human_resources_forbidden", "Human Resources review access is required.")
             : Results.Ok(items.Select(item => new JobDescriptionListResponse(
@@ -169,6 +237,25 @@ public static class JobDescriptionEndpoints
             : Results.Ok(findings);
     }
 
+    private static async Task<IResult> ComparisonAsync(
+        long versionId,
+        HttpContext context,
+        CompareJobDescriptionVersions comparer,
+        CancellationToken token)
+    {
+        if (!TryActor(context, out var actor)) return Unauthorized(context);
+        var result = await comparer.HandleAsync(actor, versionId, token);
+        return result is null
+            ? Problem(context, 404, "job_description_comparison_not_found", "The requested comparison is not available.")
+            : Results.Ok(new JobDescriptionComparisonResponse(
+                result.CurrentVersionId,
+                result.PreviousVersionId,
+                Snapshot(result.Current),
+                result.Previous is null ? null : Snapshot(result.Previous),
+                result.Changes.Select(change => new JobDescriptionComparisonChangeResponse(
+                    change.Field, change.Kind, change.Before, change.After)).ToArray()));
+    }
+
     private static async Task<IResult> CreateSkillAsync(HttpContext context, CreateSkillRequest request, ManageCatalog catalog, CancellationToken token)
     {
         if (!TryActor(context, out var actor)) return Unauthorized(context);
@@ -213,6 +300,21 @@ public static class JobDescriptionEndpoints
     {
         if (!TryActor(context, out var actor)) return Unauthorized(context);
         return CatalogResult(context, await catalog.ActivatePublicSkillAsync(actor, skillId, token));
+    }
+
+    private static async Task<IResult> MergePublicSkillAsync(
+        long sourceSkillId,
+        HttpContext context,
+        MergePublicSkillRequest request,
+        ManageCatalog catalog,
+        CancellationToken token)
+    {
+        if (!TryActor(context, out var actor)) return Unauthorized(context);
+        return CatalogResult(context, await catalog.MergePublicSkillAsync(
+            actor,
+            sourceSkillId,
+            request.SurvivingSkillId,
+            token));
     }
 
     private static async Task<IResult> RenameDepartmentSkillAsync(long skillId, HttpContext context, UpdateCatalogNameRequest request, ManageCatalog catalog, CancellationToken token)
@@ -402,6 +504,27 @@ public static class JobDescriptionEndpoints
         JobDescriptionOperationStatus.Conflict => Problem(context, 409, "job_description_conflict", "The job description is not in a state that permits this operation."),
         _ => Problem(context, 400, "invalid_job_description_request", "The job description request is invalid."),
     };
+
+    private static JobDescriptionComparisonSnapshotResponse Snapshot(JobDescriptionComparisonSnapshot snapshot) => new(
+        snapshot.VersionId,
+        snapshot.PersonName,
+        snapshot.DepartmentId,
+        snapshot.PersonnelCode,
+        snapshot.Education,
+        snapshot.FieldOfStudy,
+        snapshot.MinimumExperience,
+        snapshot.SkillIds,
+        snapshot.Tasks.Select(task => new JobDescriptionComparisonTaskSnapshotResponse(
+            task.TaskCatalogItemId,
+            task.Title,
+            task.Description,
+            task.StartDate,
+            task.EndDate,
+            task.SortOrder,
+            task.WeeklyHours)).ToArray(),
+        Workflow(snapshot.WorkflowStatus),
+        Quality(snapshot.QualityStatus),
+        snapshot.UpdatedAt);
 
     private static JobDescriptionOperationResponse Version(EosDashboards.Domain.Entities.JobDescriptionVersion version) =>
         new(version.Id, Workflow(version.WorkflowStatus), Quality(version.QualityStatus), version.RejectionReason);

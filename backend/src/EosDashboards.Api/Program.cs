@@ -61,6 +61,8 @@ builder.Services.AddScoped<ManageJobDescriptions>();
 builder.Services.AddScoped<ImportJobDescriptions>();
 builder.Services.AddScoped<AnalyzeJobDescription>();
 builder.Services.AddScoped<GetDepartmentDashboard>();
+builder.Services.AddScoped<GetHumanResourcesDashboard>();
+builder.Services.AddScoped<CompareJobDescriptionVersions>();
 builder.Services.AddScoped<ManageCatalog>();
 builder.Services.AddScoped<IAuthorizationHandler, SessionAuthorizationHandler>();
 
