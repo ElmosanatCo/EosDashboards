@@ -203,13 +203,16 @@ their names, and the manager view renders the names instead of opaque IDs.
 The new repository regression and focused manager-page regression both failed
 before the correction and pass after it; the Release backend build and
 frontend typecheck also pass. These source changes are verified locally but
-have not yet been published to IIS.
+were published from `main` commit `cf0045f` as local IIS release
+`20260905-163632`. The post-publication authenticated browser check showed one
+current row for پرهام جهانشاهی while the database retained all five immutable
+versions, and the detail view displayed catalog names such as `سی شارپ` and
+`دات نت فریمورک` instead of internal IDs.
 
 ## Next agreed step
 
-Publish the verified duplicate-row and skill-name correction to local IIS only
-after the user explicitly invokes `نهایی کن`. Do not deploy to company
-production servers.
+Keep local IIS release `20260905-163632` as the current local candidate. No
+company production deployment was performed.
 
 ## Blockers
 
