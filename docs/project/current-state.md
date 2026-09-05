@@ -217,14 +217,15 @@ tasks, skills, or unresolved collections; the empty in-memory collections made
 every listed version appear incomplete. Both Human Resources list queries now
 reuse the full version-detail includes. The regression test failed before the
 correction and passes after it, as do all 11 repository integration tests and
-the Release backend build. This source correction has not yet been published
-to IIS.
+the Release backend build. The correction was published from `main` commit
+`05ab93b` as local IIS release `20260905-165148`; after a cache-bypassing
+authenticated browser reload, the Human Resources worklist shows both the
+healthy Parham and Nasim records as `سالم`.
 
 ## Next agreed step
 
-Publish the Human Resources quality-status correction to local IIS only after
-the user explicitly invokes `نهایی کن`. Do not deploy to company production
-servers.
+Keep local IIS release `20260905-165148` as the current local candidate. No
+company production deployment was performed.
 
 ## Blockers
 
