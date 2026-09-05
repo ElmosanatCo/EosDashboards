@@ -47,6 +47,7 @@ beforeEach(() => {
     archivedPersonnelCount: 0,
     healthyDescriptionCount: 0,
     incompleteDescriptionCount: 0,
+    needsReviewCount: 0,
     pendingDataCompletionCount: 0,
     approvedDescriptionCount: 0,
     activeProjectCount: 0,
@@ -100,5 +101,35 @@ describe("DepartmentDashboardPage", () => {
     await waitFor(() => {
       expect(jobDescriptionsApi.dashboard).toHaveBeenLastCalledWith(2);
     });
+  });
+
+  it("shows the count of healthy descriptions needing skill review", async () => {
+    vi.mocked(jobDescriptionsApi.dashboard).mockResolvedValue({
+      personnelCount: 1,
+      activePersonnelCount: 1,
+      archivedPersonnelCount: 0,
+      healthyDescriptionCount: 1,
+      incompleteDescriptionCount: 0,
+      needsReviewCount: 2,
+      pendingDataCompletionCount: 0,
+      approvedDescriptionCount: 0,
+      activeProjectCount: 0,
+      peopleWorkingOnActiveProjectsCount: 0,
+      pendingDepartmentApprovalCount: 1,
+      underHumanResourcesReviewCount: 0,
+      rejectedDescriptionCount: 0,
+    });
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <DepartmentDashboardPage />
+      </QueryClientProvider>,
+    );
+
+    expect(await screen.findByText("نیازمند بررسی")).toBeInTheDocument();
+    expect(screen.getByText("۲")).toBeInTheDocument();
   });
 });

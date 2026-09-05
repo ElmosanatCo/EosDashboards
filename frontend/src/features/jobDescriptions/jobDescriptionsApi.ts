@@ -7,6 +7,7 @@ export type JobDescriptionListItem = {
   workflowStatus: string;
   qualityStatus: string;
   updatedAt: string;
+  needsReview: boolean;
 };
 
 export type DepartmentDashboardMetrics = {
@@ -15,6 +16,7 @@ export type DepartmentDashboardMetrics = {
   archivedPersonnelCount: number;
   healthyDescriptionCount: number;
   incompleteDescriptionCount: number;
+  needsReviewCount: number;
   pendingDataCompletionCount: number;
   pendingDepartmentApprovalCount: number;
   underHumanResourcesReviewCount: number;
@@ -190,6 +192,16 @@ export type JobDescriptionDetail = {
   workflowStatus: string;
   qualityStatus: string;
   rejectionReason: string | null;
+  needsReview: boolean;
+};
+
+export type JobDescriptionReviewWarning = {
+  versionId: number;
+  departmentId: number;
+  departmentName: string;
+  personName: string;
+  taskTitle: string;
+  missingSkillName: string;
 };
 
 export type JobDescriptionQualityFinding = {
@@ -209,6 +221,8 @@ export const jobDescriptionsApi = {
         ? `${base}/dashboard?departmentId=${departmentId}`
         : `${base}/dashboard`,
     ),
+  reviewWarnings: () =>
+    apiFetch<JobDescriptionReviewWarning[]>(`${base}/review-warnings`),
   managedDepartments: () =>
     apiFetch<ManagedDepartment[]>(`${base}/managed-departments`),
   list: (departmentId?: number) =>

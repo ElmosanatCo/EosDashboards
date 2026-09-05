@@ -83,6 +83,11 @@ export function DepartmentDashboardPage() {
           value={metrics.incompleteDescriptionCount}
           tone="warning"
         />
+        <MetricCard
+          label="نیازمند بررسی"
+          value={metrics.needsReviewCount}
+          tone="warning"
+        />
         <MetricCard label="پروژه‌های فعال" value={metrics.activeProjectCount} />
         <MetricCard
           label="افراد روی پروژه‌ها"

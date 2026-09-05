@@ -1402,6 +1402,14 @@ function DescriptionRow({
           color={item.qualityStatus === "سالم" ? "success" : "warning"}
           label={item.qualityStatus}
         />
+        {item.needsReview ? (
+          <Chip
+            size="small"
+            color="warning"
+            label="نیازمند بررسی"
+            sx={{ mr: 0.75, mt: { xs: 0.75, sm: 0 } }}
+          />
+        ) : null}
       </TableCell>
       <TableCell className="eos-persian-number">
         {new Intl.DateTimeFormat("fa-IR", { dateStyle: "medium" }).format(

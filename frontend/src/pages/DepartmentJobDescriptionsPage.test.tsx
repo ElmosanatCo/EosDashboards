@@ -109,6 +109,7 @@ describe("DepartmentJobDescriptionsPage", () => {
         workflowStatus: "منتظر رفع نقص",
         qualityStatus: "ناقص",
         updatedAt: "2026-09-04T10:00:00",
+        needsReview: false,
       },
     ]);
     vi.mocked(jobDescriptionsApi.detail).mockResolvedValue({
@@ -134,6 +135,7 @@ describe("DepartmentJobDescriptionsPage", () => {
       workflowStatus: "منتظر رفع نقص",
       qualityStatus: "ناقص",
       rejectionReason: null,
+      needsReview: false,
     });
     vi.mocked(jobDescriptionsApi.catalog).mockResolvedValue({
       skills: [
@@ -258,6 +260,7 @@ describe("DepartmentJobDescriptionsPage", () => {
         workflowStatus: "منتظر تأیید",
         qualityStatus: "ناقص",
         updatedAt: "2026-09-04T10:00:00",
+        needsReview: false,
       },
     ]);
     const queryClient = new QueryClient({
@@ -278,6 +281,36 @@ describe("DepartmentJobDescriptionsPage", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("shows a review warning without blocking a healthy submission", async () => {
+    vi.mocked(jobDescriptionsApi.list).mockResolvedValue([
+      {
+        id: 31,
+        departmentId: 1,
+        personName: "پرسنل نیازمند بررسی",
+        workflowStatus: "منتظر تأیید",
+        qualityStatus: "سالم",
+        updatedAt: "2026-09-04T10:00:00",
+        needsReview: true,
+      },
+    ]);
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <DepartmentJobDescriptionsPage />
+      </QueryClientProvider>,
+    );
+
+    expect(await screen.findByText("نیازمند بررسی")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: "تأیید شرح وظایف پرسنل نیازمند بررسی",
+      }),
+    ).toBeInTheDocument();
+  });
+
   it("allows replacing a selected task and sends new task creation to the API", async () => {
     const userActions = userEvent.setup();
     vi.mocked(jobDescriptionsApi.list).mockResolvedValue([
@@ -288,6 +321,7 @@ describe("DepartmentJobDescriptionsPage", () => {
         workflowStatus: "منتظر تأیید",
         qualityStatus: "سالم",
         updatedAt: "2026-09-04T10:00:00",
+        needsReview: false,
       },
     ]);
     vi.mocked(jobDescriptionsApi.detail).mockResolvedValue({
@@ -315,6 +349,7 @@ describe("DepartmentJobDescriptionsPage", () => {
       workflowStatus: "منتظر تأیید",
       qualityStatus: "سالم",
       rejectionReason: null,
+      needsReview: false,
     });
     vi.mocked(jobDescriptionsApi.catalog).mockResolvedValue({
       skills: [],
@@ -378,6 +413,7 @@ describe("DepartmentJobDescriptionsPage", () => {
         workflowStatus: "تأیید شده",
         qualityStatus: "سالم",
         updatedAt: "2026-09-04T10:00:00",
+        needsReview: false,
       },
     ]);
     const queryClient = new QueryClient({
@@ -423,6 +459,7 @@ describe("DepartmentJobDescriptionsPage", () => {
         workflowStatus: "منتظر رفع نقص",
         qualityStatus: "ناقص",
         updatedAt: "2026-09-04T10:00:00",
+        needsReview: false,
       },
     ]);
     const queryClient = new QueryClient({

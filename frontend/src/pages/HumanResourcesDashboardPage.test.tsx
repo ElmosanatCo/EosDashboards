@@ -33,6 +33,7 @@ beforeEach(() => {
       archivedPersonnelCount: 2,
       healthyDescriptionCount: 8,
       incompleteDescriptionCount: 2,
+      needsReviewCount: 0,
       pendingDataCompletionCount: 1,
       pendingDepartmentApprovalCount: 1,
       underHumanResourcesReviewCount: 2,
