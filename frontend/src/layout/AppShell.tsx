@@ -1,5 +1,5 @@
 import { Box, useMediaQuery } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
+import { alpha, useTheme } from "@mui/material/styles";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../app/providers/AuthProvider";
 import { useUserPreferences } from "../app/providers/UserPreferenceProvider";
@@ -101,6 +101,7 @@ export function AppShell() {
         <AppSidebar
           open={sidebarOpen}
           temporary={compactLayout}
+          activeRouteId={active.routeId}
           targets={targets}
           onOpenTarget={openTarget}
           onActivateHome={activateHome}
@@ -125,7 +126,14 @@ export function AppShell() {
           <WorkspaceTabs />
           <Box
             component="main"
-            sx={{ flex: 1, minHeight: 0, overflow: "auto", p: 2 }}
+            sx={{
+              flex: 1,
+              minHeight: 0,
+              overflow: "auto",
+              p: 2,
+              backgroundImage: `linear-gradient(225deg, ${alpha(theme.palette.primary.main, 0.08)} 0%, ${alpha(theme.palette.primary.main, 0.025)} 14%, transparent 25%)`,
+              backgroundRepeat: "no-repeat",
+            }}
           >
             <PageHelpFrame
               routeId={active.routeId}

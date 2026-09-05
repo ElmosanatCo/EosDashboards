@@ -12,4 +12,6 @@ body {
 
 .eos-command-search-input::placeholder {
   font-size: 0.75rem;
+  color: currentColor;
+  opacity: 0.72;
 }

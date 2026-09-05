@@ -97,6 +97,31 @@ export function CommandSearch({
         sx={{
           width: "min(410px, 38vw)",
           minWidth: 150,
+          "& .MuiInputBase-root": {
+            color: "inherit",
+          },
+          "& .MuiInputBase-input": {
+            color: "inherit",
+          },
+          "& .MuiOutlinedInput-notchedOutline": {
+            borderColor: "currentColor",
+            opacity: 0.45,
+          },
+          "& .MuiInputBase-root:hover .MuiOutlinedInput-notchedOutline": {
+            borderColor: "currentColor",
+            opacity: 0.8,
+          },
+          "& .MuiInputBase-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
+            borderColor: "currentColor",
+            opacity: 1,
+          },
+          "& .MuiInputAdornment-root": {
+            color: "inherit",
+          },
+          "& kbd": {
+            borderColor: "currentColor",
+            color: "inherit",
+          },
         }}
       />
       <Popper

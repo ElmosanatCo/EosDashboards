@@ -86,6 +86,7 @@ Before finishing a task, update the appropriate canonical document when a durabl
 ## Integration and publication
 
 - Before any local merge or push, update `AGENTS.md` and the canonical project documents with all durable requirements, decisions, agreements, state changes, and next steps introduced by the work.
+- The user established the Persian release shorthand `نهایی کن`: when used for a completed change, it is explicit authorization to commit the verified source, merge it into the intended destination branch, push that branch to its configured remote, publish the matching API/UI artifacts to the configured local IIS installation, and run the documented post-publication smoke checks. Do not treat the phrase as authorization to discard unrelated user changes or to deploy to production.
 - Verify the documentation updates and the merged result before publication.
 - A local merge must never remain local-only. After a successful merge and verification, push the destination branch to its configured remote.
 - If the required push cannot be completed, the integration is incomplete; preserve the work and report the failure clearly.

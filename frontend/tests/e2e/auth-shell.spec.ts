@@ -111,6 +111,11 @@ test("local credential OTP opens the authenticated shell and logout returns to s
     homeWorkspace.getByText("مدیر سامانه", { exact: true }),
   ).toBeVisible();
   await expect(
+    page
+      .getByRole("navigation", { name: "منوی اصلی" })
+      .getByRole("button", { name: "خانه" }),
+  ).toHaveCSS("background-image", /linear-gradient/);
+  await expect(
     homeWorkspace.getByText("واحد: نرم افزار", { exact: true }),
   ).toBeVisible();
   await expect(
@@ -167,6 +172,18 @@ test("local credential OTP opens the authenticated shell and logout returns to s
   ).toBeVisible();
   await expect(page.locator("header").getByAltText("EOS")).toBeVisible();
   await expect(page.locator("header").getByText("علم و صنعت")).toBeVisible();
+  await expect(page.locator("header")).toHaveCSS(
+    "background-color",
+    /rgb\((25, 143, 132|56, 184, 170)\)/,
+  );
+  await expect(page.locator("header")).toHaveCSS("background-image", "none");
+  const headerTextColor = await page
+    .locator("header")
+    .evaluate((header) => getComputedStyle(header).color);
+  await expect(
+    page.getByRole("textbox", { name: "جست‌وجوی سراسری" }),
+  ).toHaveCSS("color", headerTextColor);
+  await expect(page.locator("main")).toHaveCSS("background-image", /25%/);
   await expect(
     page.getByRole("textbox", { name: "جست‌وجوی سراسری" }),
   ).toHaveCSS("font-weight", "400");
@@ -200,6 +217,10 @@ test("local credential OTP opens the authenticated shell and logout returns to s
   await expect(
     page.getByRole("heading", { name: "داشبورد بخش" }),
   ).toBeVisible();
+  await expect(page.getByRole("tab", { name: /داشبورد بخش/ })).toHaveCSS(
+    "background-image",
+    /linear-gradient/,
+  );
   await page.getByRole("tab", { name: "خانه" }).click();
   await capabilities.getByRole("button", { name: "مدیریت کاربران" }).click();
   await expect(

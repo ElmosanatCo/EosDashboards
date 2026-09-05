@@ -8,6 +8,7 @@ import {
   ListItemText,
   Tooltip,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import CloseIcon from "@mui/icons-material/Close";
 import HomeIcon from "@mui/icons-material/Home";
 import type { WorkspaceTarget } from "../navigation/workspaceTargets";
@@ -21,6 +22,7 @@ export function AppSidebar({
   open,
   onClose,
   temporary,
+  activeRouteId,
   targets,
   onOpenTarget,
   onActivateHome,
@@ -29,6 +31,7 @@ export function AppSidebar({
   open: boolean;
   onClose: () => void;
   temporary: boolean;
+  activeRouteId: string;
   targets: readonly WorkspaceTarget[];
   onOpenTarget: (target: WorkspaceTarget) => void;
   onActivateHome: () => void;
@@ -92,24 +95,76 @@ export function AppSidebar({
         </Tooltip>
       </Box>
       <List component="nav" aria-label="منوی اصلی">
-        <ListItemButton onClick={onActivateHome}>
+        <ListItemButton
+          selected={activeRouteId === "home"}
+          onClick={onActivateHome}
+          sx={(theme) => ({
+            position: "relative",
+            "&.Mui-selected": {
+              backgroundColor: alpha(theme.palette.primary.main, 0.06),
+              backgroundImage: `linear-gradient(90deg, transparent 0%, ${alpha(theme.palette.primary.main, 0.035)} 78%, ${alpha(theme.palette.primary.main, 0.13)} 100%)`,
+            },
+            "&:hover": {
+              backgroundColor: alpha(theme.palette.primary.main, 0.045),
+            },
+            "&.Mui-selected:hover": {
+              backgroundColor: alpha(theme.palette.primary.main, 0.085),
+            },
+          })}
+        >
           <ListItemIcon>
             <HomeIcon />
           </ListItemIcon>
           <ListItemText primary="خانه" />
+          {activeRouteId === "home" ? <SidebarActiveIndicator /> : null}
         </ListItemButton>
         {targets.map((target) => (
           <ListItemButton
             key={target.routeId}
+            selected={activeRouteId === target.routeId}
             onClick={() => onOpenTarget(target)}
+            sx={(theme) => ({
+              position: "relative",
+              "&.Mui-selected": {
+                backgroundColor: alpha(theme.palette.primary.main, 0.06),
+                backgroundImage: `linear-gradient(90deg, transparent 0%, ${alpha(theme.palette.primary.main, 0.035)} 78%, ${alpha(theme.palette.primary.main, 0.13)} 100%)`,
+              },
+              "&:hover": {
+                backgroundColor: alpha(theme.palette.primary.main, 0.045),
+              },
+              "&.Mui-selected:hover": {
+                backgroundColor: alpha(theme.palette.primary.main, 0.085),
+              },
+            })}
           >
             <ListItemIcon>
               <target.Icon />
             </ListItemIcon>
             <ListItemText primary={target.title} />
+            {activeRouteId === target.routeId ? (
+              <SidebarActiveIndicator />
+            ) : null}
           </ListItemButton>
         ))}
       </List>
     </Drawer>
+  );
+}
+
+function SidebarActiveIndicator() {
+  return (
+    <Box
+      data-testid="sidebar-active-indicator"
+      aria-hidden="true"
+      sx={{
+        position: "absolute",
+        top: 6,
+        bottom: 6,
+        width: 3,
+        borderRadius: "3px 0 0 3px",
+        bgcolor: "primary.main",
+        "/* @noflip */ right": 0,
+      }}
+    />
   );
 }

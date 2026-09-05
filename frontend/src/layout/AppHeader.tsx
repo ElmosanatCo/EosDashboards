@@ -58,7 +58,14 @@ export function AppHeader({
       position="static"
       component="header"
       elevation={0}
-      sx={{ height: appHeaderHeight, boxSizing: "border-box", flexShrink: 0 }}
+      sx={(theme) => ({
+        height: appHeaderHeight,
+        boxSizing: "border-box",
+        flexShrink: 0,
+        backgroundColor: theme.palette.primary.main,
+        backgroundImage: "none",
+        color: theme.palette.primary.contrastText,
+      })}
     >
       <Toolbar
         sx={{

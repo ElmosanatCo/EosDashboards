@@ -1,6 +1,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { AppThemeProvider } from "../app/providers/AppThemeProvider";
 import { AppHeader } from "./AppHeader";
 
 afterEach(cleanup);
@@ -96,5 +97,29 @@ describe("AppHeader", () => {
     expect(helpButton).toBeInTheDocument();
     await user.click(helpButton);
     expect(onOpenPageHelp).toHaveBeenCalledOnce();
+  });
+
+  it("uses the active theme color as a solid header background", () => {
+    render(
+      <AppThemeProvider>
+        <AppHeader
+          onMenu={vi.fn()}
+          targets={[]}
+          onOpenTarget={vi.fn()}
+          pageHelpTitle="راهنمای صفحه"
+          onOpenPageHelp={vi.fn()}
+          showBrand
+        />
+      </AppThemeProvider>,
+    );
+
+    const header = screen.getByRole("banner");
+    expect(getComputedStyle(header).backgroundImage).toBe("none");
+    expect(getComputedStyle(header).backgroundColor).toBe("rgb(56, 184, 170)");
+    expect(getComputedStyle(header).color).toBe("rgb(7, 19, 18)");
+    expect(
+      getComputedStyle(screen.getByRole("textbox", { name: "جست‌وجوی سراسری" }))
+        .color,
+    ).toBe(getComputedStyle(header).color);
   });
 });
