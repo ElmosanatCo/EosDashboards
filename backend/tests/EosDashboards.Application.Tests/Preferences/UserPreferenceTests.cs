@@ -15,14 +15,14 @@ public sealed class UserPreferenceTests
         var update = new UpdateMyPreferences(
             new Clock(), new Correlation(), repository, audit, new UnitOfWork());
 
-        Assert.Equal(new UserPreferenceDto("dark", "teal", false),
+        Assert.Equal(new UserPreferenceDto("dark", "teal", false, true),
             await read.HandleAsync(7, CancellationToken.None));
         var saved = await update.HandleAsync(
             7,
-            new UpdateMyPreferencesCommand("dark", "indigo", true),
+            new UpdateMyPreferencesCommand("dark", "indigo", true, false),
             CancellationToken.None);
 
-        Assert.Equal(new UserPreferenceDto("dark", "indigo", true), saved);
+        Assert.Equal(new UserPreferenceDto("dark", "indigo", true, false), saved);
         Assert.Equal(7, Assert.Single(repository.Items).UserId);
         Assert.Equal("UserPreferenceChanged", Assert.Single(audit.Records).EventCode);
     }
@@ -36,7 +36,7 @@ public sealed class UserPreferenceTests
 
         await Assert.ThrowsAsync<ArgumentException>(() => useCase.HandleAsync(
             7,
-            new UpdateMyPreferencesCommand("automatic", "indigo", false),
+            new UpdateMyPreferencesCommand("automatic", "indigo", false, true),
             CancellationToken.None));
         Assert.Empty(repository.Items);
     }
@@ -50,7 +50,7 @@ public sealed class UserPreferenceTests
 
         var saved = await useCase.HandleAsync(
             7,
-            new UpdateMyPreferencesCommand("dark", "emerald", false),
+            new UpdateMyPreferencesCommand("dark", "emerald", false, true),
             CancellationToken.None);
 
         Assert.Equal("emerald", saved.Palette);
@@ -65,7 +65,7 @@ public sealed class UserPreferenceTests
 
         var saved = await useCase.HandleAsync(
             7,
-            new UpdateMyPreferencesCommand("dark", "orange", false),
+            new UpdateMyPreferencesCommand("dark", "orange", false, true),
             CancellationToken.None);
 
         Assert.Equal("orange", saved.Palette);

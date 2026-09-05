@@ -5,14 +5,22 @@ import type { TabDescriptor } from "../navigation/tabTypes";
 import { WorkspaceTabs } from "./WorkspaceTabs";
 
 const useTabWorkspaceMock = vi.hoisted(() => vi.fn());
+const preferenceMock = vi.hoisted(() => ({ gradientsEnabled: true }));
 
 vi.mock("../navigation/TabWorkspaceProvider", () => ({
   useTabWorkspace: useTabWorkspaceMock,
 }));
 
+vi.mock("../app/providers/UserPreferenceProvider", () => ({
+  useUserPreferences: () => ({
+    gradientsEnabled: preferenceMock.gradientsEnabled,
+  }),
+}));
+
 afterEach(() => {
   cleanup();
   useTabWorkspaceMock.mockReset();
+  preferenceMock.gradientsEnabled = true;
 });
 
 const homeTab: TabDescriptor = {
@@ -54,6 +62,26 @@ describe("WorkspaceTabs", () => {
     expect(getComputedStyle(activeTab).backgroundImage).toContain("46%");
     expect(
       getComputedStyle(screen.getByRole("tab", { name: "خانه" }))
+        .backgroundImage,
+    ).toBe("none");
+  });
+
+  it("removes the active tab gradient when the preference is disabled", () => {
+    preferenceMock.gradientsEnabled = false;
+    useTabWorkspaceMock.mockReturnValue({
+      tabs: [homeTab, usersTab],
+      activeKey: usersTab.key,
+      dispatch: vi.fn(),
+    });
+
+    render(
+      <AppThemeProvider>
+        <WorkspaceTabs />
+      </AppThemeProvider>,
+    );
+
+    expect(
+      getComputedStyle(screen.getByRole("tab", { name: /مدیریت کاربران/ }))
         .backgroundImage,
     ).toBe("none");
   });

@@ -23,15 +23,20 @@ afterEach(() => {
 function PreferenceProbe() {
   const {
     appearanceMode,
+    gradientsEnabled,
     sidebarCollapsed,
     updateAppearance,
+    updateGradientsEnabled,
     updateSidebarCollapsed,
   } = useUserPreferences();
   return (
     <>
-      <output>{`${appearanceMode}:${sidebarCollapsed}`}</output>
+      <output>{`${appearanceMode}:${sidebarCollapsed}:${gradientsEnabled}`}</output>
       <Button onClick={() => updateAppearance("dark")}>تغییر به تیره</Button>
       <Button onClick={() => updateSidebarCollapsed(true)}>بستن منو</Button>
+      <Button onClick={() => updateGradientsEnabled(false)}>
+        خاموش کردن گرادیانت
+      </Button>
     </>
   );
 }
@@ -44,11 +49,13 @@ describe("UserPreferenceProvider", () => {
       appearanceMode: "system",
       palette: "navyTeal",
       sidebarCollapsed: false,
+      gradientsEnabled: true,
     });
     vi.mocked(preferencesApi.update).mockResolvedValue({
       appearanceMode: "dark",
       palette: "teal",
       sidebarCollapsed: false,
+      gradientsEnabled: true,
     });
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
@@ -65,13 +72,14 @@ describe("UserPreferenceProvider", () => {
     );
 
     await waitFor(() =>
-      expect(screen.getByRole("status")).toHaveTextContent("dark:false"),
+      expect(screen.getByRole("status")).toHaveTextContent("dark:false:true"),
     );
     await waitFor(() =>
       expect(vi.mocked(preferencesApi.update).mock.calls[0]?.[0]).toEqual({
         appearanceMode: "dark",
         palette: "teal",
         sidebarCollapsed: false,
+        gradientsEnabled: true,
       }),
     );
   });
@@ -81,6 +89,7 @@ describe("UserPreferenceProvider", () => {
       appearanceMode: "system",
       palette: "navyTeal",
       sidebarCollapsed: false,
+      gradientsEnabled: true,
     });
     vi.mocked(preferencesApi.update).mockRejectedValueOnce(
       new Error("preference service unavailable"),
@@ -103,7 +112,7 @@ describe("UserPreferenceProvider", () => {
     await user.click(screen.getByRole("button", { name: "تغییر به تیره" }));
 
     await waitFor(() =>
-      expect(screen.getByRole("status")).toHaveTextContent("dark:false"),
+      expect(screen.getByRole("status")).toHaveTextContent("dark:false:true"),
     );
   });
 
@@ -112,11 +121,13 @@ describe("UserPreferenceProvider", () => {
       appearanceMode: "system";
       palette: "navyTeal";
       sidebarCollapsed: false;
+      gradientsEnabled: true;
     }) => void;
     const initialPreferences = new Promise<{
       appearanceMode: "system";
       palette: "navyTeal";
       sidebarCollapsed: false;
+      gradientsEnabled: true;
     }>((resolve) => {
       resolveInitialPreferences = resolve;
     });
@@ -125,6 +136,7 @@ describe("UserPreferenceProvider", () => {
       appearanceMode: "dark",
       palette: "navyTeal",
       sidebarCollapsed: true,
+      gradientsEnabled: false,
     });
     const user = userEvent.setup();
     const queryClient = new QueryClient({
@@ -147,10 +159,56 @@ describe("UserPreferenceProvider", () => {
       appearanceMode: "system",
       palette: "navyTeal",
       sidebarCollapsed: false,
+      gradientsEnabled: true,
     });
 
     await waitFor(() =>
-      expect(screen.getByRole("status")).toHaveTextContent("dark:true"),
+      expect(screen.getByRole("status")).toHaveTextContent("dark:true:true"),
+    );
+  });
+
+  it("persists the gradient toggle with the user's other preferences", async () => {
+    vi.mocked(preferencesApi.get).mockResolvedValue({
+      appearanceMode: "dark",
+      palette: "teal",
+      sidebarCollapsed: false,
+      gradientsEnabled: true,
+    });
+    vi.mocked(preferencesApi.update).mockResolvedValue({
+      appearanceMode: "dark",
+      palette: "teal",
+      sidebarCollapsed: false,
+      gradientsEnabled: false,
+    });
+    const user = userEvent.setup();
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AppThemeProvider>
+          <UserPreferenceProvider userId={1}>
+            <PreferenceProbe />
+          </UserPreferenceProvider>
+        </AppThemeProvider>
+      </QueryClientProvider>,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent("dark:false:true"),
+    );
+    await user.click(
+      screen.getByRole("button", { name: "خاموش کردن گرادیانت" }),
+    );
+
+    await waitFor(() =>
+      expect(vi.mocked(preferencesApi.update).mock.calls.at(-1)?.[0]).toEqual({
+        appearanceMode: "dark",
+        palette: "teal",
+        sidebarCollapsed: false,
+        gradientsEnabled: false,
+      }),
     );
   });
 });

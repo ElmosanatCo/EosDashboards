@@ -22,9 +22,11 @@ type PreferenceContextValue = {
   resolvedAppearanceMode: "light" | "dark";
   palette: PaletteId;
   sidebarCollapsed: boolean;
+  gradientsEnabled: boolean;
   updateAppearance: (mode: AppearanceMode) => void;
   toggleAppearance: () => void;
   updatePalette: (palette: PaletteId) => void;
+  updateGradientsEnabled: (enabled: boolean) => void;
   updateSidebarCollapsed: (collapsed: boolean) => void;
 };
 const Context = createContext<PreferenceContextValue | null>(null);
@@ -42,13 +44,16 @@ export function UserPreferenceProvider({
     setPalette,
   } = useAppearance();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [gradientsEnabled, setGradientsEnabled] = useState(true);
   const preferenceRef = useRef<UserPreference>({
     appearanceMode: mode,
     palette,
     sidebarCollapsed,
+    gradientsEnabled: true,
   });
   const sidebarTimer = useRef<number | undefined>(undefined);
   const hasLocalChanges = useRef(false);
+  const hasLocalGradientChange = useRef(false);
   const query = useQuery({
     queryKey: ["preferences", userId],
     queryFn: preferencesApi.get,
@@ -74,21 +79,27 @@ export function UserPreferenceProvider({
         ...query.data,
         appearanceMode: mode,
         palette,
+        gradientsEnabled: hasLocalGradientChange.current
+          ? preferenceRef.current.gradientsEnabled
+          : (query.data.gradientsEnabled ?? true),
       };
       hasLocalChanges.current = true;
       preferenceRef.current = next;
       void persist(next);
       setSidebarCollapsed(query.data.sidebarCollapsed);
+      setGradientsEnabled(next.gradientsEnabled);
       return;
     }
     const normalized = {
       ...query.data,
       palette: normalizePaletteId(query.data.palette),
+      gradientsEnabled: query.data.gradientsEnabled ?? true,
     };
     preferenceRef.current = normalized;
     setMode(normalized.appearanceMode);
     setPalette(normalized.palette);
     setSidebarCollapsed(normalized.sidebarCollapsed);
+    setGradientsEnabled(normalized.gradientsEnabled);
   }, [
     hasPersistedAppearance,
     mode,
@@ -131,6 +142,18 @@ export function UserPreferenceProvider({
     [persist, setPalette],
   );
 
+  const updateGradientsEnabled = useCallback(
+    (enabled: boolean) => {
+      const next = { ...preferenceRef.current, gradientsEnabled: enabled };
+      hasLocalChanges.current = true;
+      hasLocalGradientChange.current = true;
+      preferenceRef.current = next;
+      setGradientsEnabled(enabled);
+      void persist(next);
+    },
+    [persist],
+  );
+
   const toggleAppearance = useCallback(
     () => updateAppearance(nextAppearanceForToggle(resolvedMode)),
     [resolvedMode, updateAppearance],
@@ -143,9 +166,11 @@ export function UserPreferenceProvider({
       resolvedAppearanceMode: resolvedMode,
       palette,
       sidebarCollapsed,
+      gradientsEnabled,
       updateAppearance,
       toggleAppearance,
       updatePalette,
+      updateGradientsEnabled,
       updateSidebarCollapsed,
     }),
     [
@@ -153,9 +178,11 @@ export function UserPreferenceProvider({
       resolvedMode,
       palette,
       sidebarCollapsed,
+      gradientsEnabled,
       toggleAppearance,
       updateAppearance,
       updatePalette,
+      updateGradientsEnabled,
       updateSidebarCollapsed,
     ],
   );

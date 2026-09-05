@@ -4,6 +4,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppThemeProvider } from "../app/providers/AppThemeProvider";
 import { AppHeader } from "./AppHeader";
 
+const preferenceMock = vi.hoisted(() => ({
+  updateGradientsEnabled: vi.fn(),
+}));
+
 afterEach(cleanup);
 
 vi.mock("../app/providers/AuthProvider", () => ({
@@ -20,6 +24,8 @@ vi.mock("../app/providers/UserPreferenceProvider", () => ({
     resolvedAppearanceMode: "dark",
     toggleAppearance: vi.fn(),
     updatePalette: vi.fn(),
+    gradientsEnabled: true,
+    updateGradientsEnabled: preferenceMock.updateGradientsEnabled,
   }),
 }));
 
@@ -121,5 +127,27 @@ describe("AppHeader", () => {
       getComputedStyle(screen.getByRole("textbox", { name: "جست‌وجوی سراسری" }))
         .color,
     ).toBe(getComputedStyle(header).color);
+  });
+
+  it("offers the gradient toggle beside the palette choices", async () => {
+    const user = userEvent.setup();
+    render(
+      <AppHeader
+        onMenu={vi.fn()}
+        targets={[]}
+        onOpenTarget={vi.fn()}
+        pageHelpTitle="راهنمای صفحه"
+        onOpenPageHelp={vi.fn()}
+        showBrand
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "منوی کاربر" }));
+    const toggle = screen.getByRole("switch", {
+      name: "فعال‌سازی گرادیانت‌ها",
+    });
+    expect(toggle).toBeChecked();
+    await user.click(toggle);
+    expect(preferenceMock.updateGradientsEnabled).toHaveBeenCalledWith(false);
   });
 });

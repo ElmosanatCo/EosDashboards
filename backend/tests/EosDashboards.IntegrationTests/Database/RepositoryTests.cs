@@ -242,7 +242,7 @@ public sealed class RepositoryTests(SqlServerDatabaseFixture database)
         var user = await AddUserAsync(context);
         var suffix = Guid.NewGuid().ToString("N");
         var role = Role.Create($"role-{suffix}", "نقش آزمایشی", false, TestNow);
-        var preference = UserPreference.Create(user.Id, "system", "navy-teal", false, TestNow);
+        var preference = UserPreference.Create(user.Id, "system", "navy-teal", false, true, TestNow);
         var roles = new RoleRepository(context);
         var preferences = new UserPreferenceRepository(context);
         var unitOfWork = new EfUnitOfWork(context);

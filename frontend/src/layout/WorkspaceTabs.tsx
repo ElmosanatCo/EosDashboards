@@ -1,10 +1,12 @@
 import CloseIcon from "@mui/icons-material/Close";
 import { Box, IconButton, Tab, Tabs, Tooltip } from "@mui/material";
 import { alpha } from "@mui/material/styles";
+import { useUserPreferences } from "../app/providers/UserPreferenceProvider";
 import { useTabWorkspace } from "../navigation/TabWorkspaceProvider";
 
 export function WorkspaceTabs() {
   const { tabs, activeKey, dispatch } = useTabWorkspace();
+  const { gradientsEnabled } = useUserPreferences();
   return (
     <Box
       data-testid="workspace-tabs-strip"
@@ -25,7 +27,9 @@ export function WorkspaceTabs() {
           "& .MuiTab-root": { color: "text.secondary" },
           "& .Mui-selected": { color: "text.primary" },
           "& .MuiTab-root.Mui-selected": (theme) => ({
-            backgroundImage: `linear-gradient(0deg, ${alpha(theme.palette.primary.main, 0.2)} 0%, ${alpha(theme.palette.primary.main, 0.08)} 26%, transparent 46%)`,
+            backgroundImage: gradientsEnabled
+              ? `linear-gradient(0deg, ${alpha(theme.palette.primary.main, 0.2)} 0%, ${alpha(theme.palette.primary.main, 0.08)} 26%, transparent 46%)`
+              : "none",
             backgroundRepeat: "no-repeat",
           }),
         }}

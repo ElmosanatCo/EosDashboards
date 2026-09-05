@@ -6,7 +6,8 @@ namespace EosDashboards.Application.Preferences;
 public sealed record UpdateMyPreferencesCommand(
     string AppearanceMode,
     string Palette,
-    bool SidebarCollapsed);
+    bool SidebarCollapsed,
+    bool GradientsEnabled);
 
 public sealed class UpdateMyPreferences(
     IClock clock,
@@ -41,6 +42,7 @@ public sealed class UpdateMyPreferences(
                 command.AppearanceMode,
                 command.Palette,
                 command.SidebarCollapsed,
+                command.GradientsEnabled,
                 now);
             preferences.Add(preference);
             changed = true;
@@ -51,6 +53,7 @@ public sealed class UpdateMyPreferences(
                 command.AppearanceMode,
                 command.Palette,
                 command.SidebarCollapsed,
+                command.GradientsEnabled,
                 now);
         }
 
@@ -71,6 +74,7 @@ public sealed class UpdateMyPreferences(
         return new UserPreferenceDto(
             preference.AppearanceMode,
             preference.Palette,
-            preference.SidebarCollapsed);
+            preference.SidebarCollapsed,
+            preference.GradientsEnabled);
     }
 }

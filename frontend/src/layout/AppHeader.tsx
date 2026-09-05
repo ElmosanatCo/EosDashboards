@@ -3,11 +3,13 @@ import {
   Box,
   IconButton,
   Divider,
+  FormControlLabel,
   ListItemIcon,
   ListItemText,
   Menu,
   MenuItem,
   Stack,
+  Switch,
   Toolbar,
   Tooltip,
   Typography,
@@ -20,6 +22,7 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import PasswordIcon from "@mui/icons-material/Password";
 import PaletteIcon from "@mui/icons-material/Palette";
+import GradientIcon from "@mui/icons-material/Gradient";
 import { useState } from "react";
 import { useAuth } from "../app/providers/AuthProvider";
 import { ChangePasswordDialog } from "../features/auth/ChangePasswordDialog";
@@ -47,8 +50,14 @@ export function AppHeader({
   showBrand: boolean;
 }) {
   const { user, logout, changePassword } = useAuth();
-  const { palette, resolvedAppearanceMode, toggleAppearance, updatePalette } =
-    useUserPreferences();
+  const {
+    palette,
+    resolvedAppearanceMode,
+    toggleAppearance,
+    updatePalette,
+    gradientsEnabled,
+    updateGradientsEnabled,
+  } = useUserPreferences();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [passwordBusy, setPasswordBusy] = useState(false);
@@ -175,13 +184,43 @@ export function AppHeader({
               <PaletteIcon fontSize="small" />
               <Typography variant="body2">رنگ‌بندی</Typography>
             </Stack>
+            <Stack
+              direction="row"
+              sx={{
+                alignItems: "center",
+                justifyContent: "space-between",
+                mt: 1,
+              }}
+            >
+              <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                <GradientIcon fontSize="small" />
+                <Typography variant="body2">گرادیانت‌ها</Typography>
+              </Stack>
+              <FormControlLabel
+                label=""
+                slotProps={{ typography: { sx: { display: "none" } } }}
+                control={
+                  <Switch
+                    size="small"
+                    checked={gradientsEnabled}
+                    onChange={(event) =>
+                      updateGradientsEnabled(event.target.checked)
+                    }
+                    slotProps={{
+                      input: { "aria-label": "فعال‌سازی گرادیانت‌ها" },
+                    }}
+                  />
+                }
+                sx={{ m: 0 }}
+              />
+            </Stack>
             <Box
               aria-label="انتخاب رنگ‌بندی"
               sx={{
                 display: "flex",
                 flexWrap: "wrap",
                 gap: 0.75,
-                mt: 1.25,
+                mt: 1,
                 maxWidth: 196,
               }}
             >

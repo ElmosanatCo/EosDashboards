@@ -6,6 +6,7 @@ export type UserPreference = {
   appearanceMode: AppearanceMode;
   palette: PaletteId | string;
   sidebarCollapsed: boolean;
+  gradientsEnabled: boolean;
 };
 
 export const preferencesApi = {

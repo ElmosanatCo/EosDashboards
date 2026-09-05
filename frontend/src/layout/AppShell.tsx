@@ -22,7 +22,8 @@ import { pageGuideFor } from "../components/pageGuides";
 
 export function AppShell() {
   const { user, changePassword } = useAuth();
-  const { sidebarCollapsed, updateSidebarCollapsed } = useUserPreferences();
+  const { gradientsEnabled, sidebarCollapsed, updateSidebarCollapsed } =
+    useUserPreferences();
   const theme = useTheme();
   const compactLayout = useMediaQuery(theme.breakpoints.down("md"));
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -131,7 +132,9 @@ export function AppShell() {
               minHeight: 0,
               overflow: "auto",
               p: 2,
-              backgroundImage: `linear-gradient(225deg, ${alpha(theme.palette.primary.main, 0.08)} 0%, ${alpha(theme.palette.primary.main, 0.025)} 14%, transparent 25%)`,
+              backgroundImage: gradientsEnabled
+                ? `linear-gradient(225deg, ${alpha(theme.palette.primary.main, 0.08)} 0%, ${alpha(theme.palette.primary.main, 0.025)} 14%, transparent 25%)`
+                : "none",
               backgroundRepeat: "no-repeat",
             }}
           >

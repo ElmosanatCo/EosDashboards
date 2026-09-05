@@ -174,7 +174,7 @@ public sealed class UserTests
     {
         // Break caught: converting an application-local preference timestamp before persistence.
         var createdAt = new DateTime(2026, 9, 2, 11, 30, 0, 123, DateTimeKind.Unspecified);
-        var preference = UserPreference.Create(1, "system", "navyTeal", false, createdAt);
+        var preference = UserPreference.Create(1, "system", "navyTeal", false, true, createdAt);
 
         Assert.Equal(createdAt, preference.CreatedAt);
     }

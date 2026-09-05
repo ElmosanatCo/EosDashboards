@@ -7,12 +7,14 @@ public sealed class UserPreference
         string appearanceMode,
         string palette,
         bool sidebarCollapsed,
+        bool gradientsEnabled,
         DateTime createdAt)
     {
         UserId = userId;
         AppearanceMode = appearanceMode;
         Palette = palette;
         SidebarCollapsed = sidebarCollapsed;
+        GradientsEnabled = gradientsEnabled;
         CreatedAt = createdAt;
         UpdatedAt = createdAt;
     }
@@ -27,6 +29,8 @@ public sealed class UserPreference
 
     public bool SidebarCollapsed { get; private set; }
 
+    public bool GradientsEnabled { get; private set; }
+
     public DateTime CreatedAt { get; private set; }
 
     public DateTime UpdatedAt { get; private set; }
@@ -36,6 +40,7 @@ public sealed class UserPreference
         string appearanceMode,
         string palette,
         bool sidebarCollapsed,
+        bool gradientsEnabled,
         DateTime createdAt)
     {
         if (userId <= 0)
@@ -53,13 +58,20 @@ public sealed class UserPreference
             throw new ArgumentException("A palette is required.", nameof(palette));
         }
 
-        return new UserPreference(userId, appearanceMode, palette, sidebarCollapsed, createdAt);
+        return new UserPreference(
+            userId,
+            appearanceMode,
+            palette,
+            sidebarCollapsed,
+            gradientsEnabled,
+            createdAt);
     }
 
     public bool Update(
         string appearanceMode,
         string palette,
         bool sidebarCollapsed,
+        bool gradientsEnabled,
         DateTime updatedAt)
     {
         if (string.IsNullOrWhiteSpace(appearanceMode))
@@ -74,7 +86,8 @@ public sealed class UserPreference
 
         if (AppearanceMode == appearanceMode &&
             Palette == palette &&
-            SidebarCollapsed == sidebarCollapsed)
+            SidebarCollapsed == sidebarCollapsed &&
+            GradientsEnabled == gradientsEnabled)
         {
             return false;
         }
@@ -82,6 +95,7 @@ public sealed class UserPreference
         AppearanceMode = appearanceMode;
         Palette = palette;
         SidebarCollapsed = sidebarCollapsed;
+        GradientsEnabled = gradientsEnabled;
         UpdatedAt = updatedAt;
         return true;
     }
