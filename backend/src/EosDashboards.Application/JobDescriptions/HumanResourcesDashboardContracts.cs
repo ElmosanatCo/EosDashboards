@@ -1,4 +1,5 @@
 using EosDashboards.Domain.Entities;
+using EosDashboards.Domain.Enums;
 
 namespace EosDashboards.Application.JobDescriptions;
 
@@ -53,8 +54,8 @@ public sealed record JobDescriptionComparisonSnapshot(
     string MinimumExperience,
     IReadOnlyList<long> SkillIds,
     IReadOnlyList<JobDescriptionComparisonTaskSnapshot> Tasks,
-    string WorkflowStatus,
-    string QualityStatus,
+    JobDescriptionWorkflowStatus WorkflowStatus,
+    JobDescriptionQualityStatus QualityStatus,
     DateTime UpdatedAt);
 
 public sealed record JobDescriptionComparisonTaskSnapshot(

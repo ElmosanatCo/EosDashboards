@@ -43,8 +43,8 @@ public sealed class CompareJobDescriptionVersions(
         AddScalarChange(changes, "education", previous.Education, current.Education);
         AddScalarChange(changes, "fieldOfStudy", previous.FieldOfStudy, current.FieldOfStudy);
         AddScalarChange(changes, "minimumExperience", previous.MinimumExperience, current.MinimumExperience);
-        AddScalarChange(changes, "workflowStatus", previous.WorkflowStatus, current.WorkflowStatus);
-        AddScalarChange(changes, "qualityStatus", previous.QualityStatus, current.QualityStatus);
+        AddScalarChange(changes, "workflowStatus", previous.WorkflowStatus.ToString(), current.WorkflowStatus.ToString());
+        AddScalarChange(changes, "qualityStatus", previous.QualityStatus.ToString(), current.QualityStatus.ToString());
 
         foreach (var skillId in previous.SkillIds.Except(current.SkillIds))
         {
@@ -114,8 +114,8 @@ public sealed class CompareJobDescriptionVersions(
                 task.SortOrder,
                 task.WeeklyHours))
             .ToArray(),
-        version.WorkflowStatus.ToString(),
-        version.QualityStatus.ToString(),
+        version.WorkflowStatus,
+        version.QualityStatus,
         version.UpdatedAt);
 
     private static string? Format(DateOnly? value) => value?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);

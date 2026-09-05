@@ -98,3 +98,78 @@ public sealed record SetTaskRequiredSkillsRequest(long[] SkillIds);
 public sealed record UpdatePublicSkillRequest(string Name);
 
 public sealed record UpdateCatalogNameRequest(string Name);
+
+public sealed record MergePublicSkillRequest(long SurvivingSkillId);
+
+public sealed record HumanResourcesDashboardResponse(
+    HumanResourcesMetricResponse Metrics,
+    IReadOnlyList<HumanResourcesChangeSummaryResponse> ChangeSummaries,
+    IReadOnlyList<HumanResourcesChangeResponse> Changes,
+    int TotalChangeCount,
+    int Page,
+    int PageSize);
+
+public sealed record HumanResourcesMetricResponse(
+    int PersonnelCount,
+    int ActivePersonnelCount,
+    int ArchivedPersonnelCount,
+    int HealthyDescriptionCount,
+    int IncompleteDescriptionCount,
+    int PendingDataCompletionCount,
+    int PendingDepartmentApprovalCount,
+    int UnderHumanResourcesReviewCount,
+    int ApprovedDescriptionCount,
+    int RejectedDescriptionCount,
+    int ActiveProjectCount,
+    int PeopleWorkingOnActiveProjectsCount);
+
+public sealed record HumanResourcesChangeSummaryResponse(
+    long DepartmentId,
+    string DepartmentName,
+    int ChangeCount,
+    DateTime? LatestChangedAt);
+
+public sealed record HumanResourcesChangeResponse(
+    long VersionId,
+    long DepartmentId,
+    string DepartmentName,
+    string PersonName,
+    string ChangeType,
+    DateTime ChangedAt,
+    long? ActorUserId);
+
+public sealed record JobDescriptionComparisonResponse(
+    long CurrentVersionId,
+    long? PreviousVersionId,
+    JobDescriptionComparisonSnapshotResponse Current,
+    JobDescriptionComparisonSnapshotResponse? Previous,
+    IReadOnlyList<JobDescriptionComparisonChangeResponse> Changes);
+
+public sealed record JobDescriptionComparisonSnapshotResponse(
+    long VersionId,
+    string PersonName,
+    long DepartmentId,
+    string? PersonnelCode,
+    string Education,
+    string FieldOfStudy,
+    string MinimumExperience,
+    IReadOnlyList<long> SkillIds,
+    IReadOnlyList<JobDescriptionComparisonTaskSnapshotResponse> Tasks,
+    string WorkflowStatus,
+    string QualityStatus,
+    DateTime UpdatedAt);
+
+public sealed record JobDescriptionComparisonTaskSnapshotResponse(
+    long TaskCatalogItemId,
+    string Title,
+    string Description,
+    DateOnly? StartDate,
+    DateOnly? EndDate,
+    int SortOrder,
+    decimal? WeeklyHours);
+
+public sealed record JobDescriptionComparisonChangeResponse(
+    string Field,
+    string Kind,
+    string? Before,
+    string? After);
