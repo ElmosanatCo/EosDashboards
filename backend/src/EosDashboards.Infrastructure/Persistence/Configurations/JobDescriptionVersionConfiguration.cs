@@ -18,6 +18,10 @@ internal sealed class JobDescriptionVersionConfiguration : IEntityTypeConfigurat
         builder.Property(item => item.FieldOfStudy).HasMaxLength(300).IsRequired();
         builder.Property(item => item.MinimumExperience).HasMaxLength(200).IsRequired();
         builder.Property(item => item.WorkflowStatus).HasConversion<string>().HasMaxLength(64).IsRequired();
+        builder.Property<bool>("_hasCatalogQualityIssues")
+            .HasColumnName("HasCatalogQualityIssues")
+            .HasDefaultValue(false)
+            .IsRequired();
         builder.Property(item => item.CreatedAt).HasColumnType("datetime2(3)");
         builder.Property(item => item.UpdatedAt).HasColumnType("datetime2(3)");
         builder.Property(item => item.DepartmentApprovedAt).HasColumnType("datetime2(3)");

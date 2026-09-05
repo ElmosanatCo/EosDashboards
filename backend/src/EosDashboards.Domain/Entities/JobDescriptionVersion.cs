@@ -8,6 +8,7 @@ public sealed class JobDescriptionVersion
     private readonly List<JobDescriptionTask> _tasks = [];
     private readonly List<JobDescriptionVersionUnresolvedSkill> _unresolvedSkills = [];
     private readonly List<JobDescriptionVersionUnresolvedTask> _unresolvedTasks = [];
+    private bool _hasCatalogQualityIssues;
 
     private JobDescriptionVersion()
     {
@@ -99,9 +100,13 @@ public sealed class JobDescriptionVersion
     public IReadOnlyCollection<JobDescriptionVersionUnresolvedTask> UnresolvedTasks => _unresolvedTasks.AsReadOnly();
 
     public JobDescriptionQualityStatus QualityStatus =>
-        HasCompleteProfile() && _tasks.Count > 0 && _tasks.All(item => item.StartDate.HasValue && item.WeeklyHours.HasValue)
+        !_hasCatalogQualityIssues && HasCompleteProfile() && _tasks.Count > 0 &&
+        _unresolvedTasks.Count == 0 &&
+        _tasks.All(item => item.StartDate.HasValue && item.WeeklyHours.HasValue)
             ? JobDescriptionQualityStatus.Healthy
             : JobDescriptionQualityStatus.Incomplete;
+
+    public bool HasCatalogQualityIssues => _hasCatalogQualityIssues;
 
     public static JobDescriptionVersion Create(
         string personName,
@@ -170,9 +175,38 @@ public sealed class JobDescriptionVersion
             throw new InvalidOperationException("Only a version under Human Resources review can be approved.");
         }
 
+        if (QualityStatus != JobDescriptionQualityStatus.Healthy)
+        {
+            throw new InvalidOperationException("پرونده ناقص است و تا رفع نقص قابل تأیید نیست.");
+        }
+
         WorkflowStatus = JobDescriptionWorkflowStatus.Approved;
         HumanResourcesReviewedAt = occurredAt;
         RejectionReason = null;
+        UpdatedAt = occurredAt;
+    }
+
+    public void SetCatalogQualityIssues(bool hasIssues, DateTime occurredAt)
+    {
+        var workflowChanged = false;
+        if (hasIssues && WorkflowStatus is
+            JobDescriptionWorkflowStatus.PendingDepartmentApproval or
+            JobDescriptionWorkflowStatus.UnderHumanResourcesReview or
+            JobDescriptionWorkflowStatus.Rejected)
+        {
+            WorkflowStatus = JobDescriptionWorkflowStatus.PendingDataCompletion;
+            DepartmentApprovedAt = null;
+            HumanResourcesReviewedAt = null;
+            RejectionReason = null;
+            workflowChanged = true;
+        }
+
+        if (_hasCatalogQualityIssues == hasIssues && !workflowChanged)
+        {
+            return;
+        }
+
+        _hasCatalogQualityIssues = hasIssues;
         UpdatedAt = occurredAt;
     }
 

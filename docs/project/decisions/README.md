@@ -37,3 +37,4 @@ Do not rewrite an accepted record to hide history. Add a new record that superse
 - `0027-required-job-description-personnel-code.md`
 - `0028-database-only-weekly-task-workload.md`
 - `0029-shared-page-help-guidance.md`
+- `0031-revalidate-job-description-quality-after-catalog-change.md`

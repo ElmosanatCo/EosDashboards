@@ -13,7 +13,8 @@ public static class JobDescriptionQualityAnalyzer
 {
     public static IReadOnlyList<JobDescriptionQualityFinding> Analyze(
         JobDescriptionVersion version,
-        IReadOnlyCollection<TaskCatalogItem> taskCatalog)
+        IReadOnlyCollection<TaskCatalogItem> taskCatalog,
+        IReadOnlyDictionary<long, string>? skillNames = null)
     {
         ArgumentNullException.ThrowIfNull(version);
         ArgumentNullException.ThrowIfNull(taskCatalog);
@@ -76,7 +77,7 @@ public static class JobDescriptionQualityAnalyzer
         {
             findings.Add(new JobDescriptionQualityFinding(
                 "missing-required-skill",
-                $"مهارت موردنیاز با شناسه {missingSkillId} برای وظایف انتخاب‌شده ثبت نشده است.",
+                $"مهارت موردنیاز «{DisplaySkillName(missingSkillId, skillNames)}» برای وظایف انتخاب‌شده ثبت نشده است.",
                 $"task:{FirstTaskUsingSkill(version, catalogById, missingSkillId)}/skills",
                 SkillCatalogItemId: missingSkillId));
         }
@@ -85,13 +86,18 @@ public static class JobDescriptionQualityAnalyzer
         {
             findings.Add(new JobDescriptionQualityFinding(
                 "unsupported-selected-skill",
-                $"مهارت با شناسه {unsupportedSkillId} در وظایف کاتالوگی این شرح وظایف شواهد مرتبط ندارد.",
+                $"مهارت انتخاب‌شده «{DisplaySkillName(unsupportedSkillId, skillNames)}» در وظایف کاتالوگی این شرح وظایف شواهد مرتبط ندارد.",
                 "skills",
                 SkillCatalogItemId: unsupportedSkillId));
         }
 
         return findings;
     }
+
+    private static string DisplaySkillName(long skillId, IReadOnlyDictionary<long, string>? skillNames) =>
+        skillNames is not null && skillNames.TryGetValue(skillId, out var name) && !string.IsNullOrWhiteSpace(name)
+            ? name
+            : $"شناسه {skillId}";
 
     private static int FirstTaskUsingSkill(
         JobDescriptionVersion version,

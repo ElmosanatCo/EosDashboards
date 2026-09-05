@@ -3,7 +3,8 @@ namespace EosDashboards.Application.JobDescriptions;
 public sealed class AnalyzeJobDescription(
     IJobDescriptionRepository repository,
     IJobDescriptionScope scope,
-    IJobDescriptionAnalysisReader analysisReader)
+    IJobDescriptionAnalysisReader analysisReader,
+    IJobDescriptionCatalogReader catalogReader)
 {
     public async Task<IReadOnlyList<JobDescriptionQualityFinding>?> AnalyzeAsync(long actorUserId, long versionId, CancellationToken cancellationToken)
     {
@@ -17,6 +18,11 @@ public sealed class AnalyzeJobDescription(
             version.DepartmentId,
             version.Tasks.Select(task => task.TaskCatalogItemId).Distinct().ToArray(),
             cancellationToken);
-        return JobDescriptionQualityAnalyzer.Analyze(version, taskCatalog);
+        var skillIds = version.SkillIds
+            .Concat(taskCatalog.SelectMany(task => task.RequiredSkillIds))
+            .Distinct()
+            .ToArray();
+        var skillNames = await catalogReader.GetSkillNameMapAsync(skillIds, cancellationToken);
+        return JobDescriptionQualityAnalyzer.Analyze(version, taskCatalog, skillNames);
     }
 }

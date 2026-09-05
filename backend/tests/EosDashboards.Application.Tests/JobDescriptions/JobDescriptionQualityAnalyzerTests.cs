@@ -36,6 +36,23 @@ public sealed class JobDescriptionQualityAnalyzerTests
     }
 
     [Fact]
+    public void Uses_skill_names_in_catalog_quality_messages_when_they_are_available()
+    {
+        var taskCatalog = TaskCatalogItem.Create(1, "توسعه نرم افزار", isProject: false, Now);
+        SetId(taskCatalog, 1);
+        taskCatalog.AddRequiredSkill(20);
+        var version = CreateVersion(skillIds: [10]);
+
+        var findings = JobDescriptionQualityAnalyzer.Analyze(
+            version,
+            [taskCatalog],
+            new Dictionary<long, string> { [10] = "آموزش", [20] = "مدیریت پروژه" });
+
+        Assert.Contains(findings, item => item.Code == "missing-required-skill" && item.Message.Contains("مدیریت پروژه"));
+        Assert.Contains(findings, item => item.Code == "unsupported-selected-skill" && item.Message.Contains("آموزش"));
+    }
+
+    [Fact]
     public void Reports_missing_task_start_date_at_the_task_location()
     {
         var taskCatalog = TaskCatalogItem.Create(1, "توسعه نرم افزار", isProject: false, Now);

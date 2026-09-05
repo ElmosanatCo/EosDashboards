@@ -159,6 +159,21 @@ Initial authentication and application-shell implementation.
 - The production deployment configuration is now documented as a complete tracked template at `backend/src/EosDashboards.Api/appsettings.Production.template.json`. The real `appsettings.Production.json` is server-only and ignored by Git; it must be created beside the published API files with the company's connection string, authentication keys, SMS settings, and optional Google settings, then loaded with the `Production` environment. This keeps the required configuration structure versioned without publishing production secrets.
 - The English IIS installation guide was exported to `docs/operations/production-iis-installation-en.pdf` and linked from the repository landing page. The PDF uses the server-side `appsettings.Production.json` flow consistently, including loading the migration connection from that file without printing it.
 
+## Current implementation note
+
+On 2026-09-05, job-description quality was aligned with task-catalog
+relationships. Required-skill assignment changes now revalidate active versions
+that use the changed task; affected Human Resources-review versions return to
+`منتظر رفع نقص`, both approval gates recheck catalog findings, and user-facing
+findings prefer catalog names over opaque identifiers. Migration
+`RevalidateJobDescriptionQuality` was applied to the local development database
+after a verified backup; the affected sample record now persists
+`PendingDataCompletion` with catalog quality issues. Local IIS publication of
+this change has not yet been performed. Fresh Release verification passed all
+287 backend tests (including 138 SQL-backed integration tests); the frontend
+suite passed 36 files/98 tests, and the changed page passed typecheck,
+production build, and focused formatting checks.
+
 ## Next agreed step
 
 The Human Resources dashboard and unified job-description-management slice is

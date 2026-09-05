@@ -113,7 +113,8 @@ The current department-manager job-description release includes
 `20260904124328_PreserveUnresolvedJobDescriptionInputs`,
 `20260904134528_AddWeeklyHoursToJobDescriptionTasks`, and
 `20260904135025_RepairPersistedPersianJobDescriptionDates`, and the current
-shell-gradient release includes `20260905065524_AddGradientPreference`, in addition to
+shell-gradient release includes `20260905065524_AddGradientPreference`, while the
+quality-revalidation release adds `20260905112655_RevalidateJobDescriptionQuality`, in addition to
 the previously released migrations. Verify that the latest migration required
 by the release has been applied after the backup and before switching the API.
 

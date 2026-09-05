@@ -67,6 +67,7 @@ public sealed class ManageCatalogTests
             new TestScope { CanReview = true },
             catalog,
             catalog,
+            new TestRepository(),
             new TestUnitOfWork(),
             audit,
             new TestCorrelationContext());
@@ -81,11 +82,31 @@ public sealed class ManageCatalogTests
             record.SafeMetadata!["survivingSkillName"] == "مهارت باقی‌مانده");
     }
 
-    private static ManageCatalog CreateManager(TestCatalog catalog) => new(
+    [Fact]
+    public async Task Updating_task_required_skills_revalidates_active_job_descriptions()
+    {
+        var task = TaskCatalogItem.Create(1, "پاسخگویی", false, Now);
+        SetId(task, 10);
+        var catalog = new TestCatalog { TaskForUpdate = task };
+        var repository = new TestRepository();
+        var manager = CreateManager(catalog, repository);
+
+        var result = await manager.SetRequiredSkillsAsync(
+            7,
+            new SetTaskRequiredSkillsCommand(task.Id, [20]),
+            CancellationToken.None);
+
+        Assert.Equal(CatalogOperationStatus.Succeeded, result.Status);
+        Assert.Equal(Now, repository.RevalidationAt);
+        Assert.Equal(task.Id, repository.RevalidatedTaskId);
+    }
+
+    private static ManageCatalog CreateManager(TestCatalog catalog, TestRepository? repository = null) => new(
         new TestClock(),
         new TestScope(),
         catalog,
         catalog,
+        repository ?? new TestRepository(),
         new TestUnitOfWork(),
         new TestAuditWriter(),
         new TestCorrelationContext());
@@ -115,15 +136,17 @@ public sealed class ManageCatalogTests
     {
         public SkillCatalogItem? DuplicateSkill { get; init; }
         public SkillCatalogItem? SkillForUpdate { get; init; }
+        public TaskCatalogItem? TaskForUpdate { get; init; }
         public List<SkillCatalogItem> AddedSkills { get; } = [];
         public (SkillCatalogItem Source, SkillCatalogItem Target)? MergePair { get; init; }
         public bool MergeCalled { get; private set; }
 
         public Task<IReadOnlyList<string>> GetSkillNamesAsync(IReadOnlyCollection<long> skillIds, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<string>>([]);
+        public Task<IReadOnlyDictionary<long, string>> GetSkillNameMapAsync(IReadOnlyCollection<long> skillIds, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyDictionary<long, string>>(new Dictionary<long, string>());
         public Task<SkillCatalogItem?> FindSkillByNameAsync(long? departmentId, string name, long? excludingId, CancellationToken cancellationToken) => Task.FromResult(DuplicateSkill);
         public Task<TaskCatalogItem?> FindTaskByTitleAsync(long departmentId, string title, long? excludingId, CancellationToken cancellationToken) => Task.FromResult<TaskCatalogItem?>(null);
         public Task<SkillCatalogItem?> GetSkillForUpdateAsync(long id, CancellationToken cancellationToken) => Task.FromResult(SkillForUpdate);
-        public Task<TaskCatalogItem?> GetTaskForUpdateAsync(long id, CancellationToken cancellationToken) => Task.FromResult<TaskCatalogItem?>(null);
+        public Task<TaskCatalogItem?> GetTaskForUpdateAsync(long id, CancellationToken cancellationToken) => Task.FromResult(TaskForUpdate);
         public Task<IReadOnlyCollection<long>> GetSkillUsageDepartmentIdsAsync(long skillId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyCollection<long>>([]);
         public Task<bool> AreSkillsAvailableAsync(long departmentId, IReadOnlyCollection<long> skillIds, CancellationToken cancellationToken) => Task.FromResult(true);
         public Task<bool> AreValidSelectionsAsync(long departmentId, IReadOnlyCollection<long> skillIds, IReadOnlyCollection<long> taskCatalogItemIds, CancellationToken cancellationToken) => Task.FromResult(true);
@@ -139,6 +162,26 @@ public sealed class ManageCatalogTests
             MergeCalled = true;
             return Task.CompletedTask;
         }
+    }
+
+    private sealed class TestRepository : IJobDescriptionRepository
+    {
+        public long? RevalidatedTaskId { get; private set; }
+        public DateTime? RevalidationAt { get; private set; }
+
+        public Task<JobDescriptionVersion?> GetForUpdateAsync(long id, CancellationToken cancellationToken) => Task.FromResult<JobDescriptionVersion?>(null);
+        public Task DeleteVersionAsync(JobDescriptionVersion version, CancellationToken cancellationToken) => Task.CompletedTask;
+        public Task<IReadOnlyList<JobDescriptionListItem>> ListAsync(IReadOnlyCollection<long> departmentIds, long? departmentId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<JobDescriptionListItem>>([]);
+        public Task<IReadOnlyList<JobDescriptionListItem>> ListForHumanResourcesAsync(long? departmentId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<JobDescriptionListItem>>([]);
+        public Task<IReadOnlyList<JobDescriptionListItem>> ListApprovedForHumanResourcesAsync(long? departmentId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<JobDescriptionListItem>>([]);
+        public Task RevalidateActiveJobDescriptionsAsync(long taskId, DateTime occurredAt, CancellationToken cancellationToken)
+        {
+            RevalidatedTaskId = taskId;
+            RevalidationAt = occurredAt;
+            return Task.CompletedTask;
+        }
+        public void AddRecord(JobDescriptionRecord record) { }
+        public void AddVersion(JobDescriptionVersion version) { }
     }
 
     private sealed class TestAuditWriter : IAuditWriter

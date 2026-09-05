@@ -249,6 +249,35 @@ describe("DepartmentJobDescriptionsPage", () => {
     ).toHaveValue("وظیفه خام");
   });
 
+  it("does not offer department submission for an incomplete description", async () => {
+    vi.mocked(jobDescriptionsApi.list).mockResolvedValue([
+      {
+        id: 30,
+        departmentId: 1,
+        personName: "پرسنل ناقص",
+        workflowStatus: "منتظر تأیید",
+        qualityStatus: "ناقص",
+        updatedAt: "2026-09-04T10:00:00",
+      },
+    ]);
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <DepartmentJobDescriptionsPage />
+      </QueryClientProvider>,
+    );
+
+    expect(await screen.findByText("پرسنل ناقص")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", {
+        name: "تأیید شرح وظایف پرسنل ناقص",
+      }),
+    ).not.toBeInTheDocument();
+  });
+
   it("allows replacing a selected task and sends new task creation to the API", async () => {
     const userActions = userEvent.setup();
     vi.mocked(jobDescriptionsApi.list).mockResolvedValue([

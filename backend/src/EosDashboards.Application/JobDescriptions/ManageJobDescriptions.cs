@@ -9,6 +9,7 @@ public sealed class ManageJobDescriptions(
     IJobDescriptionRepository repository,
     IJobDescriptionScope scope,
     IJobDescriptionCatalogReader catalog,
+    IJobDescriptionAnalysisReader analysisReader,
     IJobDescriptionDepartmentReader departments,
     IJobDescriptionWorkbookGenerator generator,
     IUnitOfWork unitOfWork)
@@ -202,6 +203,7 @@ public sealed class ManageJobDescriptions(
 
         try
         {
+            await RefreshCatalogQualityAsync(version, cancellationToken);
             version.ApproveByDepartmentManager(clock.Now);
             await unitOfWork.SaveChangesAsync(cancellationToken);
             return new(JobDescriptionOperationStatus.Succeeded, version);
@@ -232,13 +234,16 @@ public sealed class ManageJobDescriptions(
 
         try
         {
+            await RefreshCatalogQualityAsync(version, cancellationToken);
             version.ApproveByHumanResources(clock.Now);
             await unitOfWork.SaveChangesAsync(cancellationToken);
             return new(JobDescriptionOperationStatus.Succeeded, version);
         }
         catch (InvalidOperationException)
         {
-            return new(JobDescriptionOperationStatus.Conflict);
+            return version.QualityStatus == JobDescriptionQualityStatus.Incomplete
+                ? new(JobDescriptionOperationStatus.Incomplete, version)
+                : new(JobDescriptionOperationStatus.Conflict);
         }
     }
 
@@ -357,6 +362,18 @@ public sealed class ManageJobDescriptions(
             skillNames.Concat(version.UnresolvedSkills
                 .OrderBy(skill => skill.SortOrder)
                 .Select(skill => skill.RawName))
-                .ToArray());
+            .ToArray());
+    }
+
+    private async Task RefreshCatalogQualityAsync(
+        JobDescriptionVersion version,
+        CancellationToken cancellationToken)
+    {
+        var taskCatalog = await analysisReader.GetTasksAsync(
+            version.DepartmentId,
+            version.Tasks.Select(task => task.TaskCatalogItemId).Distinct().ToArray(),
+            cancellationToken);
+        var hasFindings = JobDescriptionQualityAnalyzer.Analyze(version, taskCatalog).Count > 0;
+        version.SetCatalogQualityIssues(hasFindings, clock.Now);
     }
 }

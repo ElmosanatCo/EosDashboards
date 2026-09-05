@@ -1380,7 +1380,8 @@ function DescriptionRow({
   onArchive: () => void;
   onDelete: () => void;
 }) {
-  const canApprove = item.workflowStatus === "منتظر تأیید";
+  const canApprove =
+    item.workflowStatus === "منتظر تأیید" && item.qualityStatus === "سالم";
   const canArchive = item.workflowStatus === "تأیید شده";
   const canDelete =
     item.workflowStatus === "منتظر تأیید" ||

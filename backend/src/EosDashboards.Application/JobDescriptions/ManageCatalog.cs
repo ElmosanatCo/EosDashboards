@@ -8,6 +8,7 @@ public sealed class ManageCatalog(
     IJobDescriptionScope scope,
     IJobDescriptionCatalogReader catalog,
     IHumanResourcesCatalogReader humanResourcesCatalog,
+    IJobDescriptionRepository repository,
     IUnitOfWork unitOfWork,
     IAuditWriter auditWriter,
     ICorrelationContext correlationContext)
@@ -238,9 +239,17 @@ public sealed class ManageCatalog(
             return new(CatalogOperationStatus.Invalid);
         }
 
-        foreach (var skillId in task.RequiredSkillIds.Except(skillIds)) task.RemoveRequiredSkill(skillId);
-        foreach (var skillId in skillIds) task.AddRequiredSkill(skillId);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await unitOfWork.ExecuteSerializedTransactionAsync(
+            "job-description-task-required-skills-update",
+            async token =>
+            {
+                foreach (var skillId in task.RequiredSkillIds.Except(skillIds)) task.RemoveRequiredSkill(skillId);
+                foreach (var skillId in skillIds) task.AddRequiredSkill(skillId);
+                await unitOfWork.SaveChangesAsync(token);
+                await repository.RevalidateActiveJobDescriptionsAsync(task.Id, clock.Now, token);
+                await unitOfWork.SaveChangesAsync(token);
+            },
+            cancellationToken);
         return new(CatalogOperationStatus.Succeeded, task.Id);
     }
 

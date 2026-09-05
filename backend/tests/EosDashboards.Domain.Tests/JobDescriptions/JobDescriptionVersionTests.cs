@@ -58,6 +58,20 @@ public sealed class JobDescriptionVersionTests
     }
 
     [Fact]
+    public void Catalog_quality_issue_returns_human_resources_review_to_data_completion()
+    {
+        var version = CreateVersion("EMP-1", new DateOnly(2026, 9, 1));
+        version.ApproveByDepartmentManager(Now);
+
+        version.SetCatalogQualityIssues(true, Now.AddHours(1));
+
+        Assert.Equal(JobDescriptionQualityStatus.Incomplete, version.QualityStatus);
+        Assert.Equal(JobDescriptionWorkflowStatus.PendingDataCompletion, version.WorkflowStatus);
+        Assert.Null(version.DepartmentApprovedAt);
+        Assert.Null(version.HumanResourcesReviewedAt);
+    }
+
+    [Fact]
     public void Task_with_past_end_date_is_not_active_but_remains_in_version()
     {
         var ended = JobDescriptionTask.Create(

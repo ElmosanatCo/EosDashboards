@@ -107,6 +107,37 @@ public sealed class JobDescriptionRepository(EosDashboardDbContext context) : IJ
             .ToArray();
     }
 
+    public async Task RevalidateActiveJobDescriptionsAsync(long changedTaskId, DateTime occurredAt, CancellationToken cancellationToken)
+    {
+        var versions = await WithDetails(context.JobDescriptionVersions)
+            .Where(item => item.WorkflowStatus != EosDashboards.Domain.Enums.JobDescriptionWorkflowStatus.Approved &&
+                           item.WorkflowStatus != EosDashboards.Domain.Enums.JobDescriptionWorkflowStatus.Archived &&
+                           item.Tasks.Any(task => task.TaskCatalogItemId == changedTaskId))
+            .ToArrayAsync(cancellationToken);
+
+        var taskIds = versions
+            .SelectMany(version => version.Tasks)
+            .Select(task => task.TaskCatalogItemId)
+            .Distinct()
+            .ToArray();
+        var taskCatalog = await context.TaskCatalogItems
+            .Include(task => task.RequiredSkills)
+            .Where(task => taskIds.Contains(task.Id))
+            .ToArrayAsync(cancellationToken);
+        var catalogByDepartment = taskCatalog
+            .GroupBy(task => task.DepartmentId)
+            .ToDictionary(group => group.Key, group => (IReadOnlyCollection<TaskCatalogItem>)group.ToArray());
+
+        foreach (var version in versions)
+        {
+            var departmentCatalog = catalogByDepartment.TryGetValue(version.DepartmentId, out var items)
+                ? items
+                : [];
+            var hasFindings = JobDescriptionQualityAnalyzer.Analyze(version, departmentCatalog).Count > 0;
+            version.SetCatalogQualityIssues(hasFindings, occurredAt);
+        }
+    }
+
     public async Task<JobDescriptionComparisonVersions?> GetAsync(long versionId, CancellationToken cancellationToken)
     {
         var current = await WithDetails(context.JobDescriptionVersions.AsNoTracking())
@@ -157,6 +188,13 @@ public sealed class JobDescriptionRepository(EosDashboardDbContext context) : IJ
             .OrderBy(skill => skill.Name)
             .Select(skill => skill.Name)
             .ToArrayAsync(cancellationToken);
+
+    public async Task<IReadOnlyDictionary<long, string>> GetSkillNameMapAsync(
+        IReadOnlyCollection<long> skillIds,
+        CancellationToken cancellationToken) =>
+        await context.SkillCatalogItems.AsNoTracking()
+            .Where(skill => skillIds.Contains(skill.Id))
+            .ToDictionaryAsync(skill => skill.Id, skill => skill.Name, cancellationToken);
 
     public async Task<IReadOnlyList<SkillCatalogListItem>> ListSkillsAsync(
         IReadOnlyCollection<long> departmentIds,

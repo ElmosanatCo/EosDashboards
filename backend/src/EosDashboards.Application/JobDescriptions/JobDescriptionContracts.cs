@@ -61,6 +61,8 @@ public interface IJobDescriptionRepository
 
     Task<IReadOnlyList<JobDescriptionListItem>> ListApprovedForHumanResourcesAsync(long? departmentId, CancellationToken cancellationToken);
 
+    Task RevalidateActiveJobDescriptionsAsync(long changedTaskId, DateTime occurredAt, CancellationToken cancellationToken);
+
     void AddRecord(JobDescriptionRecord record);
 
     void AddVersion(JobDescriptionVersion version);
@@ -69,6 +71,10 @@ public interface IJobDescriptionRepository
 public interface IJobDescriptionCatalogReader
 {
     Task<IReadOnlyList<string>> GetSkillNamesAsync(
+        IReadOnlyCollection<long> skillIds,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyDictionary<long, string>> GetSkillNameMapAsync(
         IReadOnlyCollection<long> skillIds,
         CancellationToken cancellationToken);
 

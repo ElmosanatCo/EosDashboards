@@ -213,6 +213,7 @@ resources/
 - Keep mocked authenticated browser fixtures aligned with the current authorized workspace targets: provide valid empty responses for traversed dashboard endpoints and update role-filtered card-count assertions when approved targets are added. Otherwise the flow can fail before reaching the behavior under test.
 - If the running development API holds referenced Debug assemblies, a backend build can fail with a file-lock error. Identify and stop only the repository's API process before rebuilding or testing, then verify the build; do not repeat the unchanged command or stop unrelated processes.
 - Full SQL-backed backend tests require `ConnectionStrings__EosDashboardTests` to point to an isolated SQL Server catalog whose name ends with `_IntegrationTests`. When the established development connection is reused for local verification, derive only that isolated catalog in the process environment and never print the connection value.
+- On 2026-09-05 PowerShell did not expose `Microsoft.Data.SqlClient`, and its available legacy connection-string builder rejected the tracked provider keyword. The safe workaround is to derive the isolated test catalog by replacing only the `Database`/`Initial Catalog` segment in the process-local value, without printing the connection string; do not repeat the failed provider-based command unchanged.
 - Vitest does not accept Jest's `--runInBand` option. Use the repository's `npm test` script (or Vitest-supported worker options) for frontend verification.
 - The installed local Pester version is 3.4.0 and does not support `Invoke-Pester -Output Detailed`; use `Invoke-Pester -Script <path> -PassThru` for deployment-script tests. Treat an ambiguous `-Output` parameter error as a command-version mismatch, not as a test result.
 - Chromium may omit an explicit angle when serializing a `linear-gradient` through `getComputedStyle`; browser tests should assert the rendered gradient exists, while component-level tests should verify exact gradient direction and fade stops.
@@ -228,6 +229,7 @@ resources/
 - Component-test forms and reusable UI behavior.
 - End-to-end test critical user flows.
 - Every bug fix begins with or includes a regression test that demonstrates the failure and the correction.
+- Job-description catalog changes that affect task-required skills must revalidate active descriptions before the mutation completes; any affected Human Resources-review version must leave that inbox and return to data completion until corrected and explicitly resubmitted.
 - Before merge and push, run the build, static analysis, formatting checks, and all relevant tests.
 - Treat important compiler and analyzer warnings as errors.
 - Measure coverage as a diagnostic; do not optimize for a percentage at the expense of meaningful scenarios.
