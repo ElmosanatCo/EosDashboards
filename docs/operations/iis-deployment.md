@@ -116,7 +116,10 @@ The current department-manager job-description release includes
 shell-gradient release includes `20260905065524_AddGradientPreference`, while the
 quality-revalidation releases add `20260905112655_RevalidateJobDescriptionQuality`
 and `20260905153600_RevalidateExistingJobDescriptionQuality`, in addition to the
-previously released migrations. Verify that the latest migration required
+previously released migrations; `20260905170000_AddJobDescriptionReviewWarning`
+adds the independent non-blocking skill-review warning and corrects active
+versions that were previously marked incomplete only because of skill matching.
+Verify that the latest migration required
 by the release has been applied after the backup and before switching the API.
 
 The current local installation is described in `docs/project/current-state.md`.
