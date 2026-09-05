@@ -133,7 +133,7 @@ export function AppShell() {
               overflow: "auto",
               p: 2,
               backgroundImage: gradientsEnabled
-                ? `linear-gradient(225deg, ${alpha(theme.palette.primary.main, 0.08)} 0%, ${alpha(theme.palette.primary.main, 0.025)} 14%, transparent 25%)`
+                ? `linear-gradient(225deg, ${alpha(theme.palette.primary.main, 0.16)} 0%, ${alpha(theme.palette.primary.main, 0.05)} 14%, transparent 25%)`
                 : "none",
               backgroundRepeat: "no-repeat",
             }}

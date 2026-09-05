@@ -38,6 +38,9 @@ heights, styles, theme, print setup, Persian labels, and task-table geometry
 remain intact while persisted values are filled in. The importer recognizes
 supported content and common labels, ignores empty/explanatory rows, preserves
 useful extra columns in the task description, and repairs task numbering.
+The downloaded standard workbook does not display the database-only personnel
+code. The visible task sequence is presentation-only and is never appended to
+the task description as a synthetic column or row note.
 
 ## Persistence flow
 

@@ -1,6 +1,7 @@
 using System.IO.Compression;
 using System.Security;
 using System.Text;
+using System.Xml.Linq;
 using EosDashboards.Domain.Entities;
 using EosDashboards.Infrastructure.JobDescriptions;
 
@@ -28,7 +29,7 @@ public sealed class ExcelJobDescriptionWorkbookAdapterTests
         var parsed = await parser.ParseAsync("نمونه.xlsx", workbook, CancellationToken.None);
 
         Assert.Equal("پرسنل نمونه", parsed.PersonName);
-        Assert.Equal("P-7", parsed.PersonnelCode);
+        Assert.Null(parsed.PersonnelCode);
         var task = Assert.Single(parsed.Tasks);
         Assert.Equal("پشتیبانی سامانه", task.Title);
         Assert.Contains("درخواست‌ها", task.Description);
@@ -45,7 +46,7 @@ public sealed class ExcelJobDescriptionWorkbookAdapterTests
             ["حداقل میزان سابقه کار: 2 سال", "", "رشته تحصیلی: مهندسی کامپیوتر - نرم افزار"],
             ["مهارتها  و توانایی های مورد نیاز :مسلط به دات نت فریموورک، delphi، Sql و Rest Api"],
             ["ردیف", "عنوان وظایف", "", "تاریخ ", "شرح وظایف "],
-            ["۱", "نگهداری و توسعه Wintas", "", "۱۴۰۲/۰۲/۱۱", "بررسی باگ های ثبت شده"]
+            ["۱", "نگهداری و توسعه Wintas", "", "۱۴۰۲/۰۲/۱۱", "بررسی باگ های ثبت شده | ستون ۱: ۱"]
         ]);
 
         var parsed = await parser.ParseAsync("پرهام جهانشاهی.xlsx", workbook, CancellationToken.None);
@@ -57,6 +58,8 @@ public sealed class ExcelJobDescriptionWorkbookAdapterTests
         Assert.Contains("delphi", parsed.SkillNames);
         var task = Assert.Single(parsed.Tasks);
         Assert.Equal("نگهداری و توسعه Wintas", task.Title);
+        Assert.DoesNotContain("ستون", task.Description);
+        Assert.Equal("بررسی باگ های ثبت شده", task.Description);
         Assert.Equal(new DateOnly(2023, 5, 1), task.StartDate);
     }
 
@@ -85,7 +88,7 @@ public sealed class ExcelJobDescriptionWorkbookAdapterTests
     {
         var version = JobDescriptionVersion.Create(
             "پرهام جهانشاهی", 7, "P-7", "لیسانس", "نرم افزار", "2 سال", [11],
-            [JobDescriptionTask.Create(21, "نگهداری و توسعه Wintas", "شرح وظیفه", new DateOnly(2023, 5, 1), null, 1, 40)],
+            [JobDescriptionTask.Create(21, "نگهداری و توسعه Wintas", "شرح وظیفه | ستون 1: 7", new DateOnly(2023, 5, 1), null, 1, 40)],
             new DateTime(2026, 9, 4));
 
         var workbook = new ExcelJobDescriptionWorkbookGenerator().Generate(
@@ -97,6 +100,9 @@ public sealed class ExcelJobDescriptionWorkbookAdapterTests
         using var archive = new ZipArchive(new MemoryStream(workbook), ZipArchiveMode.Read);
         Assert.NotNull(archive.GetEntry("xl/styles.xml"));
         Assert.NotNull(archive.GetEntry("xl/theme/theme1.xml"));
+        Assert.Null(archive.GetEntry("xl/sharedStrings.xml"));
+        Assert.DoesNotContain("sharedStrings", ReadEntry(archive, "xl/_rels/workbook.xml.rels"));
+        Assert.DoesNotContain("/xl/sharedStrings.xml", ReadEntry(archive, "[Content_Types].xml"));
         var sheet = ReadEntry(archive, "xl/worksheets/sheet1.xml");
         var workbookXml = ReadEntry(archive, "xl/workbook.xml");
         Assert.Contains("name=\"Sheet1\"", workbookXml);
@@ -104,8 +110,15 @@ public sealed class ExcelJobDescriptionWorkbookAdapterTests
         Assert.Contains("<cols><col min=\"1\" max=\"1\" width=\"5.5703125\"", sheet);
         Assert.Contains("<mergeCells", sheet);
         Assert.Contains("نام پرسنل: پرهام جهانشاهی", sheet);
+        Assert.DoesNotContain("کد پرسنلی", sheet);
+        Assert.DoesNotContain("ستون 1: 7", sheet);
         Assert.Contains("عنوان وظایف", sheet);
         Assert.Contains("1402/02/11", sheet);
+        var mergeReferences = XDocument.Parse(sheet)
+            .Descendants(XNamespace.Get("http://schemas.openxmlformats.org/spreadsheetml/2006/main") + "mergeCell")
+            .Select(element => (string?)element.Attribute("ref"))
+            .ToArray();
+        Assert.Equal(mergeReferences.Distinct(StringComparer.Ordinal).Count(), mergeReferences.Length);
     }
 
     private static string ReadEntry(ZipArchive archive, string name)

@@ -184,7 +184,10 @@ test("local credential OTP opens the authenticated shell and logout returns to s
   await expect(
     page.getByRole("textbox", { name: "جست‌وجوی سراسری" }),
   ).toHaveCSS("color", headerTextColor);
-  await expect(page.locator("main")).toHaveCSS("background-image", /25%/);
+  await expect(page.locator("main")).toHaveCSS(
+    "background-image",
+    /rgba\([^)]*, 0\.16\).*25%/,
+  );
   await page.getByRole("button", { name: "منوی کاربر" }).click();
   const gradientToggle = page.getByRole("switch", {
     name: "فعال‌سازی گرادیانت‌ها",
@@ -207,7 +210,10 @@ test("local credential OTP opens the authenticated shell and logout returns to s
   await gradientToggle.click();
   await expect(gradientToggle).toBeChecked();
   await page.keyboard.press("Escape");
-  await expect(page.locator("main")).toHaveCSS("background-image", /25%/);
+  await expect(page.locator("main")).toHaveCSS(
+    "background-image",
+    /rgba\([^)]*, 0\.16\).*25%/,
+  );
   await expect(
     page.getByRole("textbox", { name: "جست‌وجوی سراسری" }),
   ).toHaveCSS("font-weight", "400");

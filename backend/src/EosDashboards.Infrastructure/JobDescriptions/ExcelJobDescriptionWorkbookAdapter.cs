@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.IO.Compression;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using EosDashboards.Application.JobDescriptions;
 using EosDashboards.Domain.Entities;
@@ -131,6 +132,7 @@ public sealed class ExcelJobDescriptionWorkbookParser : IJobDescriptionWorkbookP
         var descriptionColumn = FindColumn(header, "شرح وظیفه", "شرح وظایف", "شرح", "توضیحات");
         var startColumn = FindColumn(header, "تاریخ شروع", "شروع", "تاریخ");
         var endColumn = FindColumn(header, "تاریخ پایان", "پایان");
+        var sequenceColumn = FindColumn(header, "ردیف", "شماره ردیف", "شماره");
         var tasks = new List<ImportedTask>();
         for (var rowIndex = headerIndex.Value + 1; rowIndex < rows.Count; rowIndex++)
         {
@@ -140,9 +142,10 @@ public sealed class ExcelJobDescriptionWorkbookParser : IJobDescriptionWorkbookP
             if (string.IsNullOrWhiteSpace(title) && string.IsNullOrWhiteSpace(description)) continue;
             if (string.IsNullOrWhiteSpace(title)) continue;
             var extra = row.Select((value, index) => (value, index))
-                .Where(item => !string.IsNullOrWhiteSpace(item.value) && item.index != titleColumn && item.index != descriptionColumn && item.index != startColumn && item.index != endColumn)
+                .Where(item => !string.IsNullOrWhiteSpace(item.value) && item.index != sequenceColumn && item.index != titleColumn && item.index != descriptionColumn && item.index != startColumn && item.index != endColumn)
                 .Select(item => $"ستون {item.index + 1}: {item.value}");
-            var fullDescription = string.Join(" | ", new[] { description }.Concat(extra).Where(value => !string.IsNullOrWhiteSpace(value)));
+            var fullDescription = JobDescriptionWorkbookTextSanitizer.RemoveSyntheticColumnAnnotations(
+                string.Join(" | ", new[] { description }.Concat(extra).Where(value => !string.IsNullOrWhiteSpace(value))));
             if (string.IsNullOrWhiteSpace(fullDescription)) continue;
             tasks.Add(new ImportedTask(title, fullDescription, ParseDate(ValueAt(row, startColumn)), ParseDate(ValueAt(row, endColumn)), tasks.Count + 1));
         }
@@ -206,10 +209,22 @@ public sealed class ExcelJobDescriptionWorkbookParser : IJobDescriptionWorkbookP
     private sealed record Profile(string? PersonName, string? DepartmentName, string? PersonnelCode, string? Education, string? FieldOfStudy, string? MinimumExperience, IReadOnlyList<string> SkillNames);
 }
 
+internal static class JobDescriptionWorkbookTextSanitizer
+{
+    private static readonly Regex SyntheticColumnAnnotation = new(
+        @"(?:\s*\|\s*ستون\s+\d+\s*:\s*[\d۰-۹]+\s*)+$",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    public static string RemoveSyntheticColumnAnnotations(string value) =>
+        SyntheticColumnAnnotation.Replace(value, string.Empty).Trim();
+}
+
 public sealed class ExcelJobDescriptionWorkbookGenerator : IJobDescriptionWorkbookGenerator
 {
     private static readonly XNamespace Spreadsheet = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
     private static readonly XNamespace Xml = "http://www.w3.org/XML/1998/namespace";
+    private static readonly XNamespace PackageRelationships = "http://schemas.openxmlformats.org/package/2006/relationships";
+    private static readonly XNamespace ContentTypes = "http://schemas.openxmlformats.org/package/2006/content-types";
     private const string TemplateResourceName = "EosDashboards.Infrastructure.Resources.Templates.job-description-reference.xlsx";
 
     public byte[] Generate(
@@ -225,6 +240,7 @@ public sealed class ExcelJobDescriptionWorkbookGenerator : IJobDescriptionWorkbo
         {
             foreach (var entry in source.Entries)
             {
+                if (entry.FullName == "xl/sharedStrings.xml") continue;
                 var target = archive.CreateEntry(entry.FullName, CompressionLevel.Optimal);
                 using var input = entry.Open();
                 using var outputEntry = target.Open();
@@ -239,6 +255,23 @@ public sealed class ExcelJobDescriptionWorkbookGenerator : IJobDescriptionWorkbo
                     var workbook = XDocument.Load(input, LoadOptions.PreserveWhitespace);
                     UpdatePrintArea(workbook, version, asOf);
                     workbook.Save(outputEntry, SaveOptions.DisableFormatting);
+                }
+                else if (entry.FullName == "[Content_Types].xml")
+                {
+                    var contentTypes = XDocument.Load(input, LoadOptions.PreserveWhitespace);
+                    contentTypes.Root?.Elements(ContentTypes + "Override")
+                        .Where(item => (string?)item.Attribute("PartName") == "/xl/sharedStrings.xml")
+                        .Remove();
+                    contentTypes.Save(outputEntry, SaveOptions.DisableFormatting);
+                }
+                else if (entry.FullName == "xl/_rels/workbook.xml.rels")
+                {
+                    var relationships = XDocument.Load(input, LoadOptions.PreserveWhitespace);
+                    relationships.Root?.Elements(PackageRelationships + "Relationship")
+                        .Where(item => (string?)item.Attribute("Target") == "sharedStrings.xml" ||
+                                       ((string?)item.Attribute("Type"))?.EndsWith("/sharedStrings", StringComparison.Ordinal) == true)
+                        .Remove();
+                    relationships.Save(outputEntry, SaveOptions.DisableFormatting);
                 }
                 else
                 {
@@ -273,8 +306,7 @@ public sealed class ExcelJobDescriptionWorkbookGenerator : IJobDescriptionWorkbo
         foreach (var row in rows.Where(row => ParseRowNumber(row) >= 7)) row.Remove();
 
         SetCell(rows.Single(row => ParseRowNumber(row) == 1), "A", "شرح شغل ");
-        var personnelCodeSuffix = string.IsNullOrWhiteSpace(version.PersonnelCode) ? string.Empty : $" (کد پرسنلی: {version.PersonnelCode})";
-        SetCell(rows.Single(row => ParseRowNumber(row) == 2), "A", $"نام پرسنل: {version.PersonName}{personnelCodeSuffix}");
+        SetCell(rows.Single(row => ParseRowNumber(row) == 2), "A", $"نام پرسنل: {version.PersonName}");
         SetCell(rows.Single(row => ParseRowNumber(row) == 2), "C", $"نام واحد  : {departmentName ?? string.Empty}");
         SetCell(rows.Single(row => ParseRowNumber(row) == 2), "E", $"مدرک تحصیلی : {version.Education}");
         SetCell(rows.Single(row => ParseRowNumber(row) == 3), "A", $"حداقل میزان سابقه کار: {version.MinimumExperience}");
@@ -318,7 +350,7 @@ public sealed class ExcelJobDescriptionWorkbookGenerator : IJobDescriptionWorkbo
                 InlineCell(templateCells["B"], task.Title, $"B{rowNumber}"),
                 InlineCell(templateCells["C"], string.Empty, $"C{rowNumber}"),
                 InlineCell(templateCells["D"], ToPersianDate(task.StartDate), $"D{rowNumber}"),
-                InlineCell(templateCells["E"], task.Description, $"E{rowNumber}"));
+                InlineCell(templateCells["E"], JobDescriptionWorkbookTextSanitizer.RemoveSyntheticColumnAnnotations(task.Description), $"E{rowNumber}"));
             sheetData.Add(row);
             merges?.Add(new XElement(Spreadsheet + "mergeCell", new XAttribute("ref", $"B{rowNumber}:C{rowNumber}")));
         }
@@ -341,7 +373,7 @@ public sealed class ExcelJobDescriptionWorkbookGenerator : IJobDescriptionWorkbo
 
     private static int ParseRowNumber(string reference)
     {
-        var digits = new string(reference.SkipWhile(character => !char.IsDigit(character)).ToArray());
+        var digits = new string(reference.SkipWhile(character => !char.IsDigit(character)).TakeWhile(char.IsDigit).ToArray());
         return int.TryParse(digits, out var number) ? number : 0;
     }
 
