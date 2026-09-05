@@ -189,14 +189,15 @@ local IIS release `20260905-155956`. Post-publication checks returned HTTPS
 HTTP 200 for API liveness, API readiness, the UI entry route, and the internal
 job-description route. The authenticated manager page now shows the affected
 records as `منتظر تأیید` and `سالم`; the database confirms migration
-`20260905170000_AddJobDescriptionReviewWarning` is current. No company
-production deployment was performed.
+`20260905170000_AddJobDescriptionReviewWarning` is current. Documentation was
+updated and the verified source was pushed to `origin/main` as commit
+`00fea7d`. No company production deployment was performed.
 
 ## Next agreed step
 
-Push the verified review-warning change from `main` and keep the local IIS
-release `20260905-155956` as the current local candidate. Do not deploy to
-company production servers in this slice.
+Keep local IIS release `20260905-155956` as the current local candidate. No
+further implementation step is agreed for this slice; do not deploy to
+company production servers.
 
 ## Blockers
 
