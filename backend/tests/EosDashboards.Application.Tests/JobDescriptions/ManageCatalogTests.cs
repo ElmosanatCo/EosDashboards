@@ -53,12 +53,42 @@ public sealed class ManageCatalogTests
         Assert.True(skill.IsActive);
     }
 
+    [Fact]
+    public async Task Human_resources_can_merge_public_skills_and_deactivate_the_source()
+    {
+        var source = SkillCatalogItem.CreatePublic(1, "مهارت قدیمی", Now);
+        var target = SkillCatalogItem.CreatePublic(1, "مهارت باقی‌مانده", Now);
+        SetId(source, 11);
+        SetId(target, 12);
+        var catalog = new TestCatalog { MergePair = new(source, target) };
+        var audit = new TestAuditWriter();
+        var manager = new ManageCatalog(
+            new TestClock(),
+            new TestScope { CanReview = true },
+            catalog,
+            catalog,
+            new TestUnitOfWork(),
+            audit,
+            new TestCorrelationContext());
+
+        var result = await manager.MergePublicSkillAsync(8, source.Id, target.Id, CancellationToken.None);
+
+        Assert.Equal(CatalogOperationStatus.Succeeded, result.Status);
+        Assert.False(source.IsActive);
+        Assert.True(catalog.MergeCalled);
+        Assert.Contains(audit.Records, record =>
+            record.EventCode == "job-description.public-skill-merged" &&
+            record.SafeMetadata!["survivingSkillName"] == "مهارت باقی‌مانده");
+    }
+
     private static ManageCatalog CreateManager(TestCatalog catalog) => new(
         new TestClock(),
         new TestScope(),
         catalog,
         catalog,
-        new TestUnitOfWork());
+        new TestUnitOfWork(),
+        new TestAuditWriter(),
+        new TestCorrelationContext());
 
     private static readonly DateTime Now = new(2026, 9, 4, 12, 0, 0);
 
@@ -69,9 +99,10 @@ public sealed class ManageCatalogTests
 
     private sealed class TestScope : IJobDescriptionScope
     {
+        public bool CanReview { get; init; }
         public Task<IReadOnlyList<long>> GetManagedDepartmentIdsAsync(long actorUserId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<long>>([1]);
         public Task<bool> CanManageDepartmentAsync(long actorUserId, long departmentId, CancellationToken cancellationToken) => Task.FromResult(actorUserId == 7 && departmentId == 1);
-        public Task<bool> CanReviewAsHumanResourcesAsync(long actorUserId, CancellationToken cancellationToken) => Task.FromResult(false);
+        public Task<bool> CanReviewAsHumanResourcesAsync(long actorUserId, CancellationToken cancellationToken) => Task.FromResult(CanReview);
     }
 
     private sealed class TestUnitOfWork : IUnitOfWork
@@ -85,6 +116,8 @@ public sealed class ManageCatalogTests
         public SkillCatalogItem? DuplicateSkill { get; init; }
         public SkillCatalogItem? SkillForUpdate { get; init; }
         public List<SkillCatalogItem> AddedSkills { get; } = [];
+        public (SkillCatalogItem Source, SkillCatalogItem Target)? MergePair { get; init; }
+        public bool MergeCalled { get; private set; }
 
         public Task<IReadOnlyList<string>> GetSkillNamesAsync(IReadOnlyCollection<long> skillIds, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<string>>([]);
         public Task<SkillCatalogItem?> FindSkillByNameAsync(long? departmentId, string name, long? excludingId, CancellationToken cancellationToken) => Task.FromResult(DuplicateSkill);
@@ -100,5 +133,28 @@ public sealed class ManageCatalogTests
         public Task<IReadOnlyList<TaskCatalogListItem>> ListTasksAsync(IReadOnlyCollection<long> departmentIds, long? departmentId, bool includeInactive, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<TaskCatalogListItem>>([]);
         public Task<IReadOnlyList<SkillCatalogListItem>> ListPublicSkillsAsync(bool includeInactive, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<SkillCatalogListItem>>([]);
         public Task<SkillCatalogItem?> GetPublicSkillForUpdateAsync(long id, CancellationToken cancellationToken) => Task.FromResult<SkillCatalogItem?>(null);
+        public Task<(SkillCatalogItem Source, SkillCatalogItem Target)?> GetPublicSkillPairForMergeAsync(long sourceSkillId, long survivingSkillId, CancellationToken cancellationToken) => Task.FromResult(MergePair);
+        public Task MergePublicSkillReferencesAsync(long sourceSkillId, long survivingSkillId, CancellationToken cancellationToken)
+        {
+            MergeCalled = true;
+            return Task.CompletedTask;
+        }
     }
+
+    private sealed class TestAuditWriter : IAuditWriter
+    {
+        public List<AuditRecord> Records { get; } = [];
+        public Task WriteAsync(AuditRecord record, CancellationToken cancellationToken)
+        {
+            Records.Add(record);
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class TestCorrelationContext : ICorrelationContext
+    {
+        public string TraceId => "trace-merge";
+    }
+
+    private static void SetId<T>(T entity, long id) => typeof(T).GetProperty("Id")!.SetValue(entity, id);
 }

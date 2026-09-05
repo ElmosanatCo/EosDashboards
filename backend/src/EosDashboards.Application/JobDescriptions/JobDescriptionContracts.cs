@@ -57,7 +57,9 @@ public interface IJobDescriptionRepository
         long? departmentId,
         CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<JobDescriptionListItem>> ListForHumanResourcesAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<JobDescriptionListItem>> ListForHumanResourcesAsync(long? departmentId, CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<JobDescriptionListItem>> ListApprovedForHumanResourcesAsync(long? departmentId, CancellationToken cancellationToken);
 
     void AddRecord(JobDescriptionRecord record);
 
@@ -114,6 +116,15 @@ public interface IHumanResourcesCatalogReader
 {
     Task<IReadOnlyList<SkillCatalogListItem>> ListPublicSkillsAsync(bool includeInactive, CancellationToken cancellationToken);
     Task<SkillCatalogItem?> GetPublicSkillForUpdateAsync(long id, CancellationToken cancellationToken);
+    Task<(SkillCatalogItem Source, SkillCatalogItem Target)?> GetPublicSkillPairForMergeAsync(
+        long sourceSkillId,
+        long survivingSkillId,
+        CancellationToken cancellationToken);
+
+    Task MergePublicSkillReferencesAsync(
+        long sourceSkillId,
+        long survivingSkillId,
+        CancellationToken cancellationToken);
 }
 
 public sealed record SkillCatalogListItem(

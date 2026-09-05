@@ -119,7 +119,7 @@ public static class JobDescriptionEndpoints
     private static async Task<IResult> HumanResourcesReviewListAsync(HttpContext context, ManageJobDescriptions manager, CancellationToken token)
     {
         if (!TryActor(context, out var actor)) return Unauthorized(context);
-        var items = await manager.ListForHumanResourcesAsync(actor, token);
+        var items = await manager.ListForHumanResourcesAsync(actor, null, token);
         return items is null
             ? Problem(context, 403, "human_resources_forbidden", "Human Resources review access is required.")
             : Results.Ok(items.Select(item => new JobDescriptionListResponse(

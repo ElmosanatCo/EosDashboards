@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EosDashboards.Infrastructure.Persistence.Repositories;
 
-public sealed class JobDescriptionRepository(EosDashboardDbContext context) : IJobDescriptionRepository, IJobDescriptionCatalogReader, IHumanResourcesCatalogReader
+public sealed class JobDescriptionRepository(EosDashboardDbContext context) : IJobDescriptionRepository, IJobDescriptionCatalogReader, IHumanResourcesCatalogReader, IJobDescriptionComparisonReader
 {
     public Task<JobDescriptionVersion?> GetForUpdateAsync(long id, CancellationToken cancellationToken) =>
         context.JobDescriptionVersions
@@ -68,14 +68,61 @@ public sealed class JobDescriptionRepository(EosDashboardDbContext context) : IJ
             item.UpdatedAt)).ToArray();
     }
 
-    public async Task<IReadOnlyList<JobDescriptionListItem>> ListForHumanResourcesAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<JobDescriptionListItem>> ListForHumanResourcesAsync(long? departmentId, CancellationToken cancellationToken)
     {
-        var versions = await context.JobDescriptionVersions.AsNoTracking()
-            .Where(item => item.WorkflowStatus == EosDashboards.Domain.Enums.JobDescriptionWorkflowStatus.UnderHumanResourcesReview)
+        var query = context.JobDescriptionVersions.AsNoTracking()
+            .Where(item => item.WorkflowStatus == EosDashboards.Domain.Enums.JobDescriptionWorkflowStatus.UnderHumanResourcesReview);
+        if (departmentId is not null)
+        {
+            query = query.Where(item => item.DepartmentId == departmentId.Value);
+        }
+
+        var versions = await query
             .OrderBy(item => item.UpdatedAt)
             .ToListAsync(cancellationToken);
         return versions.Select(item => new JobDescriptionListItem(
             item.Id, item.DepartmentId, item.PersonName, item.WorkflowStatus, item.QualityStatus, item.UpdatedAt)).ToArray();
+    }
+
+    public async Task<IReadOnlyList<JobDescriptionListItem>> ListApprovedForHumanResourcesAsync(long? departmentId, CancellationToken cancellationToken)
+    {
+        var query = context.JobDescriptionVersions.AsNoTracking()
+            .Where(item => item.WorkflowStatus == EosDashboards.Domain.Enums.JobDescriptionWorkflowStatus.Approved);
+        if (departmentId is not null)
+        {
+            query = query.Where(item => item.DepartmentId == departmentId.Value);
+        }
+
+        var versions = await query
+            .OrderByDescending(item => item.CreatedAt)
+            .ThenByDescending(item => item.Id)
+            .ToListAsync(cancellationToken);
+
+        return versions
+            .GroupBy(item => item.JobDescriptionRecordId ?? item.Id)
+            .Select(group => group.First())
+            .OrderByDescending(item => item.UpdatedAt)
+            .Select(item => new JobDescriptionListItem(
+                item.Id, item.DepartmentId, item.PersonName, item.WorkflowStatus, item.QualityStatus, item.UpdatedAt))
+            .ToArray();
+    }
+
+    public async Task<JobDescriptionComparisonVersions?> GetAsync(long versionId, CancellationToken cancellationToken)
+    {
+        var current = await WithDetails(context.JobDescriptionVersions.AsNoTracking())
+            .SingleOrDefaultAsync(item => item.Id == versionId, cancellationToken);
+        if (current is null || current.JobDescriptionRecordId is null)
+        {
+            return current is null ? null : new(current, null);
+        }
+
+        var previous = await WithDetails(context.JobDescriptionVersions.AsNoTracking())
+            .Where(item => item.JobDescriptionRecordId == current.JobDescriptionRecordId && item.Id != current.Id)
+            .OrderByDescending(item => item.CreatedAt)
+            .ThenByDescending(item => item.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return new(current, previous);
     }
 
     public void AddRecord(JobDescriptionRecord record) => context.JobDescriptionRecords.Add(record);
@@ -201,6 +248,49 @@ public sealed class JobDescriptionRepository(EosDashboardDbContext context) : IJ
     public Task<SkillCatalogItem?> GetPublicSkillForUpdateAsync(long id, CancellationToken cancellationToken) =>
         context.SkillCatalogItems.SingleOrDefaultAsync(skill => skill.Id == id && skill.DepartmentId == null, cancellationToken);
 
+    public async Task<(SkillCatalogItem Source, SkillCatalogItem Target)?> GetPublicSkillPairForMergeAsync(
+        long sourceSkillId,
+        long survivingSkillId,
+        CancellationToken cancellationToken)
+    {
+        var skills = await context.SkillCatalogItems
+            .Where(skill => (skill.Id == sourceSkillId || skill.Id == survivingSkillId) && skill.DepartmentId == null)
+            .ToArrayAsync(cancellationToken);
+        var source = skills.SingleOrDefault(skill => skill.Id == sourceSkillId);
+        var target = skills.SingleOrDefault(skill => skill.Id == survivingSkillId);
+        return source is null || target is null ? null : (source, target);
+    }
+
+    public async Task MergePublicSkillReferencesAsync(
+        long sourceSkillId,
+        long survivingSkillId,
+        CancellationToken cancellationToken)
+    {
+        var versionLinks = await context.JobDescriptionVersionSkills
+            .Where(link => link.SkillCatalogItemId == sourceSkillId)
+            .ToArrayAsync(cancellationToken);
+        var versionTargetIds = await context.JobDescriptionVersionSkills
+            .Where(link => link.SkillCatalogItemId == survivingSkillId)
+            .Select(link => link.JobDescriptionVersionId)
+            .ToHashSetAsync(cancellationToken);
+        context.JobDescriptionVersionSkills.RemoveRange(versionLinks);
+        context.JobDescriptionVersionSkills.AddRange(versionLinks
+            .Where(link => !versionTargetIds.Contains(link.JobDescriptionVersionId))
+            .Select(link => new JobDescriptionVersionSkill(link.JobDescriptionVersionId, survivingSkillId)));
+
+        var taskLinks = await context.TaskCatalogRequiredSkills
+            .Where(link => link.SkillCatalogItemId == sourceSkillId)
+            .ToArrayAsync(cancellationToken);
+        var taskTargetIds = await context.TaskCatalogRequiredSkills
+            .Where(link => link.SkillCatalogItemId == survivingSkillId)
+            .Select(link => link.TaskCatalogItemId)
+            .ToHashSetAsync(cancellationToken);
+        context.TaskCatalogRequiredSkills.RemoveRange(taskLinks);
+        context.TaskCatalogRequiredSkills.AddRange(taskLinks
+            .Where(link => !taskTargetIds.Contains(link.TaskCatalogItemId))
+            .Select(link => new TaskCatalogRequiredSkill(link.TaskCatalogItemId, survivingSkillId)));
+    }
+
     public async Task<IReadOnlyCollection<long>> GetSkillUsageDepartmentIdsAsync(long skillId, CancellationToken cancellationToken) =>
         await context.JobDescriptionVersionSkills.AsNoTracking()
             .Where(link => link.SkillCatalogItemId == skillId)
@@ -231,4 +321,11 @@ public sealed class JobDescriptionRepository(EosDashboardDbContext context) : IJ
             isActiveSelector(skill),
             usages.Where(usage => usage.SkillCatalogItemId == idSelector(skill)).Select(usage => usage.DepartmentId).ToArray())).ToArray();
     }
+
+    private static IQueryable<JobDescriptionVersion> WithDetails(IQueryable<JobDescriptionVersion> query) => query
+        .Include(item => item.JobDescriptionRecord)
+        .Include(item => item.Tasks)
+        .Include(item => item.Skills)
+        .Include(item => item.UnresolvedSkills)
+        .Include(item => item.UnresolvedTasks);
 }

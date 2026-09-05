@@ -191,7 +191,8 @@ public sealed class ManageJobDescriptionsTests
         public bool DeleteCalled { get; private set; }
         public Task<JobDescriptionVersion?> GetForUpdateAsync(long id, CancellationToken cancellationToken) => Task.FromResult(Version);
         public Task<IReadOnlyList<JobDescriptionListItem>> ListAsync(IReadOnlyCollection<long> departmentIds, long? departmentId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<JobDescriptionListItem>>([]);
-        public Task<IReadOnlyList<JobDescriptionListItem>> ListForHumanResourcesAsync(CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<JobDescriptionListItem>>([]);
+        public Task<IReadOnlyList<JobDescriptionListItem>> ListForHumanResourcesAsync(long? departmentId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<JobDescriptionListItem>>([]);
+        public Task<IReadOnlyList<JobDescriptionListItem>> ListApprovedForHumanResourcesAsync(long? departmentId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<JobDescriptionListItem>>([]);
         public void AddRecord(JobDescriptionRecord record) => SetId(record, 1);
         public void AddVersion(JobDescriptionVersion version) { SetId(version, 1); Version = version; }
         public Task DeleteVersionAsync(JobDescriptionVersion version, CancellationToken cancellationToken)
