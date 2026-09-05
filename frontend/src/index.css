@@ -9,3 +9,7 @@ body {
   margin: 0;
   overflow: hidden;
 }
+
+.eos-command-search-input::placeholder {
+  font-size: 0.75rem;
+}

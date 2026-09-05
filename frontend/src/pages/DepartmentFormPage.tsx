@@ -99,10 +99,6 @@ export function DepartmentFormPage({
           <Typography component="h1" variant="h5" sx={{ fontWeight: 750 }}>
             {departmentId ? "ویرایش واحد" : "تعریف واحد"}
           </Typography>
-          <Typography color="text.secondary" sx={{ mt: 0.5 }}>
-            واحد مستقل است مگر یکی از واحدهای مستقل را به‌عنوان والد انتخاب
-            کنید.
-          </Typography>
         </Box>
         <TextField
           autoFocus

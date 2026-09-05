@@ -173,6 +173,13 @@ test("local credential OTP opens the authenticated shell and logout returns to s
   await expect(
     page.getByRole("textbox", { name: "جست‌وجوی سراسری" }),
   ).toHaveCSS("font-family", /Vazirmatn/);
+  await expect
+    .poll(() =>
+      page
+        .getByRole("textbox", { name: "جست‌وجوی سراسری" })
+        .evaluate((input) => getComputedStyle(input, "::placeholder").fontSize),
+    )
+    .toBe("12px");
   await expect(page.getByLabel("ساعت سیستم")).toHaveText(
     /ساعت:\s*[۰-۹]{1,2}:[۰-۹]{2}$/,
   );
@@ -395,6 +402,38 @@ test("local credential OTP opens the authenticated shell and logout returns to s
   await expect(
     page.locator(".MuiModal-root .MuiDrawer-paper").getByText("علم و صنعت"),
   ).toBeVisible();
+  const mobileCloseGeometry = await page.evaluate(() => {
+    const drawer = document.querySelector(".MuiModal-root .MuiDrawer-paper");
+    const closeSlot = document.querySelector(
+      '[data-testid="mobile-sidebar-close-slot"]',
+    );
+    const brand = drawer?.firstElementChild;
+    const home = document
+      .querySelector('nav[aria-label="منوی اصلی"]')
+      ?.querySelector('[role="button"]');
+    if (!drawer || !closeSlot || !brand || !home) {
+      throw new Error("Expected mobile menu elements are missing.");
+    }
+    const drawerBounds = drawer.getBoundingClientRect();
+    const closeBounds = closeSlot.getBoundingClientRect();
+    const brandBounds = brand.getBoundingClientRect();
+    const homeBounds = home.getBoundingClientRect();
+    return {
+      closeLeft: Math.round(closeBounds.left),
+      closeTop: Math.round(closeBounds.top),
+      drawerLeft: Math.round(drawerBounds.left),
+      drawerTop: Math.round(drawerBounds.top),
+      homeTop: Math.round(homeBounds.top),
+      brandBottom: Math.round(brandBounds.bottom),
+    };
+  });
+  expect(mobileCloseGeometry.closeLeft).toBe(
+    mobileCloseGeometry.drawerLeft + 8,
+  );
+  expect(mobileCloseGeometry.closeTop).toBe(mobileCloseGeometry.drawerTop + 8);
+  expect(mobileCloseGeometry.homeTop).toBeLessThanOrEqual(
+    mobileCloseGeometry.brandBottom + 12,
+  );
   const mobileDrawerLayout = await page.evaluate(() => {
     const header = document.querySelector("header");
     const modal = document.querySelector(".MuiModal-root");
@@ -443,7 +482,13 @@ test("local credential OTP opens the authenticated shell and logout returns to s
   await page.getByRole("button", { name: "منوی کاربر" }).click();
   await expect(
     page.getByRole("button", { name: /انتخاب رنگ‌بندی/ }),
-  ).toHaveCount(5);
+  ).toHaveCount(6);
+  const orangePalette = page.getByRole("button", {
+    name: "انتخاب رنگ‌بندی نارنجی",
+  });
+  await expect(orangePalette).toBeVisible();
+  await orangePalette.click();
+  await expect(orangePalette).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("button", { name: "انتخاب رنگ‌بندی فیروزه‌ای" }).click();
   await expect(page.locator("body")).toHaveCSS(
     "background-color",

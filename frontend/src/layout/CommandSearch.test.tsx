@@ -48,4 +48,18 @@ describe("command search", () => {
     expect(input).not.toHaveClass("eos-persian-number");
     expect(input).toHaveStyle({ fontWeight: "400" });
   });
+
+  it("marks the search input for the compact placeholder style", () => {
+    render(
+      <AppThemeProvider>
+        <CommandSearch
+          targets={authorizedWorkspaceTargets(["DepartmentManager"])}
+          onSelect={vi.fn()}
+        />
+      </AppThemeProvider>,
+    );
+
+    const input = screen.getByRole("textbox", { name: "جست‌وجوی سراسری" });
+    expect(input).toHaveClass("eos-command-search-input");
+  });
 });

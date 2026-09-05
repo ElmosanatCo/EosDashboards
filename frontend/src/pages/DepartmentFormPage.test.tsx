@@ -44,5 +44,10 @@ describe("DepartmentFormPage", () => {
     const form = document.querySelector("form");
     expect(form).not.toBeNull();
     expect(form).toHaveStyle({ width: "100%" });
+    expect(
+      screen.queryByText(
+        "واحد مستقل است مگر یکی از واحدهای مستقل را به‌عنوان والد انتخاب کنید.",
+      ),
+    ).not.toBeInTheDocument();
   });
 });

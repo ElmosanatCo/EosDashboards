@@ -8,6 +8,7 @@ public static class UserPreferencePalettes
     public const string Indigo = "indigo";
     public const string Emerald = "emerald";
     public const string Amber = "amber";
+    public const string Orange = "orange";
     public const string Rose = "rose";
 
     public static readonly FrozenSet<string> All =
@@ -16,6 +17,7 @@ public static class UserPreferencePalettes
         Indigo,
         Emerald,
         Amber,
+        Orange,
         Rose,
     ];
 }

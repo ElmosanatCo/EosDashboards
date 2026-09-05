@@ -5,6 +5,7 @@ export const paletteOptions = [
   { id: "indigo", label: "نیلی", swatch: "#7C83E8" },
   { id: "emerald", label: "زمردی", swatch: "#3CAF76" },
   { id: "amber", label: "کهربایی", swatch: "#E0A13A" },
+  { id: "orange", label: "نارنجی", swatch: "#E65100" },
   { id: "rose", label: "رز", swatch: "#D87591" },
 ] as const;
 
@@ -125,6 +126,20 @@ const accentThemes: Record<
       light: "#F2C36E",
       dark: "#AF761D",
       contrastText: "#211504",
+    },
+  },
+  orange: {
+    light: {
+      main: "#C2410C",
+      light: "#E76A2B",
+      dark: "#8B2F00",
+      contrastText: "#FFFFFF",
+    },
+    dark: {
+      main: "#E65100",
+      light: "#FF8A65",
+      dark: "#BF360C",
+      contrastText: "#1F0B00",
     },
   },
   rose: {

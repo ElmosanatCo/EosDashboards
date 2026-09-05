@@ -61,6 +61,7 @@ export function CommandSearch({
         slotProps={{
           htmlInput: {
             "aria-label": "جست‌وجوی سراسری",
+            className: "eos-command-search-input",
           },
           input: {
             endAdornment: (
@@ -93,7 +94,10 @@ export function CommandSearch({
             ),
           },
         }}
-        sx={{ width: "min(410px, 38vw)", minWidth: 150 }}
+        sx={{
+          width: "min(410px, 38vw)",
+          minWidth: 150,
+        }}
       />
       <Popper
         open={open && matches.length > 0}

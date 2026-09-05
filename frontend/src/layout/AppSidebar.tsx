@@ -6,7 +6,6 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Toolbar,
   Tooltip,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
@@ -76,11 +75,14 @@ export function AppSidebar({
           <AppBrand />
         </Box>
       )}
-      <Toolbar
+      <Box
+        data-testid="mobile-sidebar-close-slot"
         sx={{
-          display: { xs: "flex", md: "none" },
-          justifyContent: "flex-start",
-          minHeight: "56px!important",
+          display: { xs: "block", md: "none" },
+          position: "absolute",
+          top: 8,
+          "/* @noflip */ left": 8,
+          zIndex: 1,
         }}
       >
         <Tooltip title="بستن منو">
@@ -88,10 +90,7 @@ export function AppSidebar({
             <CloseIcon />
           </IconButton>
         </Tooltip>
-      </Toolbar>
-      <Toolbar
-        sx={{ display: { xs: "none", sm: "block" }, minHeight: "0!important" }}
-      />
+      </Box>
       <List component="nav" aria-label="منوی اصلی">
         <ListItemButton onClick={onActivateHome}>
           <ListItemIcon>

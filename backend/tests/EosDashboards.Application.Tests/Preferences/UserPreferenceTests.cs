@@ -56,6 +56,21 @@ public sealed class UserPreferenceTests
         Assert.Equal("emerald", saved.Palette);
     }
 
+    [Fact]
+    public async Task Update_accepts_the_orange_palette()
+    {
+        var repository = new PreferenceRepository();
+        var useCase = new UpdateMyPreferences(
+            new Clock(), new Correlation(), repository, new AuditWriter(), new UnitOfWork());
+
+        var saved = await useCase.HandleAsync(
+            7,
+            new UpdateMyPreferencesCommand("dark", "orange", false),
+            CancellationToken.None);
+
+        Assert.Equal("orange", saved.Palette);
+    }
+
     private sealed class PreferenceRepository : IUserPreferenceRepository
     {
         public List<UserPreference> Items { get; } = [];

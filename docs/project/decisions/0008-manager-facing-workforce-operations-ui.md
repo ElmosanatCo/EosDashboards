@@ -10,7 +10,7 @@ The initial authentication shell established a Persian RTL application foundatio
 
 ## Decision
 
-Manager-facing pages use the workforce-operations UI rules in `../standards.md`: a compact, industrial, Persian RTL workspace; dark mode and teal as the defaults; the approved light and dark tokens; the five approved interaction accent choices; fixed header, tab bar, and status bar; flat accent-line panels; structured data-first content; and restrained, evidence-linked AI insights.
+Manager-facing pages use the workforce-operations UI rules in `../standards.md`: a compact, industrial, Persian RTL workspace; dark mode and teal as the defaults; the approved light and dark tokens; the six approved interaction accent choices; fixed header, tab bar, and status bar; flat accent-line panels; structured data-first content; and restrained, evidence-linked AI insights.
 
 The existing persistent, collapsible hamburger side-menu standard remains in force. The role-content defaults guide future page design but do not approve their data, workflow, metric, source, or authorization behavior.
 
