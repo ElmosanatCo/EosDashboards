@@ -32,6 +32,18 @@ If Windows cancels the elevation request, stop and rerun the complete release
 from a new elevated PowerShell session. Do not treat a canceled request as a
 successful publication and do not repeat the publisher unchanged.
 
+If the elevated session reports that script execution is disabled, use a
+process-scoped policy change and retry the publisher in that same session. This
+does not alter the machine or user policy:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+```
+
+When copying the command, keep the migration identifier's underscore literal;
+do not paste Markdown escapes such as `\_` or a backslash before a PowerShell
+backtick.
+
 Run the publish commands from the repository root, or use absolute paths for
 the script and both artifacts. A relative path such as `.\scripts` is resolved
 against the current PowerShell directory, not against the repository. Do not
