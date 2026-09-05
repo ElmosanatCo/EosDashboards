@@ -116,7 +116,7 @@ Initial authentication and application-shell implementation.
 - A global destructive-action safeguard was added on 2026-09-04: delete, removal, and deactivation controls now use the shared Persian confirmation dialog. Cancellation never mutates local state or sends an API request; this covers catalog entries, organizational units, public skills, user deactivation, and unsaved task rows.
 - A local browser smoke check on 2026-09-04 found the new dashboard and job-description requests reaching the API but failing because the development database had not received `20260904091824_DepartmentJobDescriptionFoundation`; the API logged `Invalid object name 'JobDescriptionVersions'`. The migration was applied to the configured development database, the API was restarted, and the authenticated dashboard now renders its database-backed metrics while the job-description list returns the honest empty state. The Vite development proxy also supports direct local API mode through `VITE_API_PROXY_TARGET=http://localhost:5171` while retaining the IIS-prefixed default.
 
-- On 2026-09-05 the Human Resources slice was implemented on the current feature branch: the role-protected organization dashboard now supports all-department or single-department selection, database-backed metric cards, per-department change statistics, and paged change history. The renamed `مدیریت شرح وظایف` workspace now has pending-review, approved-history, and public-skill tabs with view/download actions, rejection reasons, current-versus-immediately-previous comparison, and public-skill edit, soft-delete, reactivation, and audited merge. Public-skill merge transfers existing references to the explicitly named surviving skill and deactivates the source without deleting history. The Application suite (92 tests), protected API endpoint tests (6), frontend suite (36 files/97 tests), typecheck, lint, IIS build, and mocked browser suite (9 flows) passed. The slice is approved for final integration; the merge, publication release identifier, and post-publication smoke result are recorded after the finalization step.
+- On 2026-09-05 the Human Resources slice was implemented and merged into `main` as merge commit `3f70136`: the role-protected organization dashboard now supports all-department or single-department selection, database-backed metric cards, per-department change statistics, and paged change history. The renamed `مدیریت شرح وظایف` workspace now has pending-review, approved-history, and public-skill tabs with view/download actions, rejection reasons, current-versus-immediately-previous comparison, and public-skill edit, soft-delete, reactivation, and audited merge. Public-skill merge transfers existing references to the explicitly named surviving skill and deactivates the source without deleting history. The Application suite (92 tests), protected API endpoint tests (6), frontend suite (36 files/97 tests), typecheck, lint, IIS build, and mocked browser suite (9 flows) passed. The merge is pushed to `origin/main`; local IIS publication and its smoke result remain pending an elevated PowerShell session.
 
 - A live 2026-09-03 correction traced failed department creation to writing a department identifier into the user-only audit subject foreign key, and the empty/erroring user directory to ordering a projected LINQ record that EF Core could not translate. Department audit events now keep their department identifier only as safe metadata with no user subject, and the directory orders users before projection. A focused red/green application regression test passed; the correction was merged/pushed as `0c04600` and locally published with API readiness, UI entry, and the users SPA route returning HTTPS 200.
 
@@ -161,10 +161,10 @@ Initial authentication and application-shell implementation.
 
 The department-manager job-description slice, including the catalog feedback
 and reactivation confirmation correction, is integrated and published to the
-approved local IIS environment as release `20260904-204655`. The current
-feature worktree additionally contains the verified Human Resources dashboard
-and unified job-description-management slice; it is intentionally not merged,
-pushed, or published until the user says `نهایی کن`. Do not deploy to company
+approved local IIS environment as release `20260904-204655`. The Human
+Resources dashboard and unified job-description-management slice is now merged
+and pushed in `main` commit `3f70136`; local IIS publication is the remaining
+step and requires an elevated PowerShell session. Do not deploy to company
 production servers in this slice.
 
 ## Blockers
