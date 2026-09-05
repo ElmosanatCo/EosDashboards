@@ -2,7 +2,7 @@
 param(
     [string]$ReleaseId = (Get-Date -Format 'yyyyMMdd-HHmmss'),
 
-    [string]$ExpectedMigration = '20260905112655_RevalidateJobDescriptionQuality'
+    [string]$ExpectedMigration = '20260905153600_RevalidateExistingJobDescriptionQuality'
 )
 
 Set-StrictMode -Version Latest

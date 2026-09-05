@@ -182,15 +182,18 @@ catalog evidence, so a version could display as healthy until the approval
 request rechecked it. The API correctly returned `incomplete_job_description`,
 but the frontend did not translate that code and showed a generic error. Create
 and revise now run catalog analysis before saving the new version, and the
-frontend displays the actionable incomplete-quality message.
+frontend displays the actionable incomplete-quality message. A follow-up
+data-only migration, `RevalidateExistingJobDescriptionQuality`, was applied
+after a second verified backup so versions created before this correction are
+also revalidated; the affected active versions now persist
+`PendingDataCompletion` with catalog quality issues.
 
 ## Next agreed step
 
 The Human Resources dashboard and unified job-description-management slice is
-merged and pushed in `main` commit `266548b` and published to local IIS as
-release `20260905-150224`. Post-publication live/ready, UI entry, and SPA
-refresh smoke checks returned HTTP 200. Do not deploy to company production
-servers in this slice.
+merged and pushed in `main`; the follow-up correction and data migration are
+pending the next matching local IIS release. Do not deploy to company
+production servers in this slice.
 
 ## Blockers
 
