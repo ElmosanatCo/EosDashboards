@@ -78,7 +78,7 @@ public sealed class JobDescriptionRepository(EosDashboardDbContext context) : IJ
 
     public async Task<IReadOnlyList<JobDescriptionListItem>> ListForHumanResourcesAsync(long? departmentId, CancellationToken cancellationToken)
     {
-        var query = context.JobDescriptionVersions.AsNoTracking()
+        var query = WithDetails(context.JobDescriptionVersions.AsNoTracking())
             .Where(item => item.WorkflowStatus == EosDashboards.Domain.Enums.JobDescriptionWorkflowStatus.UnderHumanResourcesReview);
         if (departmentId is not null)
         {
@@ -94,7 +94,7 @@ public sealed class JobDescriptionRepository(EosDashboardDbContext context) : IJ
 
     public async Task<IReadOnlyList<JobDescriptionListItem>> ListApprovedForHumanResourcesAsync(long? departmentId, CancellationToken cancellationToken)
     {
-        var query = context.JobDescriptionVersions.AsNoTracking()
+        var query = WithDetails(context.JobDescriptionVersions.AsNoTracking())
             .Where(item => item.WorkflowStatus == EosDashboards.Domain.Enums.JobDescriptionWorkflowStatus.Approved);
         if (departmentId is not null)
         {

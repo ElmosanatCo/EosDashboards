@@ -65,6 +65,56 @@ public sealed class RepositoryTests(SqlServerDatabaseFixture database)
     }
 
     [Fact]
+    public async Task JobDescriptionRepository_HumanResourcesList_preserves_healthy_quality()
+    {
+        await using var context = database.CreateDbContext();
+        var suffix = Guid.NewGuid().ToString("N");
+        var department = Department.CreateRoot($"واحد کارتابل منابع انسانی {suffix}", TestNow);
+        context.Departments.Add(department);
+        await context.SaveChangesAsync(CancellationToken.None);
+
+        var skill = SkillCatalogItem.Create(department.Id, $"مهارت کارتابل {suffix}", TestNow);
+        var task = TaskCatalogItem.Create(department.Id, $"وظیفه کارتابل {suffix}", false, TestNow);
+        context.SkillCatalogItems.Add(skill);
+        context.TaskCatalogItems.Add(task);
+        await context.SaveChangesAsync(CancellationToken.None);
+
+        var record = JobDescriptionRecord.Create(department.Id, $"پرسنل کارتابل {suffix}", TestNow);
+        context.JobDescriptionRecords.Add(record);
+        await context.SaveChangesAsync(CancellationToken.None);
+
+        var version = JobDescriptionVersion.Create(
+            record.PersonName,
+            department.Id,
+            $"HR-{suffix}",
+            "لیسانس",
+            "نرم افزار",
+            "سه سال",
+            [skill.Id],
+            [JobDescriptionTask.Create(
+                task.Id,
+                task.Title,
+                "شرح وظیفه",
+                DateOnly.FromDateTime(TestNow),
+                null,
+                1,
+                8)],
+            TestNow,
+            record.Id);
+        version.ApproveByDepartmentManager(TestNow.AddMinutes(1));
+        context.JobDescriptionVersions.Add(version);
+        await context.SaveChangesAsync(CancellationToken.None);
+        context.ChangeTracker.Clear();
+
+        var result = await new JobDescriptionRepository(context)
+            .ListForHumanResourcesAsync(null, CancellationToken.None);
+
+        var item = Assert.Single(result, item => item.PersonName == record.PersonName);
+        Assert.Equal(JobDescriptionQualityStatus.Healthy, item.QualityStatus);
+        Assert.Equal(JobDescriptionWorkflowStatus.UnderHumanResourcesReview, item.WorkflowStatus);
+    }
+
+    [Fact]
     public async Task UserRepository_OrganizationalLookupPersistsProvisioningMutations()
     {
         await using var context = database.CreateDbContext();

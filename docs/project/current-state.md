@@ -209,10 +209,22 @@ current row for پرهام جهانشاهی while the database retained all five
 versions, and the detail view displayed catalog names such as `سی شارپ` and
 `دات نت فریمورک` instead of internal IDs.
 
+A follow-up live check on 2026-09-05 found that the Human Resources review
+list showed a healthy manager-approved version as `ناقص`, while the manager
+list showed `سالم`. The root cause was that the Human Resources repository
+queries calculated the derived quality status without loading the version's
+tasks, skills, or unresolved collections; the empty in-memory collections made
+every listed version appear incomplete. Both Human Resources list queries now
+reuse the full version-detail includes. The regression test failed before the
+correction and passes after it, as do all 11 repository integration tests and
+the Release backend build. This source correction has not yet been published
+to IIS.
+
 ## Next agreed step
 
-Keep local IIS release `20260905-163632` as the current local candidate. No
-company production deployment was performed.
+Publish the Human Resources quality-status correction to local IIS only after
+the user explicitly invokes `نهایی کن`. Do not deploy to company production
+servers.
 
 ## Blockers
 
