@@ -168,19 +168,21 @@ that use the changed task; affected Human Resources-review versions return to
 findings prefer catalog names over opaque identifiers. Migration
 `RevalidateJobDescriptionQuality` was applied to the local development database
 after a verified backup; the affected sample record now persists
-`PendingDataCompletion` with catalog quality issues. Local IIS publication of
-this change has not yet been performed. Fresh Release verification passed all
-287 backend tests (including 138 SQL-backed integration tests); the frontend
-suite passed 36 files/98 tests, and the changed page passed typecheck,
-production build, and focused formatting checks.
+`PendingDataCompletion` with catalog quality issues. Fresh Release verification
+passed all 287 backend tests (including 138 SQL-backed integration tests); the
+frontend suite passed 36 files/98 tests, and the changed page passed typecheck,
+production build, and focused formatting checks. The matching API/UI artifacts
+were published from `main` commit `266548b` as local IIS release
+`20260905-150224`; API liveness/readiness, UI entry, and the SPA refresh probe
+all returned HTTPS HTTP 200.
 
 ## Next agreed step
 
 The Human Resources dashboard and unified job-description-management slice is
-merged and pushed in `main` commit `3f70136` and published to local IIS as
-release `20260905-143557` from current source commit `e849fae`. Post-publication
-live/ready, UI entry, and SPA refresh smoke checks returned HTTP 200. Do not
-deploy to company production servers in this slice.
+merged and pushed in `main` commit `266548b` and published to local IIS as
+release `20260905-150224`. Post-publication live/ready, UI entry, and SPA
+refresh smoke checks returned HTTP 200. Do not deploy to company production
+servers in this slice.
 
 ## Blockers
 
