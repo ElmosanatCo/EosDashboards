@@ -55,6 +55,23 @@ test("local credential OTP opens the authenticated shell and logout returns to s
       });
     } else if (path.endsWith("/auth/logout")) {
       await route.fulfill({ status: 204 });
+    } else if (path.endsWith("/job-descriptions/dashboard")) {
+      await route.fulfill({
+        json: {
+          personnelCount: 0,
+          activePersonnelCount: 0,
+          archivedPersonnelCount: 0,
+          healthyDescriptionCount: 0,
+          incompleteDescriptionCount: 0,
+          pendingDataCompletionCount: 0,
+          pendingDepartmentApprovalCount: 0,
+          underHumanResourcesReviewCount: 0,
+          approvedDescriptionCount: 0,
+          rejectedDescriptionCount: 0,
+          activeProjectCount: 0,
+          peopleWorkingOnActiveProjectsCount: 0,
+        },
+      });
     } else {
       await route.fulfill({ status: 404 });
     }
@@ -151,6 +168,15 @@ test("local credential OTP opens the authenticated shell and logout returns to s
   await expect(page.locator("header").getByAltText("EOS")).toBeVisible();
   await expect(page.locator("header").getByText("علم و صنعت")).toBeVisible();
   await expect(
+    page.getByRole("textbox", { name: "جست‌وجوی سراسری" }),
+  ).toHaveCSS("font-weight", "400");
+  await expect(
+    page.getByRole("textbox", { name: "جست‌وجوی سراسری" }),
+  ).toHaveCSS("font-family", /Vazirmatn/);
+  await expect(page.getByLabel("ساعت سیستم")).toHaveText(
+    /ساعت:\s*[۰-۹]{1,2}:[۰-۹]{2}$/,
+  );
+  await expect(
     page.getByRole("heading", { name: "فضای کاری مدیریت" }),
   ).toHaveCSS("text-align", "start");
   await page.keyboard.press("Control+k");
@@ -172,6 +198,35 @@ test("local credential OTP opens the authenticated shell and logout returns to s
   await expect(
     page.getByRole("heading", { name: "مدیریت کاربران" }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "راهنمای مدیریت کاربران" }).click();
+  await expect(
+    page.getByRole("heading", { name: "راهنمای مدیریت کاربران" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "بستن راهنما" }).click();
+  await page
+    .getByRole("navigation", { name: "منوی اصلی" })
+    .getByText("مدیریت واحدها", { exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "مدیریت واحدها" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "راهنمای مدیریت واحدها" }).click();
+  await expect(
+    page.getByRole("heading", { name: "راهنمای مدیریت واحدها" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "بستن راهنما" }).click();
+  await page
+    .getByRole("navigation", { name: "منوی اصلی" })
+    .getByText("مدیریت شرح وظایف", { exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "مدیریت شرح وظایف" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "راهنمای مدیریت شرح وظایف" }).click();
+  await expect(
+    page.getByRole("heading", { name: "راهنمای مدیریت شرح وظایف" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "بستن راهنما" }).click();
   await page.getByRole("tab", { name: "خانه" }).click();
   const continuation = page.getByRole("region", { name: "ادامهٔ کار" });
   await expect(
@@ -316,9 +371,9 @@ test("local credential OTP opens the authenticated shell and logout returns to s
   expect(mobileDocumentLayout.bodyScrollWidth).toBe(390);
   expect(mobileHomeLayout.width).toBeLessThanOrEqual(390);
   expect(mobileHomeLayout.scrollWidth).toBe(mobileHomeLayout.clientWidth);
-  expect(mobileHomeLayout.capabilityCardCount).toBe(5);
+  expect(mobileHomeLayout.capabilityCardCount).toBe(8);
   expect(mobileHomeLayout.capabilityRowCount).toBeGreaterThan(1);
-  expect(mobileHomeLayout.actionCardCount).toBe(5);
+  expect(mobileHomeLayout.actionCardCount).toBe(8);
   expect(mobileHomeLayout.actionRowCount).toBeGreaterThan(1);
   expect(mobileHomeLayout.actionsBelowTitles.every(Boolean)).toBe(true);
   expect(

@@ -17,6 +17,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import PasswordIcon from "@mui/icons-material/Password";
 import PaletteIcon from "@mui/icons-material/Palette";
 import { useState } from "react";
@@ -34,11 +35,15 @@ export function AppHeader({
   onMenu,
   targets,
   onOpenTarget,
+  pageHelpTitle,
+  onOpenPageHelp,
   showBrand,
 }: {
   onMenu: () => void;
   targets: readonly WorkspaceTarget[];
   onOpenTarget: (target: WorkspaceTarget) => void;
+  pageHelpTitle: string;
+  onOpenPageHelp: () => void;
   showBrand: boolean;
 }) {
   const { user, logout, changePassword } = useAuth();
@@ -86,6 +91,15 @@ export function AppHeader({
             onClick={(event) => setAnchorEl(event.currentTarget)}
           >
             <AccountCircleIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title={pageHelpTitle}>
+          <IconButton
+            color="inherit"
+            aria-label={pageHelpTitle}
+            onClick={onOpenPageHelp}
+          >
+            <HelpOutlineOutlinedIcon />
           </IconButton>
         </Tooltip>
         <Tooltip title="تغییر حالت نمایش">

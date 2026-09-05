@@ -61,7 +61,6 @@ export function CommandSearch({
         slotProps={{
           htmlInput: {
             "aria-label": "جست‌وجوی سراسری",
-            className: "eos-persian-number",
           },
           input: {
             endAdornment: (

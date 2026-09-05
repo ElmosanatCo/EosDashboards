@@ -1,4 +1,5 @@
 import { cleanup, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppHeader } from "./AppHeader";
 
@@ -28,6 +29,8 @@ describe("AppHeader", () => {
         onMenu={vi.fn()}
         targets={[]}
         onOpenTarget={vi.fn()}
+        pageHelpTitle="راهنمای صفحه"
+        onOpenPageHelp={vi.fn()}
         showBrand
       />,
     );
@@ -42,6 +45,8 @@ describe("AppHeader", () => {
         onMenu={vi.fn()}
         targets={[]}
         onOpenTarget={vi.fn()}
+        pageHelpTitle="راهنمای صفحه"
+        onOpenPageHelp={vi.fn()}
         showBrand
       />,
     );
@@ -60,11 +65,36 @@ describe("AppHeader", () => {
         onMenu={vi.fn()}
         targets={[]}
         onOpenTarget={vi.fn()}
+        pageHelpTitle="راهنمای صفحه"
+        onOpenPageHelp={vi.fn()}
         showBrand={false}
       />,
     );
 
     expect(screen.queryByRole("img", { name: "EOS" })).not.toBeInTheDocument();
     expect(screen.queryByText("علم و صنعت")).not.toBeInTheDocument();
+  });
+
+  it("opens the active-page help from the header beside the user menu", async () => {
+    const onOpenPageHelp = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <AppHeader
+        onMenu={vi.fn()}
+        targets={[]}
+        onOpenTarget={vi.fn()}
+        pageHelpTitle="راهنمای مدیریت کاربران"
+        onOpenPageHelp={onOpenPageHelp}
+        showBrand
+      />,
+    );
+
+    const helpButton = screen.getByRole("button", {
+      name: "راهنمای مدیریت کاربران",
+    });
+    expect(helpButton).toBeInTheDocument();
+    await user.click(helpButton);
+    expect(onOpenPageHelp).toHaveBeenCalledOnce();
   });
 });

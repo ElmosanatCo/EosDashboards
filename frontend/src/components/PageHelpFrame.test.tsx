@@ -1,6 +1,6 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { PageHelpFrame } from "./PageHelpFrame";
 
 afterEach(cleanup);
@@ -8,27 +8,21 @@ afterEach(cleanup);
 describe("PageHelpFrame", () => {
   it("shows structured, page-specific guidance and can be closed", async () => {
     const user = userEvent.setup();
+    const onClose = vi.fn();
     render(
-      <PageHelpFrame routeId="department-task-catalog">
+      <PageHelpFrame routeId="department-task-catalog" open onClose={onClose}>
         <div>محتوای صفحه</div>
       </PageHelpFrame>,
     );
 
     const frame = screen.getByTestId("page-help-frame");
-    const helpButton = screen.getByRole("button", {
-      name: "راهنمای کاتالوگ وظایف",
-    });
     expect(frame).toHaveStyle({ position: "relative" });
-    expect(helpButton).toHaveStyle({
-      position: "absolute",
-      insetInlineEnd: "0px",
-      top: "0px",
-    });
+    expect(
+      screen.queryByRole("button", { name: "راهنمای کاتالوگ وظایف" }),
+    ).not.toBeInTheDocument();
     expect(screen.getByTestId("page-help-content")).toHaveStyle({
       paddingInlineEnd: "0px",
     });
-
-    await user.click(helpButton);
 
     expect(
       screen.getByRole("heading", { name: "راهنمای کاتالوگ وظایف" }),
@@ -69,10 +63,6 @@ describe("PageHelpFrame", () => {
     });
 
     await user.click(screen.getByRole("button", { name: "بستن راهنما" }));
-    await waitFor(() =>
-      expect(
-        screen.queryByRole("heading", { name: "راهنمای کاتالوگ وظایف" }),
-      ).not.toBeInTheDocument(),
-    );
+    expect(onClose).toHaveBeenCalledOnce();
   });
 });

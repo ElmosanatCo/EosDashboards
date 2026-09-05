@@ -6,7 +6,6 @@ const dateFormatter = new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
 const timeFormatter = new Intl.DateTimeFormat("fa-IR", {
   hour: "2-digit",
   minute: "2-digit",
-  second: "2-digit",
 });
 
 export function formatPersianDateTime(value: Date) {

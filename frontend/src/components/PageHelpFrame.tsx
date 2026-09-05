@@ -11,13 +11,11 @@ import {
   DialogContent,
   DialogTitle,
   Divider,
-  IconButton,
   Paper,
   Stack,
   Typography,
 } from "@mui/material";
 import type { ReactNode } from "react";
-import { useState } from "react";
 import { pageGuideFor } from "./pageGuides";
 
 const sectionIcons = {
@@ -29,12 +27,15 @@ const sectionIcons = {
 
 export function PageHelpFrame({
   routeId,
+  open,
+  onClose,
   children,
 }: {
   routeId: string;
+  open: boolean;
+  onClose: () => void;
   children: ReactNode;
 }) {
-  const [open, setOpen] = useState(false);
   const pageGuide = pageGuideFor(routeId);
 
   return (
@@ -46,21 +47,6 @@ export function PageHelpFrame({
         minHeight: 0,
       }}
     >
-      <IconButton
-        size="medium"
-        color="primary"
-        aria-label={pageGuide.title}
-        onClick={() => setOpen(true)}
-        sx={{
-          position: "absolute",
-          top: 0,
-          insetInlineEnd: 0,
-          zIndex: 2,
-          p: 0.75,
-        }}
-      >
-        <HelpOutlineOutlinedIcon fontSize="medium" />
-      </IconButton>
       <Box
         data-testid="page-help-content"
         sx={{
@@ -74,7 +60,7 @@ export function PageHelpFrame({
       </Box>
       <Dialog
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={onClose}
         fullWidth
         maxWidth="md"
         aria-labelledby="page-help-dialog-title"
@@ -173,7 +159,7 @@ export function PageHelpFrame({
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>بستن راهنما</Button>
+          <Button onClick={onClose}>بستن راهنما</Button>
         </DialogActions>
       </Dialog>
     </Box>

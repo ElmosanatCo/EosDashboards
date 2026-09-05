@@ -18,6 +18,7 @@ import { ChangePasswordDialog } from "../features/auth/ChangePasswordDialog";
 import { AppSidebar, sidebarWidth } from "./AppSidebar";
 import { StatusBar } from "./StatusBar";
 import { WorkspaceTabs } from "./WorkspaceTabs";
+import { pageGuideFor } from "../components/pageGuides";
 
 export function AppShell() {
   const { user, changePassword } = useAuth();
@@ -25,6 +26,7 @@ export function AppShell() {
   const theme = useTheme();
   const compactLayout = useMediaQuery(theme.breakpoints.down("md"));
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [pageHelpOpen, setPageHelpOpen] = useState(false);
   const [passwordBusy, setPasswordBusy] = useState(false);
   const [passwordError, setPasswordError] = useState<string>();
   const sidebarOpen = compactLayout ? mobileSidebarOpen : !sidebarCollapsed;
@@ -91,6 +93,8 @@ export function AppShell() {
         onMenu={toggleSidebar}
         targets={targets}
         onOpenTarget={openTarget}
+        pageHelpTitle={pageGuideFor(active.routeId).title}
+        onOpenPageHelp={() => setPageHelpOpen(true)}
         showBrand={!compactLayout}
       />
       <Box sx={{ display: "flex", flex: 1, minHeight: 0 }}>
@@ -123,7 +127,11 @@ export function AppShell() {
             component="main"
             sx={{ flex: 1, minHeight: 0, overflow: "auto", p: 2 }}
           >
-            <PageHelpFrame routeId={active.routeId}>
+            <PageHelpFrame
+              routeId={active.routeId}
+              open={pageHelpOpen}
+              onClose={() => setPageHelpOpen(false)}
+            >
               {active.routeId === "home" ||
               targetForRouteId(active.routeId) ||
               active.routeId === "administration-user-create" ||
