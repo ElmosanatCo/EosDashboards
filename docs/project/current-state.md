@@ -118,7 +118,7 @@ Initial authentication and application-shell implementation.
 
 - On 2026-09-05 the Human Resources slice was implemented and merged into `main` as merge commit `3f70136`: the role-protected organization dashboard now supports all-department or single-department selection, database-backed metric cards, per-department change statistics, and paged change history. The renamed `مدیریت شرح وظایف` workspace now has pending-review, approved-history, and public-skill tabs with view/download actions, rejection reasons, current-versus-immediately-previous comparison, and public-skill edit, soft-delete, reactivation, and audited merge. Public-skill merge transfers existing references to the explicitly named surviving skill and deactivates the source without deleting history. The Application suite (92 tests), protected API endpoint tests (6), frontend suite (36 files/97 tests), typecheck, lint, IIS build, and mocked browser suite (9 flows) passed. The merge is pushed to `origin/main`; local IIS publication and its smoke result remain pending an elevated PowerShell session.
 - Finalization preflight on 2026-09-05 freshly passed the full frontend suite (36 files/97 tests), full Release backend suite (284 tests with the isolated SQL catalog), frontend lint, and typecheck. The repository-wide Prettier check still reports only the known unrelated baseline differences in `DepartmentManagementPage.test.tsx` and `UserManagementPage.test.tsx`; no release file was changed. Release artifact rebuild, local IIS publication, and post-publication smoke checks remain pending an elevated PowerShell session (`elevated=False`); no retry or UAC bypass was attempted.
-- To remove the repeated elevation stop, commit `6b0d3d6` added `scripts/Finalize-LocalIisRelease.ps1`, which requests UAC with `Start-Process -Verb RunAs`, builds API/UI artifacts from one committed source, invokes the guarded publisher, and keeps the latest migration preflight. Its five Pester checks pass. On this workstation, launching Codex with Run as administrator still left the tool PowerShell at `Medium Mandatory Level` (`elevated=False`); the automatic UAC child was not interactable from the tool terminal, so the HR release publication remains pending one manually opened elevated PowerShell execution of the canonical command. This is an environment-token boundary, not a publisher failure.
+- To remove the repeated elevation stop, commit `6b0d3d6` added `scripts/Finalize-LocalIisRelease.ps1`, which requests UAC with `Start-Process -Verb RunAs`, builds API/UI artifacts from one committed source, invokes the guarded publisher, and keeps the latest migration preflight. Its five Pester checks pass. The user then ran the canonical command from a truly elevated PowerShell; IIS release `20260905-143557` completed from `main` commit `e849fae`. The publisher's elevated application/pool check passed, both release directories exist, and API live/ready, UI entry, and SPA refresh probes each returned HTTPS HTTP 200. A separate read-only WebAdministration query from the non-elevated tool shell remains unavailable by design; it is not used as publication evidence.
 
 - A live 2026-09-03 correction traced failed department creation to writing a department identifier into the user-only audit subject foreign key, and the empty/erroring user directory to ordering a projected LINQ record that EF Core could not translate. Department audit events now keep their department identifier only as safe metadata with no user subject, and the directory orders users before projection. A focused red/green application regression test passed; the correction was merged/pushed as `0c04600` and locally published with API readiness, UI entry, and the users SPA route returning HTTPS 200.
 
@@ -162,10 +162,10 @@ Initial authentication and application-shell implementation.
 ## Next agreed step
 
 The Human Resources dashboard and unified job-description-management slice is
-merged and pushed in `main` commit `3f70136`. Fresh pre-publication tests pass;
-the matching API/UI release build, local IIS publication, and post-publication
-smoke checks are the remaining steps and require an elevated PowerShell
-session. Do not deploy to company production servers in this slice.
+merged and pushed in `main` commit `3f70136` and published to local IIS as
+release `20260905-143557` from current source commit `e849fae`. Post-publication
+live/ready, UI entry, and SPA refresh smoke checks returned HTTP 200. Do not
+deploy to company production servers in this slice.
 
 ## Blockers
 
