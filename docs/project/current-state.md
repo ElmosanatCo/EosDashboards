@@ -223,9 +223,18 @@ the Release backend build. The correction was published from `main` commit
 authenticated browser reload, the Human Resources worklist shows both the
 healthy Parham and Nasim records as `سالم`.
 
+The supplied `Vazirmatn-FD` WOFF2 weights were added on 2026-09-05 and the
+numeric UI class now uses that Vazirmatn family instead of Sahel FD. The full
+frontend suite (38 files, 104 tests), typecheck, production build, focused
+browser font-loading check, and changed-file formatting checks passed. The
+change was committed as `d591bf3`, pushed to `origin/main`, and published as
+local IIS release `20260905-170137`. Post-publication API liveness/readiness,
+UI entry, and an internal SPA route each returned HTTPS HTTP 200. No company
+production deployment was performed.
+
 ## Next agreed step
 
-Keep local IIS release `20260905-165148` as the current local candidate. No
+Keep local IIS release `20260905-170137` as the current local candidate. No
 company production deployment was performed.
 
 ## Blockers
