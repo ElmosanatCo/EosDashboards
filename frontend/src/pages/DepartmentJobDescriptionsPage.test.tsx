@@ -9,7 +9,10 @@ import {
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AuthenticatedUser } from "../features/auth/authTypes";
-import { jobDescriptionsApi } from "../features/jobDescriptions/jobDescriptionsApi";
+import {
+  jobDescriptionsApi,
+  type JobDescriptionDetail,
+} from "../features/jobDescriptions/jobDescriptionsApi";
 import { DepartmentJobDescriptionsPage } from "./DepartmentJobDescriptionsPage";
 
 vi.mock("../app/providers/AuthProvider", () => ({
@@ -121,6 +124,7 @@ describe("DepartmentJobDescriptionsPage", () => {
       fieldOfStudy: "",
       minimumExperience: "",
       skillIds: [],
+      selectedSkills: [],
       tasks: [],
       unresolvedSkills: [{ rawName: "مهارت خام", sortOrder: 1 }],
       unresolvedTasks: [
@@ -251,6 +255,55 @@ describe("DepartmentJobDescriptionsPage", () => {
     ).toHaveValue("وظیفه خام");
   });
 
+  it("renders selected skill names instead of internal ids", async () => {
+    vi.mocked(jobDescriptionsApi.list).mockResolvedValue([
+      {
+        id: 32,
+        departmentId: 1,
+        personName: "پرسنل دارای مهارت",
+        workflowStatus: "منتظر تأیید",
+        qualityStatus: "سالم",
+        updatedAt: "2026-09-04T10:00:00",
+        needsReview: false,
+      },
+    ]);
+    vi.mocked(jobDescriptionsApi.detail).mockResolvedValue({
+      id: 32,
+      departmentId: 1,
+      personName: "پرسنل دارای مهارت",
+      personnelCode: "P-32",
+      education: "لیسانس",
+      fieldOfStudy: "نرم افزار",
+      minimumExperience: "سه سال",
+      skillIds: [1002],
+      selectedSkills: [{ id: 1002, name: "مدیریت نسخه" }],
+      tasks: [],
+      unresolvedSkills: [],
+      unresolvedTasks: [],
+      workflowStatus: "منتظر تأیید",
+      qualityStatus: "سالم",
+      rejectionReason: null,
+      needsReview: false,
+    } as unknown as JobDescriptionDetail);
+    vi.mocked(jobDescriptionsApi.analysis).mockResolvedValue([]);
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <DepartmentJobDescriptionsPage />
+      </QueryClientProvider>,
+    );
+
+    await userEvent.setup().click(
+      await screen.findByRole("button", {
+        name: "مشاهده شرح وظایف پرسنل دارای مهارت",
+      }),
+    );
+    expect(await screen.findByText("مدیریت نسخه")).toBeInTheDocument();
+    expect(screen.queryByText("مهارت 1002")).not.toBeInTheDocument();
+  });
+
   it("does not offer department submission for an incomplete description", async () => {
     vi.mocked(jobDescriptionsApi.list).mockResolvedValue([
       {
@@ -333,6 +386,7 @@ describe("DepartmentJobDescriptionsPage", () => {
       fieldOfStudy: "نرم افزار",
       minimumExperience: "۳ سال",
       skillIds: [1],
+      selectedSkills: [{ id: 1, name: "مهارت عمومی" }],
       tasks: [
         {
           taskCatalogItemId: 3,

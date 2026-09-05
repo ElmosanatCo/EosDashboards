@@ -1247,8 +1247,8 @@ function JobDescriptionDetailDialog({
               <Box
                 sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, mt: 0.75 }}
               >
-                {detail.data.skillIds.map((skillId) => (
-                  <Chip key={skillId} size="small" label={`مهارت ${skillId}`} />
+                {detail.data.selectedSkills.map((skill) => (
+                  <Chip key={skill.id} size="small" label={skill.name} />
                 ))}
               </Box>
               {detail.data.unresolvedSkills.map((skill) => (

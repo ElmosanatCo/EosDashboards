@@ -16,6 +16,55 @@ public sealed class RepositoryTests(SqlServerDatabaseFixture database)
     private static readonly DateTime TestNow = new DateTime(2026, 9, 2, 8, 0, 0, DateTimeKind.Unspecified);
 
     [Fact]
+    public async Task JobDescriptionRepository_ListAsync_returns_latest_version_per_record()
+    {
+        await using var context = database.CreateDbContext();
+        var suffix = Guid.NewGuid().ToString("N");
+        var department = Department.CreateRoot($"واحد شرح وظیفه {suffix}", TestNow);
+        context.Departments.Add(department);
+        await context.SaveChangesAsync(CancellationToken.None);
+
+        var record = JobDescriptionRecord.Create(department.Id, $"پرسنل {suffix}", TestNow);
+        var skill = SkillCatalogItem.Create(department.Id, $"مهارت {suffix}", TestNow);
+        context.JobDescriptionRecords.Add(record);
+        context.SkillCatalogItems.Add(skill);
+        await context.SaveChangesAsync(CancellationToken.None);
+
+        var previous = JobDescriptionVersion.Create(
+            record.PersonName,
+            department.Id,
+            $"P-{suffix}",
+            "لیسانس",
+            "نرم افزار",
+            "سه سال",
+            [skill.Id],
+            [],
+            TestNow,
+            record.Id);
+        var latest = JobDescriptionVersion.Create(
+            record.PersonName,
+            department.Id,
+            $"P-{suffix}",
+            "لیسانس",
+            "نرم افزار",
+            "پنج سال",
+            [skill.Id],
+            [],
+            TestNow.AddMinutes(1),
+            record.Id);
+        context.JobDescriptionVersions.AddRange(previous, latest);
+        await context.SaveChangesAsync(CancellationToken.None);
+        context.ChangeTracker.Clear();
+
+        var result = await new JobDescriptionRepository(context)
+            .ListAsync([department.Id], null, CancellationToken.None);
+
+        var personRows = result.Where(item => item.PersonName == record.PersonName).ToArray();
+        Assert.Single(personRows);
+        Assert.Equal(latest.Id, personRows[0].Id);
+    }
+
+    [Fact]
     public async Task UserRepository_OrganizationalLookupPersistsProvisioningMutations()
     {
         await using var context = database.CreateDbContext();

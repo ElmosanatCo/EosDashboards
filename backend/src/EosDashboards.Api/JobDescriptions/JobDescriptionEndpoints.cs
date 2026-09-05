@@ -229,7 +229,12 @@ public static class JobDescriptionEndpoints
                 skill.UsageDepartmentIds.Count, skill.IsActive, true, true)).ToArray());
     }
 
-    private static async Task<IResult> DetailAsync(long versionId, HttpContext context, ManageJobDescriptions manager, CancellationToken token)
+    private static async Task<IResult> DetailAsync(
+        long versionId,
+        HttpContext context,
+        ManageJobDescriptions manager,
+        IJobDescriptionCatalogReader catalog,
+        CancellationToken token)
     {
         if (!TryActor(context, out var actor)) return Unauthorized(context);
         var version = await manager.GetForAuthorizedReadAsync(actor, versionId, token);
@@ -239,6 +244,10 @@ public static class JobDescriptionEndpoints
                 version.Id, version.DepartmentId, version.PersonName, version.PersonnelCode,
                 version.Education, version.FieldOfStudy, version.MinimumExperience,
                 version.SkillIds,
+                (await catalog.GetSkillNameMapAsync(version.SkillIds, token))
+                    .OrderBy(item => item.Key)
+                    .Select(item => new JobDescriptionSkillResponse(item.Key, item.Value))
+                    .ToArray(),
                 version.Tasks.Select(task => new JobDescriptionTaskResponse(
                     task.TaskCatalogItemId, task.Title, task.Description, task.StartDate, task.EndDate, task.SortOrder, task.WeeklyHours)).ToArray(),
                 version.UnresolvedSkills.Select(skill => new JobDescriptionUnresolvedSkillResponse(skill.RawName, skill.SortOrder)).ToArray(),

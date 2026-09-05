@@ -169,6 +169,10 @@ export type JobDescriptionDetail = {
   fieldOfStudy: string;
   minimumExperience: string;
   skillIds: number[];
+  selectedSkills: {
+    id: number;
+    name: string;
+  }[];
   tasks: {
     taskCatalogItemId: number;
     title: string;

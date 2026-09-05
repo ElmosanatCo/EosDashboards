@@ -58,8 +58,15 @@ public sealed class JobDescriptionRepository(EosDashboardDbContext context) : IJ
 
         var versions = await query
             .OrderByDescending(item => item.UpdatedAt)
+            .ThenByDescending(item => item.Id)
             .ToListAsync(cancellationToken);
-        return versions.Select(item => new JobDescriptionListItem(
+        var currentVersions = versions
+            .GroupBy(item => item.JobDescriptionRecordId is { } recordId
+                ? $"record:{recordId}"
+                : $"version:{item.Id}")
+            .Select(group => group.First());
+
+        return currentVersions.Select(item => new JobDescriptionListItem(
             item.Id,
             item.DepartmentId,
             item.PersonName,

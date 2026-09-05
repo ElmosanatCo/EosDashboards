@@ -193,11 +193,23 @@ records as `منتظر تأیید` and `سالم`; the database confirms migrati
 updated and the verified source was pushed to `origin/main` as commit
 `00fea7d`. No company production deployment was performed.
 
+A live manager check on 2026-09-05 found that repeated edits correctly retained
+immutable history but the manager list projected every retained version as a
+separate current row; this made one person appear five times after repeated
+saves. The repository now groups manager-list results by job-description record
+and returns only the latest version while preserving older versions for history
+and comparison. The detail response now also returns catalog skill IDs with
+their names, and the manager view renders the names instead of opaque IDs.
+The new repository regression and focused manager-page regression both failed
+before the correction and pass after it; the Release backend build and
+frontend typecheck also pass. These source changes are verified locally but
+have not yet been published to IIS.
+
 ## Next agreed step
 
-Keep local IIS release `20260905-155956` as the current local candidate. No
-further implementation step is agreed for this slice; do not deploy to
-company production servers.
+Publish the verified duplicate-row and skill-name correction to local IIS only
+after the user explicitly invokes `نهایی کن`. Do not deploy to company
+production servers.
 
 ## Blockers
 

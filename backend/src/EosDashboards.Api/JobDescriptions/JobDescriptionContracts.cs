@@ -48,6 +48,7 @@ public sealed record JobDescriptionDetailResponse(
     string FieldOfStudy,
     string MinimumExperience,
     IReadOnlyCollection<long> SkillIds,
+    IReadOnlyCollection<JobDescriptionSkillResponse> SelectedSkills,
     IReadOnlyCollection<JobDescriptionTaskResponse> Tasks,
     IReadOnlyCollection<JobDescriptionUnresolvedSkillResponse> UnresolvedSkills,
     IReadOnlyCollection<JobDescriptionUnresolvedTaskResponse> UnresolvedTasks,
@@ -55,6 +56,8 @@ public sealed record JobDescriptionDetailResponse(
     string QualityStatus,
     string? RejectionReason,
     bool NeedsReview);
+
+public sealed record JobDescriptionSkillResponse(long Id, string Name);
 
 public sealed record JobDescriptionReviewWarningResponse(
     long VersionId,
