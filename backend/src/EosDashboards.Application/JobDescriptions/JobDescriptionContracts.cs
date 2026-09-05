@@ -28,7 +28,8 @@ public sealed record JobDescriptionListItem(
     string PersonName,
     JobDescriptionWorkflowStatus WorkflowStatus,
     JobDescriptionQualityStatus QualityStatus,
-    DateTime UpdatedAt);
+    DateTime UpdatedAt,
+    bool NeedsReview);
 
 public enum JobDescriptionOperationStatus
 {

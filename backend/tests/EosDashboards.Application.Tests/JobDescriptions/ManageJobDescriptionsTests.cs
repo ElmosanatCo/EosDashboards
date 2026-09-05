@@ -29,7 +29,7 @@ public sealed class ManageJobDescriptionsTests
     }
 
     [Fact]
-    public async Task New_version_with_catalog_mismatch_enters_data_completion_before_it_can_be_sent()
+    public async Task New_version_with_unrelated_selected_skill_remains_healthy()
     {
         var repository = new TestRepository();
         var manager = new ManageJobDescriptions(
@@ -41,13 +41,14 @@ public sealed class ManageJobDescriptionsTests
             CancellationToken.None);
 
         Assert.Equal(JobDescriptionOperationStatus.Succeeded, result.Status);
-        Assert.Equal(JobDescriptionWorkflowStatus.PendingDataCompletion, result.Version!.WorkflowStatus);
-        Assert.Equal(JobDescriptionQualityStatus.Incomplete, result.Version.QualityStatus);
-        Assert.True(result.Version.HasCatalogQualityIssues);
+        Assert.Equal(JobDescriptionWorkflowStatus.PendingDepartmentApproval, result.Version!.WorkflowStatus);
+        Assert.Equal(JobDescriptionQualityStatus.Healthy, result.Version.QualityStatus);
+        Assert.False(result.Version.HasCatalogQualityIssues);
+        Assert.False(result.Version.NeedsReview);
     }
 
     [Fact]
-    public async Task Revised_version_with_catalog_mismatch_enters_data_completion_before_it_can_be_sent()
+    public async Task Revised_version_with_unrelated_selected_skill_remains_healthy()
     {
         var repository = new TestRepository
         {
@@ -65,8 +66,34 @@ public sealed class ManageJobDescriptionsTests
             CancellationToken.None);
 
         Assert.Equal(JobDescriptionOperationStatus.Succeeded, result.Status);
-        Assert.Equal(JobDescriptionWorkflowStatus.PendingDataCompletion, result.Version!.WorkflowStatus);
-        Assert.True(result.Version.HasCatalogQualityIssues);
+        Assert.Equal(JobDescriptionWorkflowStatus.PendingDepartmentApproval, result.Version!.WorkflowStatus);
+        Assert.Equal(JobDescriptionQualityStatus.Healthy, result.Version.QualityStatus);
+        Assert.False(result.Version.HasCatalogQualityIssues);
+        Assert.False(result.Version.NeedsReview);
+    }
+
+    [Fact]
+    public async Task Missing_required_skill_is_healthy_but_marked_for_review()
+    {
+        var repository = new TestRepository();
+        var manager = new ManageJobDescriptions(
+            new TestClock(), repository, new TestScope(), new TestCatalog(), new TestCatalog(), new TestDepartments(), new TestGenerator(), new TestUnitOfWork());
+
+        var result = await manager.CreateAsync(7, new CreateJobDescriptionCommand(
+            "علی نمونه", 1, "P-1", "لیسانس", "نرم افزار", "۳ سال", [21],
+            [new JobDescriptionTaskInput(10, "توسعه نرم افزار", "شرح", new DateOnly(2026, 9, 1), null, 1, 40)]),
+            CancellationToken.None);
+
+        Assert.Equal(JobDescriptionOperationStatus.Succeeded, result.Status);
+        Assert.Equal(JobDescriptionWorkflowStatus.PendingDepartmentApproval, result.Version!.WorkflowStatus);
+        Assert.Equal(JobDescriptionQualityStatus.Healthy, result.Version.QualityStatus);
+        Assert.False(result.Version.HasCatalogQualityIssues);
+        Assert.True(result.Version.NeedsReview);
+
+        var approval = await manager.ApproveByDepartmentManagerAsync(7, result.Version.Id, CancellationToken.None);
+
+        Assert.Equal(JobDescriptionOperationStatus.Succeeded, approval.Status);
+        Assert.Equal(JobDescriptionWorkflowStatus.UnderHumanResourcesReview, approval.Version!.WorkflowStatus);
     }
 
     [Fact]
@@ -214,7 +241,7 @@ public sealed class ManageJobDescriptionsTests
     {
         public Task<IReadOnlyList<string>> GetSkillNamesAsync(IReadOnlyCollection<long> skillIds, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<string>>(["مهارت نمونه"]);
         public Task<IReadOnlyDictionary<long, string>> GetSkillNameMapAsync(IReadOnlyCollection<long> skillIds, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyDictionary<long, string>>(new Dictionary<long, string>());
-        public Task<bool> AreValidSelectionsAsync(long departmentId, IReadOnlyCollection<long> skillIds, IReadOnlyCollection<long> taskCatalogItemIds, CancellationToken cancellationToken) => Task.FromResult(departmentId == 1 && skillIds.Contains(20) && taskCatalogItemIds.Contains(10));
+        public Task<bool> AreValidSelectionsAsync(long departmentId, IReadOnlyCollection<long> skillIds, IReadOnlyCollection<long> taskCatalogItemIds, CancellationToken cancellationToken) => Task.FromResult(departmentId == 1 && skillIds.Count > 0 && taskCatalogItemIds.Contains(10));
         public Task<IReadOnlyList<SkillCatalogListItem>> ListSkillsAsync(IReadOnlyCollection<long> departmentIds, bool includeInactive, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<SkillCatalogListItem>>([]);
         public Task<IReadOnlyList<TaskCatalogListItem>> ListTasksAsync(IReadOnlyCollection<long> departmentIds, long? departmentId, bool includeInactive, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<TaskCatalogListItem>>([]);
         public Task<IReadOnlyList<TaskCatalogItem>> GetTasksAsync(long departmentId, IReadOnlyCollection<long> taskIds, CancellationToken cancellationToken)

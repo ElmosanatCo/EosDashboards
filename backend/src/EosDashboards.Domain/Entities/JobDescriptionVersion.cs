@@ -9,6 +9,7 @@ public sealed class JobDescriptionVersion
     private readonly List<JobDescriptionVersionUnresolvedSkill> _unresolvedSkills = [];
     private readonly List<JobDescriptionVersionUnresolvedTask> _unresolvedTasks = [];
     private bool _hasCatalogQualityIssues;
+    private bool _needsReview;
 
     private JobDescriptionVersion()
     {
@@ -108,6 +109,8 @@ public sealed class JobDescriptionVersion
 
     public bool HasCatalogQualityIssues => _hasCatalogQualityIssues;
 
+    public bool NeedsReview => _needsReview;
+
     public static JobDescriptionVersion Create(
         string personName,
         long departmentId,
@@ -186,10 +189,13 @@ public sealed class JobDescriptionVersion
         UpdatedAt = occurredAt;
     }
 
-    public void SetCatalogQualityIssues(bool hasIssues, DateTime occurredAt)
+    public void SetCatalogQualityAssessment(
+        bool hasBlockingIssues,
+        bool needsReview,
+        DateTime occurredAt)
     {
         var workflowChanged = false;
-        if (hasIssues && WorkflowStatus is
+        if (hasBlockingIssues && WorkflowStatus is
             JobDescriptionWorkflowStatus.PendingDepartmentApproval or
             JobDescriptionWorkflowStatus.UnderHumanResourcesReview or
             JobDescriptionWorkflowStatus.Rejected)
@@ -201,14 +207,20 @@ public sealed class JobDescriptionVersion
             workflowChanged = true;
         }
 
-        if (_hasCatalogQualityIssues == hasIssues && !workflowChanged)
+        if (_hasCatalogQualityIssues == hasBlockingIssues &&
+            _needsReview == needsReview &&
+            !workflowChanged)
         {
             return;
         }
 
-        _hasCatalogQualityIssues = hasIssues;
+        _hasCatalogQualityIssues = hasBlockingIssues;
+        _needsReview = needsReview;
         UpdatedAt = occurredAt;
     }
+
+    public void SetCatalogQualityIssues(bool hasIssues, DateTime occurredAt) =>
+        SetCatalogQualityAssessment(hasIssues, _needsReview, occurredAt);
 
     public void RejectByHumanResources(string reason, DateTime occurredAt)
     {

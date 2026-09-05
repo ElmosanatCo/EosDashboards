@@ -65,7 +65,8 @@ public sealed class JobDescriptionRepository(EosDashboardDbContext context) : IJ
             item.PersonName,
             item.WorkflowStatus,
             item.QualityStatus,
-            item.UpdatedAt)).ToArray();
+            item.UpdatedAt,
+            item.NeedsReview)).ToArray();
     }
 
     public async Task<IReadOnlyList<JobDescriptionListItem>> ListForHumanResourcesAsync(long? departmentId, CancellationToken cancellationToken)
@@ -81,7 +82,7 @@ public sealed class JobDescriptionRepository(EosDashboardDbContext context) : IJ
             .OrderBy(item => item.UpdatedAt)
             .ToListAsync(cancellationToken);
         return versions.Select(item => new JobDescriptionListItem(
-            item.Id, item.DepartmentId, item.PersonName, item.WorkflowStatus, item.QualityStatus, item.UpdatedAt)).ToArray();
+            item.Id, item.DepartmentId, item.PersonName, item.WorkflowStatus, item.QualityStatus, item.UpdatedAt, item.NeedsReview)).ToArray();
     }
 
     public async Task<IReadOnlyList<JobDescriptionListItem>> ListApprovedForHumanResourcesAsync(long? departmentId, CancellationToken cancellationToken)
@@ -103,7 +104,7 @@ public sealed class JobDescriptionRepository(EosDashboardDbContext context) : IJ
             .Select(group => group.First())
             .OrderByDescending(item => item.UpdatedAt)
             .Select(item => new JobDescriptionListItem(
-                item.Id, item.DepartmentId, item.PersonName, item.WorkflowStatus, item.QualityStatus, item.UpdatedAt))
+                item.Id, item.DepartmentId, item.PersonName, item.WorkflowStatus, item.QualityStatus, item.UpdatedAt, item.NeedsReview))
             .ToArray();
     }
 
@@ -133,8 +134,12 @@ public sealed class JobDescriptionRepository(EosDashboardDbContext context) : IJ
             var departmentCatalog = catalogByDepartment.TryGetValue(version.DepartmentId, out var items)
                 ? items
                 : [];
-            var hasFindings = JobDescriptionQualityAnalyzer.Analyze(version, departmentCatalog).Count > 0;
-            version.SetCatalogQualityIssues(hasFindings, occurredAt);
+            var assessment = JobDescriptionQualityAssessment.From(
+                JobDescriptionQualityAnalyzer.Analyze(version, departmentCatalog));
+            version.SetCatalogQualityAssessment(
+                assessment.HasBlockingIssues,
+                assessment.NeedsReview,
+                occurredAt);
         }
     }
 

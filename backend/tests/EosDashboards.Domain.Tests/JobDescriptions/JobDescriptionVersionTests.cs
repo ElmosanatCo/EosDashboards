@@ -72,6 +72,21 @@ public sealed class JobDescriptionVersionTests
     }
 
     [Fact]
+    public void Review_warning_keeps_a_complete_version_healthy_and_approvable()
+    {
+        var version = CreateVersion("EMP-1", new DateOnly(2026, 9, 1));
+
+        version.SetCatalogQualityAssessment(false, true, Now.AddHours(1));
+
+        Assert.Equal(JobDescriptionQualityStatus.Healthy, version.QualityStatus);
+        Assert.True(version.NeedsReview);
+
+        version.ApproveByDepartmentManager(Now.AddHours(2));
+
+        Assert.Equal(JobDescriptionWorkflowStatus.UnderHumanResourcesReview, version.WorkflowStatus);
+    }
+
+    [Fact]
     public void Task_with_past_end_date_is_not_active_but_remains_in_version()
     {
         var ended = JobDescriptionTask.Create(

@@ -22,6 +22,10 @@ internal sealed class JobDescriptionVersionConfiguration : IEntityTypeConfigurat
             .HasColumnName("HasCatalogQualityIssues")
             .HasDefaultValue(false)
             .IsRequired();
+        builder.Property<bool>("_needsReview")
+            .HasColumnName("NeedsReview")
+            .HasDefaultValue(false)
+            .IsRequired();
         builder.Property(item => item.CreatedAt).HasColumnType("datetime2(3)");
         builder.Property(item => item.UpdatedAt).HasColumnType("datetime2(3)");
         builder.Property(item => item.DepartmentApprovedAt).HasColumnType("datetime2(3)");

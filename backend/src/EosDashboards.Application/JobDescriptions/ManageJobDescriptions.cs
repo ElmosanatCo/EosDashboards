@@ -375,7 +375,11 @@ public sealed class ManageJobDescriptions(
             version.DepartmentId,
             version.Tasks.Select(task => task.TaskCatalogItemId).Distinct().ToArray(),
             cancellationToken);
-        var hasFindings = JobDescriptionQualityAnalyzer.Analyze(version, taskCatalog).Count > 0;
-        version.SetCatalogQualityIssues(hasFindings, clock.Now);
+        var assessment = JobDescriptionQualityAssessment.From(
+            JobDescriptionQualityAnalyzer.Analyze(version, taskCatalog));
+        version.SetCatalogQualityAssessment(
+            assessment.HasBlockingIssues,
+            assessment.NeedsReview,
+            clock.Now);
     }
 }
